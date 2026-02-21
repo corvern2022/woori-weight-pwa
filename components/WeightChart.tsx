@@ -20,6 +20,30 @@ function labelDate(iso: string): string {
   return iso.slice(5);
 }
 
+function renderDot(dataKey: "me" | "partner") {
+  return function Dot(props: {
+    cx?: number;
+    cy?: number;
+    payload?: ChartPoint;
+    value?: number | null;
+  }) {
+    const { cx, cy, payload, value } = props;
+    if (cx == null || cy == null || value == null) return <circle cx={-10} cy={-10} r={0} />;
+
+    const drank = dataKey === "me" ? payload?.meDrank : payload?.partnerDrank;
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={4}
+        stroke={dataKey === "me" ? "#1677ff" : "#14b8a6"}
+        strokeWidth={2}
+        fill={drank ? "#ef4444" : "#ffffff"}
+      />
+    );
+  };
+}
+
 export function WeightChart({ data, showPartner }: Props) {
   return (
     <div className="h-64 w-full">
@@ -32,7 +56,15 @@ export function WeightChart({ data, showPartner }: Props) {
             formatter={(value) =>
               value == null ? "기록 없음" : `${Number(value).toFixed(1)}kg`
             }
-            labelFormatter={(label) => String(label)}
+            labelFormatter={(label, payload) => {
+              const row = (payload?.[0]?.payload as ChartPoint | undefined) ?? null;
+              const drankNotes: string[] = [];
+              if (row?.meDrank) drankNotes.push("나 음주");
+              if (row?.partnerDrank) drankNotes.push("상대 음주");
+              return drankNotes.length > 0
+                ? `${String(label)} (${drankNotes.join(", ")})`
+                : String(label);
+            }}
           />
           <Line
             type="monotone"
@@ -40,7 +72,7 @@ export function WeightChart({ data, showPartner }: Props) {
             name="나"
             stroke="#1677ff"
             strokeWidth={3}
-            dot={{ r: 4 }}
+            dot={renderDot("me")}
             activeDot={{ r: 5 }}
             connectNulls={false}
           />
@@ -51,7 +83,7 @@ export function WeightChart({ data, showPartner }: Props) {
               name="상대"
               stroke="#14b8a6"
               strokeWidth={3}
-              dot={{ r: 4 }}
+              dot={renderDot("partner")}
               activeDot={{ r: 5 }}
               connectNulls={false}
             />

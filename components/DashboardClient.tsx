@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { AiChat } from "@/components/AiChat";
 import { DeltaStats } from "@/components/DeltaStats";
+import { GoalCard } from "@/components/GoalCard";
 import { PeriodToggle } from "@/components/PeriodToggle";
 import { TodayEntryCard } from "@/components/TodayEntryCard";
 import { WeightChart } from "@/components/WeightChart";
@@ -50,14 +51,16 @@ export function DashboardClient() {
   const [rangeDays, setRangeDays] = useState<7 | 30 | 90>(30);
   const [viewMode, setViewMode] = useState<"both" | "me">("both");
   const [weightInput, setWeightInput] = useState("");
+  const [drank, setDrank] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
+  const [goalInput, setGoalInput] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingGoal, setSavingGoal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const todayISO = useMemo(() => toSeoulISODate(), []);
-  const yesterdayISO = useMemo(() => addDaysISO(todayISO, -1), [todayISO]);
 
   useEffect(() => {
     if (!selectedDate) {
@@ -83,7 +86,7 @@ export function DashboardClient() {
 
       const [{ data: memberRows, error: memberError }, { data: weighRows, error: weighError }, { data: houseRow, error: houseErr }] = await Promise.all([
         supabase.from("household_members").select("user_id, display_name").eq("household_id", hid),
-        supabase.from("weigh_ins").select("date, user_id, weight_kg").eq("household_id", hid).order("date", { ascending: true }),
+        supabase.from("weigh_ins").select("*").eq("household_id", hid).order("date", { ascending: true }),
         supabase.from("households").select("invite_code").eq("id", hid).single(),
       ]);
 
@@ -92,16 +95,31 @@ export function DashboardClient() {
       if (houseErr) throw houseErr;
 
       const safeMembers = (memberRows ?? []) as HouseholdMember[];
-      const safeWeighRows = (weighRows ?? []) as Array<{ date: string; user_id: string; weight_kg: number | string }>;
+      const safeWeighRows = (weighRows ?? []) as Array<{
+        date: string;
+        user_id: string;
+        weight_kg: number | string;
+        drank?: boolean | null;
+      }>;
       setMembers(safeMembers);
       setRows(
         safeWeighRows.map((r) => ({
           date: r.date,
           user_id: r.user_id,
           weight_kg: Number(r.weight_kg),
+          drank: Boolean(r.drank),
         })),
       );
       setInviteCode(houseRow?.invite_code ?? "");
+
+      const { data: profileRow, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("goal_kg")
+        .eq("user_id", targetUser.id)
+        .maybeSingle();
+      if (!profileError && profileRow?.goal_kg != null) {
+        setGoalInput(Number(profileRow.goal_kg).toFixed(1));
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "불러오기 실패");
@@ -172,6 +190,7 @@ export function DashboardClient() {
     if (!user || !selectedDate) return;
     const mine = rows.find((r) => r.user_id === user.id && r.date === selectedDate);
     setWeightInput(mine ? Number(mine.weight_kg).toFixed(1) : "");
+    setDrank(mine ? Boolean(mine.drank) : false);
   }, [rows, selectedDate, user]);
 
   const myName = useMemo(() => {
@@ -188,12 +207,18 @@ export function DashboardClient() {
     if (!user) return [];
     const dates = buildDateRange(todayISO, rangeDays);
     const map = new Map<string, number>();
-    rows.forEach((row) => map.set(`${row.user_id}|${row.date}`, Number(row.weight_kg)));
+    const drankMap = new Map<string, boolean>();
+    rows.forEach((row) => {
+      map.set(`${row.user_id}|${row.date}`, Number(row.weight_kg));
+      drankMap.set(`${row.user_id}|${row.date}`, Boolean(row.drank));
+    });
 
     return dates.map((date) => ({
       date,
       me: map.get(`${user.id}|${date}`) ?? null,
       partner: partner ? (map.get(`${partner.user_id}|${date}`) ?? null) : null,
+      meDrank: drankMap.get(`${user.id}|${date}`) ?? false,
+      partnerDrank: partner ? (drankMap.get(`${partner.user_id}|${date}`) ?? false) : false,
     }));
   }, [partner, rangeDays, rows, todayISO, user]);
 
@@ -251,6 +276,15 @@ export function DashboardClient() {
       },
     };
   }, [myName, partner, rangeDays, rows, todayISO, user]);
+
+  const myCurrentWeight = useMemo(() => {
+    if (!user) return null;
+    const mine = rows
+      .filter((r) => r.user_id === user.id && r.date <= todayISO)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const latest = mine.at(-1);
+    return latest ? latest.weight_kg : null;
+  }, [rows, todayISO, user]);
 
   async function signUp() {
     if (!supabase) return;
@@ -348,6 +382,7 @@ export function DashboardClient() {
           user_id: user.id,
           date: selectedDate,
           weight_kg: parsed,
+          drank,
         },
         { onConflict: "user_id,date" },
       );
@@ -361,6 +396,35 @@ export function DashboardClient() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function saveGoalWeight() {
+    if (!supabase || !user) return;
+    const parsed = Math.round(Number.parseFloat(goalInput) * 10) / 10;
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setToast("목표 체중을 올바르게 입력해주세요.");
+      return;
+    }
+
+    setSavingGoal(true);
+    try {
+      const { error: upsertError } = await supabase.from("user_profiles").upsert(
+        { user_id: user.id, goal_kg: parsed },
+        { onConflict: "user_id" },
+      );
+      if (upsertError) throw upsertError;
+      setToast("목표 저장 완료");
+      setTimeout(() => setToast(null), 1800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "목표 저장 실패");
+    } finally {
+      setSavingGoal(false);
+    }
+  }
+
+  function moveToPreviousDate() {
+    if (!selectedDate) return;
+    setSelectedDate(addDaysISO(selectedDate, -1));
   }
 
   if (authLoading) {
@@ -492,12 +556,14 @@ export function DashboardClient() {
       <div className="space-y-4">
         <TodayEntryCard
           todayISO={todayISO}
-          yesterdayISO={yesterdayISO}
           selectedDate={selectedDate}
           weightInput={weightInput}
+          drank={drank}
           saving={saving}
+          onPreviousDate={moveToPreviousDate}
           onChangeDate={setSelectedDate}
           onChangeWeight={setWeightInput}
+          onChangeDrank={setDrank}
           onSave={saveTodayWeight}
         />
 
@@ -534,6 +600,14 @@ export function DashboardClient() {
         </section>
 
         <DeltaStats vsYesterday={deltas.vsYesterday} vsWeek={deltas.vsWeek} />
+
+        <GoalCard
+          goalInput={goalInput}
+          saving={savingGoal}
+          currentWeight={myCurrentWeight}
+          onChangeGoal={setGoalInput}
+          onSaveGoal={saveGoalWeight}
+        />
 
         <AiChat summary={aiSummary} />
       </div>

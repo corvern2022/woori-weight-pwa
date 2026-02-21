@@ -2,6 +2,7 @@ export type WeighInRow = {
   date: string;
   user_id: string;
   weight_kg: number;
+  drank: boolean;
 };
 
 export type HouseholdMember = {
@@ -13,6 +14,8 @@ export type ChartPoint = {
   date: string;
   me: number | null;
   partner: number | null;
+  meDrank: boolean;
+  partnerDrank: boolean;
 };
 
 export type ChatMessage = {

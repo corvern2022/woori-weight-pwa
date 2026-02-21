@@ -26,6 +26,13 @@ create table if not exists public.weigh_ins (
   updated_at timestamptz not null default now(),
   unique (user_id, date)
 );
+alter table public.weigh_ins add column if not exists drank boolean not null default false;
+
+create table if not exists public.user_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  goal_kg numeric(5,2),
+  updated_at timestamptz not null default now()
+);
 
 create index if not exists weigh_ins_household_date_idx on public.weigh_ins(household_id, date);
 
@@ -169,6 +176,7 @@ $$;
 alter table public.households enable row level security;
 alter table public.household_members enable row level security;
 alter table public.weigh_ins enable row level security;
+alter table public.user_profiles enable row level security;
 
 drop policy if exists households_select_same_household on public.households;
 create policy households_select_same_household
@@ -209,6 +217,25 @@ with check (
   household_id = public.get_my_household_id()
   and user_id = auth.uid()
 );
+
+drop policy if exists user_profiles_select_self on public.user_profiles;
+create policy user_profiles_select_self
+on public.user_profiles
+for select to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists user_profiles_insert_self on public.user_profiles;
+create policy user_profiles_insert_self
+on public.user_profiles
+for insert to authenticated
+with check (user_id = auth.uid());
+
+drop policy if exists user_profiles_update_self on public.user_profiles;
+create policy user_profiles_update_self
+on public.user_profiles
+for update to authenticated
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
 
 grant execute on function public.get_my_household_id() to authenticated;
 grant execute on function public.create_my_household(text) to authenticated;

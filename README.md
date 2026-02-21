@@ -8,6 +8,7 @@
 3. `Authentication > Sign In / Providers`에서 이메일+비밀번호 로그인 허용
 4. `Authentication > Settings`에서 (원하면) 이메일 확인(Confirm email) 끄기
 5. `SQL Editor`에서 `supabase_friend.sql` 파일 내용 전체 실행
+6. 새 기능(음주 여부/목표 체중) 반영 시에도 같은 `supabase_friend.sql`을 다시 실행해 최신 스키마로 맞추기
 
 ## 1) 로컬 실행
 ```bash
