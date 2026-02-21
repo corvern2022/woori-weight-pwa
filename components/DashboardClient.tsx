@@ -112,8 +112,9 @@ export function DashboardClient() {
 
   useEffect(() => {
     if (!supabase) return;
+    const client = supabase;
     async function init() {
-      const { data } = await supabase.auth.getUser();
+      const { data } = await client.auth.getUser();
       setUser(data.user ?? null);
       setAuthLoading(false);
       if (data.user) {
@@ -124,7 +125,7 @@ export function DashboardClient() {
 
     void init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
+    const { data: listener } = client.auth.onAuthStateChange((_event: string, session: Session | null) => {
       const nextUser = session?.user ?? null;
       setUser(nextUser);
       if (nextUser) {
@@ -143,9 +144,10 @@ export function DashboardClient() {
 
   useEffect(() => {
     if (!supabase) return;
+    const client = supabase;
     if (!householdId) return;
 
-    const channel = supabase
+    const channel = client
       .channel(`weigh-ins-${householdId}`)
       .on(
         "postgres_changes",
@@ -162,7 +164,7 @@ export function DashboardClient() {
       .subscribe();
 
     return () => {
-      void supabase.removeChannel(channel);
+      void client.removeChannel(channel);
     };
   }, [householdId, supabase, user]);
 
