@@ -28,13 +28,26 @@ function renderDot(dataKey: "me" | "partner") {
     cy?: number;
     payload?: ChartPoint;
     value?: number | null;
+    index?: number;
   }) {
-    const { cx, cy, payload, value } = props;
-    if (cx == null || cy == null || value == null) return <circle cx={-10} cy={-10} r={0} />;
+    const { cx, cy, payload, value, index } = props;
+    if (cx == null || cy == null || value == null) {
+      return (
+        <circle
+          key={`${dataKey}-empty-${payload?.date ?? "unknown"}-${index ?? 0}`}
+          cx={-10}
+          cy={-10}
+          r={0}
+          fill="none"
+          stroke="none"
+        />
+      );
+    }
 
     const drank = dataKey === "me" ? payload?.meDrank : payload?.partnerDrank;
     return (
       <circle
+        key={`${dataKey}-${payload?.date ?? "unknown"}-${index ?? 0}`}
         cx={cx}
         cy={cy}
         r={4}
