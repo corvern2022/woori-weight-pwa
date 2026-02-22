@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { AiChat } from "@/components/AiChat";
+import { AlcoholCalendarCard } from "@/components/AlcoholCalendarCard";
 import { DeltaStats } from "@/components/DeltaStats";
 import { GoalCard } from "@/components/GoalCard";
 import { PeriodToggle } from "@/components/PeriodToggle";
@@ -54,6 +55,7 @@ export function DashboardClient() {
   const [drank, setDrank] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [goalInput, setGoalInput] = useState("");
+  const [dietStartDate, setDietStartDate] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -114,11 +116,16 @@ export function DashboardClient() {
 
       const { data: profileRow, error: profileError } = await supabase
         .from("user_profiles")
-        .select("goal_kg")
+        .select("goal_kg, diet_start_date")
         .eq("user_id", targetUser.id)
         .maybeSingle();
-      if (!profileError && profileRow?.goal_kg != null) {
-        setGoalInput(Number(profileRow.goal_kg).toFixed(1));
+      if (!profileError) {
+        if (profileRow?.goal_kg != null) {
+          setGoalInput(Number(profileRow.goal_kg).toFixed(1));
+        } else {
+          setGoalInput("");
+        }
+        setDietStartDate(profileRow?.diet_start_date ?? "");
       }
 
     } catch (err) {
@@ -154,6 +161,8 @@ export function DashboardClient() {
         setMembers([]);
         setRows([]);
         setInviteCode("");
+        setGoalInput("");
+        setDietStartDate("");
       }
     });
 
@@ -237,6 +246,7 @@ export function DashboardClient() {
         range_days: rangeDays,
         today: todayISO,
         me_label: "",
+        partner_label: "",
         users: [
           { label: "me", series: [] },
           { label: "partner", series: [] },
@@ -251,15 +261,20 @@ export function DashboardClient() {
     const start = addDaysISO(todayISO, -(rangeDays - 1));
     const inRange = rows.filter((row) => row.date >= start && row.date <= todayISO);
 
-    const meSeries = inRange.filter((r) => r.user_id === user.id).map((r) => ({ date: r.date, kg: r.weight_kg }));
+    const meSeries = inRange
+      .filter((r) => r.user_id === user.id)
+      .map((r) => ({ date: r.date, kg: r.weight_kg, drank: r.drank }));
     const partnerSeries = partner
-      ? inRange.filter((r) => r.user_id === partner.user_id).map((r) => ({ date: r.date, kg: r.weight_kg }))
+      ? inRange
+          .filter((r) => r.user_id === partner.user_id)
+          .map((r) => ({ date: r.date, kg: r.weight_kg, drank: r.drank }))
       : [];
 
     return {
       range_days: rangeDays,
       today: todayISO,
       me_label: myName,
+      partner_label: partner?.display_name ?? "",
       users: [
         { label: "me", series: meSeries },
         { label: "partner", series: partnerSeries },
@@ -401,15 +416,21 @@ export function DashboardClient() {
   async function saveGoalWeight() {
     if (!supabase || !user) return;
     const parsed = Math.round(Number.parseFloat(goalInput) * 10) / 10;
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      setToast("목표 체중을 올바르게 입력해주세요.");
+    const hasGoal = Number.isFinite(parsed) && parsed > 0;
+
+    if (!hasGoal && !dietStartDate) {
+      setToast("목표 체중 또는 시작일 중 하나는 입력해주세요.");
       return;
     }
 
     setSavingGoal(true);
     try {
       const { error: upsertError } = await supabase.from("user_profiles").upsert(
-        { user_id: user.id, goal_kg: parsed },
+        {
+          user_id: user.id,
+          goal_kg: hasGoal ? parsed : null,
+          diet_start_date: dietStartDate || null,
+        },
         { onConflict: "user_id" },
       );
       if (upsertError) throw upsertError;
@@ -427,6 +448,11 @@ export function DashboardClient() {
     setSelectedDate(addDaysISO(selectedDate, -1));
   }
 
+  function moveToNextDate() {
+    if (!selectedDate) return;
+    setSelectedDate(addDaysISO(selectedDate, 1));
+  }
+
   if (authLoading) {
     return <main className="p-4 text-sm text-slate-500">인증 확인 중...</main>;
   }
@@ -434,7 +460,7 @@ export function DashboardClient() {
   if (supabaseError || !supabase) {
     return (
       <main className="mx-auto max-w-md p-4">
-        <section className="rounded-2xl bg-card p-4 shadow-card">
+        <section className="panel p-4">
           <h1 className="text-lg font-bold">설정 확인 필요</h1>
           <p className="mt-2 text-sm text-red-500">
             {supabaseError ?? "Supabase 연결 설정이 없습니다."}
@@ -450,36 +476,36 @@ export function DashboardClient() {
   if (!user) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
-        <section className="rounded-2xl bg-card p-6 shadow-card">
-          <h1 className="text-2xl font-bold">우리 체중계</h1>
-          <p className="mt-2 text-sm text-slate-500">2인 공유를 위해 로그인하세요.</p>
+        <section className="panel p-6">
+          <h1 className="text-3xl font-extrabold tracking-tight">우리 체중계</h1>
+          <p className="mt-2 text-sm muted">2인 공유를 위해 로그인하세요.</p>
           <div className="mt-4 space-y-2">
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="이름 (예: 돌핀)"
-              className="w-full rounded-xl border border-slate-200 px-3 py-3"
+              className="field"
             />
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일"
               type="email"
-              className="w-full rounded-xl border border-slate-200 px-3 py-3"
+              className="field"
             />
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호 (6자 이상)"
               type="password"
-              className="w-full rounded-xl border border-slate-200 px-3 py-3"
+              className="field"
             />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <button type="button" onClick={signIn} className="rounded-xl bg-accent py-3 text-white">
+            <button type="button" onClick={signIn} className="btn-primary py-3">
               로그인
             </button>
-            <button type="button" onClick={signUp} className="rounded-xl border border-slate-200 py-3">
+            <button type="button" onClick={signUp} className="btn-soft py-3">
               회원가입
             </button>
           </div>
@@ -492,37 +518,37 @@ export function DashboardClient() {
   if (!householdId) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
-        <section className="rounded-2xl bg-card p-6 shadow-card">
-          <h1 className="text-2xl font-bold">친구 연결</h1>
-          <p className="mt-2 text-sm text-slate-500">초대코드를 만들거나 입력해서 2인 연결하세요.</p>
+        <section className="panel p-6">
+          <h1 className="text-3xl font-extrabold tracking-tight">친구 연결</h1>
+          <p className="mt-2 text-sm muted">초대코드를 만들거나 입력해서 2인 연결하세요.</p>
 
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="내 이름"
-            className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-3"
+            className="field mt-4"
           />
 
           <button
             type="button"
             onClick={createHousehold}
-            className="mt-3 w-full rounded-xl bg-accent py-3 font-semibold text-white"
+            className="btn-primary mt-3 w-full py-3"
           >
             내 초대코드 만들기
           </button>
 
-          <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
             <p className="font-semibold">상대 코드로 참여</p>
             <input
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               placeholder="초대코드 6자리"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3"
+              className="field mt-2"
             />
             <button
               type="button"
               onClick={joinHousehold}
-              className="mt-2 w-full rounded-xl border border-slate-200 py-3 font-semibold"
+              className="btn-soft mt-2 w-full py-3"
             >
               코드로 참여
             </button>
@@ -536,18 +562,20 @@ export function DashboardClient() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-xl px-4 pb-8 pt-4 safe-top safe-bottom">
-      <header className="mb-4 rounded-2xl bg-card p-4 shadow-card">
+    <main className="mx-auto w-full max-w-2xl px-4 pb-10 pt-4 safe-top safe-bottom">
+      <header className="panel mb-4 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">우리 체중계</h1>
-            <p className="text-xs text-slate-500">내 이름: {myName}</p>
+            <h1 className="text-3xl font-extrabold tracking-tight">우리 체중계</h1>
+            <p className="text-sm muted">내 이름: {myName}</p>
           </div>
-          <button type="button" onClick={signOut} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+          <button type="button" onClick={signOut} className="btn-soft px-3 py-2 text-sm">
             로그아웃
           </button>
         </div>
-        <p className="mt-2 text-sm text-slate-600">우리 코드: <span className="font-bold">{inviteCode || "-"}</span></p>
+        <p className="mt-2 text-sm text-slate-600">
+          우리 코드: <span className="font-bold tracking-wide">{inviteCode || "-"}</span>
+        </p>
       </header>
 
       {loading ? <p className="mb-4 text-sm text-slate-500">불러오는 중...</p> : null}
@@ -561,13 +589,14 @@ export function DashboardClient() {
           drank={drank}
           saving={saving}
           onPreviousDate={moveToPreviousDate}
+          onNextDate={moveToNextDate}
           onChangeDate={setSelectedDate}
           onChangeWeight={setWeightInput}
           onChangeDrank={setDrank}
           onSave={saveTodayWeight}
         />
 
-        <section className="rounded-2xl bg-card p-4 shadow-card">
+        <section className="panel p-4">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-lg font-bold">체중 그래프</h2>
             <PeriodToggle value={rangeDays} onChange={setRangeDays} />
@@ -594,19 +623,34 @@ export function DashboardClient() {
             </button>
           </div>
 
+          <p className="mt-2 text-xs text-slate-500">
+            파랑: {myName}
+            {partner ? ` / 민트: ${partner.display_name}` : ""}
+          </p>
+
           <div className="mt-3">
-            <WeightChart data={chartData} showPartner={viewMode === "both"} />
+            <WeightChart
+              data={chartData}
+              showPartner={viewMode === "both"}
+              meLabel={myName}
+              partnerLabel={partner?.display_name ?? "상대"}
+            />
           </div>
         </section>
+
+        <AlcoholCalendarCard rows={rows} members={members} meId={user.id} />
 
         <DeltaStats vsYesterday={deltas.vsYesterday} vsWeek={deltas.vsWeek} />
 
         <GoalCard
           goalInput={goalInput}
+          dietStartDate={dietStartDate}
           saving={savingGoal}
           currentWeight={myCurrentWeight}
           onChangeGoal={setGoalInput}
+          onChangeDietStartDate={setDietStartDate}
           onSaveGoal={saveGoalWeight}
+          todayISO={todayISO}
         />
 
         <AiChat summary={aiSummary} />

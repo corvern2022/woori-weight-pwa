@@ -14,6 +14,8 @@ import type { ChartPoint } from "@/lib/types";
 type Props = {
   data: ChartPoint[];
   showPartner: boolean;
+  meLabel: string;
+  partnerLabel: string;
 };
 
 function labelDate(iso: string): string {
@@ -44,7 +46,7 @@ function renderDot(dataKey: "me" | "partner") {
   };
 }
 
-export function WeightChart({ data, showPartner }: Props) {
+export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props) {
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer>
@@ -69,7 +71,7 @@ export function WeightChart({ data, showPartner }: Props) {
           <Line
             type="monotone"
             dataKey="me"
-            name="나"
+            name={meLabel}
             stroke="#1677ff"
             strokeWidth={3}
             dot={renderDot("me")}
@@ -80,7 +82,7 @@ export function WeightChart({ data, showPartner }: Props) {
             <Line
               type="monotone"
               dataKey="partner"
-              name="상대"
+              name={partnerLabel}
               stroke="#14b8a6"
               strokeWidth={3}
               dot={renderDot("partner")}

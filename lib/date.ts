@@ -38,3 +38,10 @@ export function formatISOWithWeekday(isoDate: string): string {
   const day = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   return `${isoDate} (${weekdays[day]})`;
 }
+
+export function formatISOWithWeekdayKorean(isoDate: string): string {
+  const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const day = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return `${y}. ${String(m).padStart(2, "0")}. ${String(d).padStart(2, "0")}. (${weekdays[day]})`;
+}

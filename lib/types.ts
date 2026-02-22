@@ -27,12 +27,14 @@ export type ChatMessage = {
 export type AiSeries = {
   date: string;
   kg: number;
+  drank?: boolean;
 };
 
 export type AiSummary = {
   range_days: number;
   today: string;
   me_label: string;
+  partner_label: string;
   users: Array<{
     label: "me" | "partner";
     series: AiSeries[];
@@ -41,4 +43,10 @@ export type AiSummary = {
     me: { vs_yesterday: number | null; vs_week: number | null };
     partner: { vs_yesterday: number | null; vs_week: number | null };
   };
+};
+
+export type UserProfile = {
+  user_id: string;
+  goal_kg: number | null;
+  diet_start_date: string | null;
 };

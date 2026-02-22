@@ -31,8 +31,10 @@ alter table public.weigh_ins add column if not exists drank boolean not null def
 create table if not exists public.user_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   goal_kg numeric(5,2),
+  diet_start_date date,
   updated_at timestamptz not null default now()
 );
+alter table public.user_profiles add column if not exists diet_start_date date;
 
 create index if not exists weigh_ins_household_date_idx on public.weigh_ins(household_id, date);
 
