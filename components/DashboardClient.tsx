@@ -460,7 +460,7 @@ export function DashboardClient() {
   if (supabaseError || !supabase) {
     return (
       <main className="mx-auto max-w-md p-4">
-        <section className="panel p-4">
+        <section className="rounded-2xl bg-card p-4 shadow-card">
           <h1 className="text-lg font-bold">설정 확인 필요</h1>
           <p className="mt-2 text-sm text-red-500">
             {supabaseError ?? "Supabase 연결 설정이 없습니다."}
@@ -476,36 +476,36 @@ export function DashboardClient() {
   if (!user) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
-        <section className="panel p-6">
-          <h1 className="text-3xl font-extrabold tracking-tight">우리 체중계</h1>
-          <p className="mt-2 text-sm muted">2인 공유를 위해 로그인하세요.</p>
+        <section className="rounded-2xl bg-card p-6 shadow-card">
+          <h1 className="text-2xl font-bold">우리 체중계</h1>
+          <p className="mt-2 text-sm text-slate-500">2인 공유를 위해 로그인하세요.</p>
           <div className="mt-4 space-y-2">
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="이름 (예: 돌핀)"
-              className="field"
+              className="w-full rounded-xl border border-slate-200 px-3 py-3"
             />
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일"
               type="email"
-              className="field"
+              className="w-full rounded-xl border border-slate-200 px-3 py-3"
             />
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호 (6자 이상)"
               type="password"
-              className="field"
+              className="w-full rounded-xl border border-slate-200 px-3 py-3"
             />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <button type="button" onClick={signIn} className="btn-primary py-3">
+            <button type="button" onClick={signIn} className="rounded-xl bg-accent py-3 text-white">
               로그인
             </button>
-            <button type="button" onClick={signUp} className="btn-soft py-3">
+            <button type="button" onClick={signUp} className="rounded-xl border border-slate-200 py-3">
               회원가입
             </button>
           </div>
@@ -518,37 +518,37 @@ export function DashboardClient() {
   if (!householdId) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
-        <section className="panel p-6">
-          <h1 className="text-3xl font-extrabold tracking-tight">친구 연결</h1>
-          <p className="mt-2 text-sm muted">초대코드를 만들거나 입력해서 2인 연결하세요.</p>
+        <section className="rounded-2xl bg-card p-6 shadow-card">
+          <h1 className="text-2xl font-bold">친구 연결</h1>
+          <p className="mt-2 text-sm text-slate-500">초대코드를 만들거나 입력해서 2인 연결하세요.</p>
 
           <input
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="내 이름"
-            className="field mt-4"
+            className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-3"
           />
 
           <button
             type="button"
             onClick={createHousehold}
-            className="btn-primary mt-3 w-full py-3"
+            className="mt-3 w-full rounded-xl bg-accent py-3 font-semibold text-white"
           >
             내 초대코드 만들기
           </button>
 
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
+          <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm">
             <p className="font-semibold">상대 코드로 참여</p>
             <input
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               placeholder="초대코드 6자리"
-              className="field mt-2"
+              className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3"
             />
             <button
               type="button"
               onClick={joinHousehold}
-              className="btn-soft mt-2 w-full py-3"
+              className="mt-2 w-full rounded-xl border border-slate-200 py-3 font-semibold"
             >
               코드로 참여
             </button>
@@ -562,20 +562,18 @@ export function DashboardClient() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 pb-10 pt-4 safe-top safe-bottom">
-      <header className="panel mb-4 p-4">
+    <main className="mx-auto w-full max-w-xl px-4 pb-8 pt-4 safe-top safe-bottom">
+      <header className="mb-4 rounded-2xl bg-card p-4 shadow-card">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">우리 체중계</h1>
-            <p className="text-sm muted">내 이름: {myName}</p>
+            <h1 className="text-2xl font-bold">우리 체중계</h1>
+            <p className="text-xs text-slate-500">내 이름: {myName}</p>
           </div>
-          <button type="button" onClick={signOut} className="btn-soft px-3 py-2 text-sm">
+          <button type="button" onClick={signOut} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
             로그아웃
           </button>
         </div>
-        <p className="mt-2 text-sm text-slate-600">
-          우리 코드: <span className="font-bold tracking-wide">{inviteCode || "-"}</span>
-        </p>
+        <p className="mt-2 text-sm text-slate-600">우리 코드: <span className="font-bold">{inviteCode || "-"}</span></p>
       </header>
 
       {loading ? <p className="mb-4 text-sm text-slate-500">불러오는 중...</p> : null}
@@ -596,7 +594,7 @@ export function DashboardClient() {
           onSave={saveTodayWeight}
         />
 
-        <section className="panel p-4">
+        <section className="rounded-2xl bg-card p-4 shadow-card">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-lg font-bold">체중 그래프</h2>
             <PeriodToggle value={rangeDays} onChange={setRangeDays} />
@@ -638,9 +636,9 @@ export function DashboardClient() {
           </div>
         </section>
 
-        <AlcoholCalendarCard rows={rows} members={members} meId={user.id} />
-
         <DeltaStats vsYesterday={deltas.vsYesterday} vsWeek={deltas.vsWeek} />
+
+        <AlcoholCalendarCard rows={rows} members={members} meId={user.id} />
 
         <GoalCard
           goalInput={goalInput}

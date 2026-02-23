@@ -97,33 +97,33 @@ export function AlcoholCalendarCard({ rows, members, meId }: Props) {
   }, [monthISO]);
 
   return (
-    <section className="panel p-4">
+    <section className="rounded-2xl bg-card p-4 shadow-card">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold">음주 달력</h2>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="btn-soft px-3 py-2 text-sm"
+          className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
         >
           달력 바로가기
         </button>
       </div>
 
-      <p className="mt-2 text-sm text-slate-600 leading-6">
+      <p className="mt-2 text-sm text-slate-600">
         이번 달 음주 횟수: {me?.display_name ?? "나"} {monthStats.meCount}회
         {partner ? ` / ${partner.display_name} ${monthStats.partnerCount}회` : ""} / 합계 {monthStats.total}회
       </p>
 
       {open ? (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 p-4 backdrop-blur-[1px]" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-50 bg-black/40 p-4" onClick={() => setOpen(false)}>
           <div
-            className="panel mx-auto mt-8 w-full max-w-md bg-white p-4"
+            className="mx-auto mt-10 w-full max-w-md rounded-2xl bg-white p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                className="btn-soft rounded-lg px-3 py-1.5 text-sm"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
                 onClick={() => setMonthISO((prev) => addDaysISO(startOfMonth(prev), -1))}
               >
                 이전달
@@ -131,7 +131,7 @@ export function AlcoholCalendarCard({ rows, members, meId }: Props) {
               <p className="text-base font-semibold">{toMonthLabel(monthISO)}</p>
               <button
                 type="button"
-                className="btn-soft rounded-lg px-3 py-1.5 text-sm"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
                 onClick={() => setMonthISO((prev) => addDaysISO(endOfMonth(prev), 1))}
               >
                 다음달
@@ -186,7 +186,7 @@ export function AlcoholCalendarCard({ rows, members, meId }: Props) {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="btn-primary mt-3 w-full py-2.5 text-sm"
+              className="mt-3 w-full rounded-xl bg-accent py-2.5 text-sm font-semibold text-white"
             >
               닫기
             </button>

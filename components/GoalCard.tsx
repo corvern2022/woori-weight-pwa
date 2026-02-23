@@ -42,7 +42,7 @@ export function GoalCard({
   todayISO,
 }: Props) {
   return (
-    <section className="panel p-4">
+    <section className="rounded-2xl bg-card p-4 shadow-card">
       <h2 className="text-lg font-bold">목표 체중</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <label className="flex-1">
@@ -52,7 +52,7 @@ export function GoalCard({
             onChange={(e) => onChangeGoal(e.target.value)}
             inputMode="decimal"
             placeholder="예: 72.0"
-            className="field text-lg"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg"
           />
         </label>
         <label>
@@ -61,20 +61,20 @@ export function GoalCard({
             type="date"
             value={dietStartDate}
             onChange={(e) => onChangeDietStartDate(e.target.value)}
-            className="field text-base"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base"
           />
         </label>
         <button
           type="button"
           onClick={onSaveGoal}
           disabled={saving}
-          className="btn-primary px-5 py-3 text-base"
+          className="rounded-xl bg-accent px-5 py-3 text-base font-semibold text-white disabled:opacity-50"
         >
           {saving ? "저장 중..." : "저장"}
         </button>
       </div>
       <p className="mt-3 text-sm text-slate-600">{goalMessage(currentWeight, goalInput)}</p>
-      <p className="mt-1 text-sm muted">{dDayText(dietStartDate, todayISO)}</p>
+      <p className="mt-1 text-sm text-slate-600">{dDayText(dietStartDate, todayISO)}</p>
     </section>
   );
 }

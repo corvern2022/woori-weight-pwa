@@ -64,19 +64,17 @@ export function AiChat({ summary }: Props) {
   }
 
   return (
-    <section className="panel p-4">
+    <section className="rounded-2xl bg-card p-4 shadow-card">
       <h2 className="text-lg font-bold">AI 문답</h2>
-      <div className="mt-4 max-h-80 space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div className="mt-4 max-h-72 space-y-3 overflow-y-auto rounded-xl bg-slate-50 p-3">
         {messages.length === 0 ? (
-          <p className="text-sm muted">질문을 입력하면 최근 기록 기반으로 분석해줘요.</p>
+          <p className="text-sm text-slate-500">질문을 입력하면 최근 기록 기반으로 분석해줘요.</p>
         ) : (
           messages.map((m) => (
             <div
               key={m.id}
               className={`rounded-xl px-3 py-2 text-sm ${
-                m.role === "user"
-                  ? "ml-8 border border-blue-200 bg-blue-50"
-                  : "mr-8 border border-slate-200 bg-white"
+                m.role === "user" ? "ml-8 bg-blue-100" : "mr-8 bg-white"
               }`}
             >
               <p className="whitespace-pre-wrap leading-6">{m.content}</p>
@@ -90,7 +88,7 @@ export function AiChat({ summary }: Props) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="예: 최근 30일 패턴 알려줘"
-          className="field flex-1"
+          className="flex-1 rounded-xl border border-slate-200 px-3 py-3"
           onKeyDown={(e) => {
             if (e.key === "Enter") sendQuestion(input);
           }}
@@ -99,7 +97,7 @@ export function AiChat({ summary }: Props) {
           type="button"
           disabled={!canSend}
           onClick={() => sendQuestion(input)}
-          className="btn-primary px-4 py-3 text-sm"
+          className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
           전송
         </button>
