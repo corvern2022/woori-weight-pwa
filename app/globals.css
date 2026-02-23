@@ -23,6 +23,26 @@ input {
   font: inherit;
 }
 
+.date-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  color: #10243e;
+  min-height: 48px;
+}
+
+.date-input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.date-input::-webkit-datetime-edit {
+  padding: 0;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }

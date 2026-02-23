@@ -35,13 +35,13 @@ export function TodayEntryCard({
         선택 날짜: {formatISOWithWeekdayKorean(selectedDate)}
       </p>
       <div className="mt-3 flex items-end gap-2">
-        <label className="flex-1">
+        <label className="min-w-0 flex-1">
           <span className="mb-1 block text-sm text-slate-600">기록 날짜</span>
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => onChangeDate(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-3 py-3"
+            className="date-input w-full rounded-xl border border-slate-200 px-3 py-3"
           />
         </label>
         <button

@@ -61,7 +61,7 @@ export function GoalCard({
             type="date"
             value={dietStartDate}
             onChange={(e) => onChangeDietStartDate(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base"
+            className="date-input w-full rounded-xl border border-slate-200 px-4 py-3 text-base"
           />
         </label>
         <button
