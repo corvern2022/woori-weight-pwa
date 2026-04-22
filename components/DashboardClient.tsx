@@ -39,8 +39,11 @@ export function DashboardClient() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const [householdId, setHouseholdId] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState<string>("");
@@ -139,6 +142,12 @@ export function DashboardClient() {
     if (!supabase) return;
     const client = supabase;
     async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      if (params.get("type") === "recovery" || hashParams.get("type") === "recovery") {
+        setResetMode(true);
+      }
+
       const { data } = await client.auth.getUser();
       setUser(data.user ?? null);
       setAuthLoading(false);
@@ -321,6 +330,44 @@ export function DashboardClient() {
     }
   }
 
+  async function sendPasswordReset() {
+    if (!supabase) return;
+    if (!email.trim()) {
+      setAuthMessage("비밀번호를 재설정할 이메일을 입력해주세요.");
+      return;
+    }
+
+    setResetLoading(true);
+    setAuthMessage(null);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    setResetLoading(false);
+    setAuthMessage(resetError ? resetError.message : "비밀번호 재설정 메일을 보냈습니다. 메일함을 확인해주세요.");
+  }
+
+  async function updatePassword() {
+    if (!supabase) return;
+    if (newPassword.length < 6) {
+      setAuthMessage("새 비밀번호는 6자 이상으로 입력해주세요.");
+      return;
+    }
+
+    setResetLoading(true);
+    setAuthMessage(null);
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    setResetLoading(false);
+    if (updateError) {
+      setAuthMessage(updateError.message);
+      return;
+    }
+
+    setResetMode(false);
+    setNewPassword("");
+    window.history.replaceState(null, "", window.location.pathname);
+    setAuthMessage("비밀번호가 변경되었습니다. 새 비밀번호로 로그인하세요.");
+  }
+
   async function signOut() {
     if (!supabase) return;
     await supabase.auth.signOut();
@@ -474,6 +521,40 @@ export function DashboardClient() {
   }
 
   if (!user) {
+    if (resetMode) {
+      return (
+        <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
+          <section className="rounded-2xl bg-card p-6 shadow-card">
+            <h1 className="text-2xl font-bold">새 비밀번호 설정</h1>
+            <p className="mt-2 text-sm text-slate-500">메일 링크로 돌아오셨다면 새 비밀번호를 입력해주세요.</p>
+            <input
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="새 비밀번호 (6자 이상)"
+              type="password"
+              className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-3"
+            />
+            <button
+              type="button"
+              onClick={updatePassword}
+              disabled={resetLoading}
+              className="mt-3 w-full rounded-xl bg-accent py-3 font-semibold text-white disabled:opacity-50"
+            >
+              {resetLoading ? "변경 중..." : "비밀번호 변경"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setResetMode(false)}
+              className="mt-2 w-full rounded-xl border border-slate-200 py-3 text-sm"
+            >
+              로그인으로 돌아가기
+            </button>
+            {authMessage ? <p className="mt-3 text-sm text-slate-600">{authMessage}</p> : null}
+          </section>
+        </main>
+      );
+    }
+
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
         <section className="rounded-2xl bg-card p-6 shadow-card">
@@ -509,6 +590,14 @@ export function DashboardClient() {
               회원가입
             </button>
           </div>
+          <button
+            type="button"
+            onClick={sendPasswordReset}
+            disabled={resetLoading}
+            className="mt-3 w-full rounded-xl bg-slate-100 py-3 text-sm font-semibold text-slate-700 disabled:opacity-50"
+          >
+            {resetLoading ? "메일 보내는 중..." : "비밀번호를 잊으셨나요?"}
+          </button>
           {authMessage ? <p className="mt-3 text-sm text-slate-600">{authMessage}</p> : null}
         </section>
       </main>
