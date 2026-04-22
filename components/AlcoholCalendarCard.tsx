@@ -99,94 +99,119 @@ export function AlcoholCalendarCard({ rows, members, meId }: Props) {
   return (
     <section className="rounded-2xl bg-card p-4 shadow-card">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">음주 달력</h2>
+        <h2 className="font-jua text-ink text-lg">음주 달력</h2>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          className="bg-peach text-ink font-jua rounded-full px-4 py-1.5 text-sm shadow-soft"
         >
           달력 바로가기
         </button>
       </div>
 
-      <p className="mt-2 text-sm text-slate-600">
-        이번 달 음주 횟수: {me?.display_name ?? "나"} {monthStats.meCount}회
-        {partner ? ` / ${partner.display_name} ${monthStats.partnerCount}회` : ""} / 합계 {monthStats.total}회
+      <p className="mt-2 font-gaegu text-ink-soft text-sm">
+        이번 달:{" "}
+        <span className="font-jua text-ink">{me?.display_name ?? "나"}</span>{" "}
+        <span className="font-jua text-peach-deep">{monthStats.meCount}회</span>
+        {partner ? (
+          <>
+            {" / "}
+            <span className="font-jua text-ink">{partner.display_name}</span>{" "}
+            <span className="font-jua text-dolphin-soft">{monthStats.partnerCount}회</span>
+          </>
+        ) : null}
+        {" / 합계 "}
+        <span className="font-jua text-ink">{monthStats.total}회</span>
       </p>
 
       {open ? (
         <div className="fixed inset-0 z-50 bg-black/40 p-4" onClick={() => setOpen(false)}>
           <div
-            className="mx-auto mt-10 w-full max-w-md rounded-2xl bg-white p-4"
+            className="mx-auto mt-10 w-full max-w-md rounded-3xl bg-card p-4 shadow-card"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Month navigation */}
             <div className="flex items-center justify-between">
               <button
                 type="button"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                className="text-ink-soft hover:text-ink px-3 py-1.5 text-sm transition-colors"
                 onClick={() => setMonthISO((prev) => addDaysISO(startOfMonth(prev), -1))}
               >
-                이전달
+                ‹ 이전달
               </button>
-              <p className="text-base font-semibold">{toMonthLabel(monthISO)}</p>
+              <p className="font-jua text-ink text-base">{toMonthLabel(monthISO)}</p>
               <button
                 type="button"
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+                className="text-ink-soft hover:text-ink px-3 py-1.5 text-sm transition-colors"
                 onClick={() => setMonthISO((prev) => addDaysISO(endOfMonth(prev), 1))}
               >
-                다음달
+                다음달 ›
               </button>
             </div>
 
-            <div className="mt-3 grid grid-cols-7 gap-1 text-center text-xs text-slate-500">
+            {/* Day headers */}
+            <div className="mt-3 grid grid-cols-7 gap-1 text-center">
               {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-                <div key={d} className="py-1 font-semibold">
+                <div key={d} className="py-1 font-gaegu text-ink-mute text-xs">
                   {d}
                 </div>
               ))}
             </div>
 
+            {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1">
               {grid.map((cell) => {
                 const drank = drankMap.get(cell.date) ?? { me: false, partner: false };
+                const bothDrank = drank.me && drank.partner;
+                const cellBg = !cell.inMonth
+                  ? "bg-transparent"
+                  : bothDrank
+                  ? "bg-duck-soft"
+                  : drank.me
+                  ? "bg-peach"
+                  : drank.partner
+                  ? "bg-dolphin-soft"
+                  : "bg-bg";
+
                 return (
                   <div
                     key={cell.date}
-                    className={`min-h-14 rounded-lg border p-1 ${
-                      cell.inMonth ? "border-slate-200 bg-white" : "border-transparent bg-slate-50 text-slate-300"
+                    className={`min-h-12 rounded-xl p-1 ${cellBg} ${
+                      cell.inMonth ? "" : "opacity-30"
                     }`}
                   >
-                    <div className="text-xs">{Number(cell.date.slice(8, 10))}</div>
-                    <div className="mt-1 flex items-center gap-1">
-                      <span
-                        title={me?.display_name ?? "나"}
-                        className={`inline-block h-3 w-3 rounded-full border ${
-                          drank.me ? "border-blue-500 bg-blue-500" : "border-slate-300 bg-white"
-                        }`}
-                      />
-                      {partner ? (
-                        <span
-                          title={partner.display_name}
-                          className={`inline-block h-3 w-3 rounded-full border ${
-                            drank.partner ? "border-rose-500 bg-rose-500" : "border-slate-300 bg-white"
-                          }`}
-                        />
-                      ) : null}
+                    <div className={`font-gaegu text-xs ${cell.inMonth ? "text-ink" : "text-ink-mute"}`}>
+                      {Number(cell.date.slice(8, 10))}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
-              <p>파란 원: {me?.display_name ?? "나"} 음주</p>
-              {partner ? <p>빨간 원: {partner.display_name} 음주</p> : null}
+            {/* Legend */}
+            <div className="mt-3 rounded-2xl bg-card-alt p-3 shadow-soft">
+              <div className="flex flex-wrap gap-3 font-gaegu text-ink-soft text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-full bg-peach" />
+                  {me?.display_name ?? "나"} 음주
+                </span>
+                {partner ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-3 h-3 rounded-full bg-dolphin-soft" />
+                    {partner.display_name} 음주
+                  </span>
+                ) : null}
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-full bg-duck-soft" />
+                  둘 다 음주
+                </span>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="mt-3 w-full rounded-xl bg-accent py-2.5 text-sm font-semibold text-white"
+              className="mt-3 w-full rounded-2xl bg-peach py-2.5 font-jua text-ink text-sm shadow-soft"
             >
               닫기
             </button>
