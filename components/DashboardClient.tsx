@@ -333,7 +333,7 @@ export function DashboardClient() {
           <p className="mt-2 text-sm text-red-500">
             {supabaseError ?? "Supabase 연결 설정이 없습니다."}
           </p>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-ink-mute">
             .env.local 에 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY를 넣고 서버를 재시작하세요.
           </p>
         </section>
