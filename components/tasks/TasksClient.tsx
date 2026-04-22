@@ -5,6 +5,7 @@ import { TaskForm } from "./TaskForm";
 import { TaskList } from "./TaskList";
 import { useTasks } from "./useTasks";
 import { FilterTab, Task } from "./types";
+import { BottomNav } from "@/components/ui";
 
 export function TasksClient() {
   const {
@@ -43,12 +44,12 @@ export function TasksClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b sticky top-0 z-10">
+    <div className="min-h-screen bg-bg">
+      <header className="bg-card border-b border-ink/10 shadow-soft sticky top-0 z-10 safe-top">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-semibold text-gray-800">우리 할일</h1>
+          <h1 className="font-jua text-ink">우리 할일</h1>
           <button
-            className="bg-blue-500 text-white rounded-full px-4 py-1.5 text-sm font-medium hover:bg-blue-600"
+            className="bg-duck text-ink font-jua rounded-pill px-4 py-2 text-sm shadow-soft hover:bg-duck-deep transition-colors"
             onClick={() => { setEditingTask(null); setFormOpen(true); }}
           >
             추가
@@ -56,11 +57,11 @@ export function TasksClient() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-4">
+      <main className="max-w-lg mx-auto px-4 py-4 pb-20">
         {loading ? (
           <div className="flex justify-center items-center py-20 gap-1">
             {[0,1,2].map((i) => (
-              <span key={i} className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+              <span key={i} className="w-2 h-2 bg-duck rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
         ) : (
@@ -94,27 +95,27 @@ export function TasksClient() {
         onUpdate={updateTask}
       />
 
-      {/* 삭제 확인 다이얼로그 */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 mx-4 w-full max-w-sm space-y-4">
-            <p className="text-sm text-gray-700">
+        <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50">
+          <div className="bg-card rounded-2xl border border-ink/10 p-6 mx-4 w-full max-w-sm space-y-4">
+            <p className="text-sm text-ink">
               <strong>&quot;{deleteTarget.title}&quot;</strong>을(를) 삭제할까요?
             </p>
             <div className="flex gap-2">
-              <button className="flex-1 border rounded-lg py-2 text-sm" onClick={() => setDeleteTarget(null)}>취소</button>
+              <button className="flex-1 border border-ink/10 rounded-lg py-2 text-sm text-ink-soft" onClick={() => setDeleteTarget(null)}>취소</button>
               <button className="flex-1 bg-red-500 text-white rounded-lg py-2 text-sm font-medium" onClick={confirmDelete}>삭제</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 토스트 */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm rounded-full px-4 py-2 shadow-lg z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-white text-sm rounded-full px-4 py-2 shadow-lg z-50">
           {toast}
         </div>
       )}
+
+      <BottomNav active="tasks" />
     </div>
   );
 }

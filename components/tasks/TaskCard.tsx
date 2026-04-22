@@ -45,16 +45,16 @@ export function TaskCard({ task, items, events, uiSettings, actor, onToggleDone,
   const totalCount = items.length;
 
   const assigneeColor =
-    task.assignee === "하경" ? "bg-pink-100 text-pink-700"
-    : task.assignee === "창희" ? "bg-blue-100 text-blue-700"
-    : "bg-purple-100 text-purple-700";
+    task.assignee === "하경" ? "bg-dolphin-soft text-dolphin-deep"
+    : task.assignee === "창희" ? "bg-duck-soft text-duck-deep"
+    : "bg-pink/20 text-pink";
 
   return (
-    <div className={`rounded-xl border p-4 mb-3 bg-white shadow-sm ${task.completed ? "opacity-60" : ""}`}>
+    <div className={`rounded-2xl bg-card shadow-soft p-4 mb-3 border border-ink/5 ${task.completed ? "opacity-60" : ""}`}>
       <div className="flex items-start gap-2">
         <button
           className="mt-1 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
-          style={{ borderColor: task.completed ? "#22c55e" : "#d1d5db", background: task.completed ? "#22c55e" : "white" }}
+          style={{ borderColor: task.completed ? "var(--mint-deep)" : "var(--ink-mute)", background: task.completed ? "var(--mint-deep)" : "transparent" }}
           onClick={() => onToggleDone(task.id, task.completed)}
         >
           {task.completed && <span className="text-white text-xs">✓</span>}
@@ -63,18 +63,18 @@ export function TaskCard({ task, items, events, uiSettings, actor, onToggleDone,
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-1 mb-1">
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${assigneeColor}`}>{task.assignee}</span>
-            {task.category && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{task.category}</span>}
+            {task.category && <span className="text-xs px-2 py-0.5 rounded-full bg-card-alt text-ink-mute">{task.category}</span>}
             {d !== null && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${d < 0 ? "bg-red-100 text-red-600" : d === 0 ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${d < 0 ? "bg-peach/20 text-peach-deep" : d === 0 ? "bg-duck-soft text-duck-deep" : "bg-mint/20 text-mint-deep"}`}>
                 {ddayLabel(d)}
               </span>
             )}
           </div>
 
-          <p className={`font-medium text-gray-800 ${task.completed ? "line-through" : ""}`}>{task.title}</p>
+          <p className={`font-gaegu text-ink ${task.completed ? "line-through" : ""}`}>{task.title}</p>
 
           {uiSettings.showDescription && task.description && (
-            <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{task.description}</p>
+            <p className="text-sm text-ink-soft mt-0.5 line-clamp-2">{task.description}</p>
           )}
 
           {totalCount > 0 && (
