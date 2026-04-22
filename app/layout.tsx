@@ -19,6 +19,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html:
+          `(function(){try{if(localStorage.getItem('oriDark')==='1')document.documentElement.classList.add('dark')}catch(e){}})()`
+        }} />
+      </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

@@ -19,7 +19,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   function setDark(v: boolean) {
     setDarkState(v);
     try { localStorage.setItem("oriDark", v ? "1" : "0"); } catch {}
-    document.documentElement.classList.toggle("dark", v);
   }
 
   useEffect(() => {
