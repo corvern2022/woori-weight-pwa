@@ -33,7 +33,7 @@ export function ThreadPanel({ taskId, events, actor, onAddComment }: Props) {
             {ev.event_type === "comment_added" ? (
               <div className="flex gap-2">
                 <span className="font-medium text-gray-600 flex-shrink-0">{ev.actor}</span>
-                <span className="text-gray-700">{(ev.payload as { text?: string }).text}</span>
+                <span className="text-gray-700">{(ev.payload as { text?: string; message?: string }).text ?? (ev.payload as { message?: string }).message}</span>
                 <span className="text-xs text-gray-400 ml-auto flex-shrink-0">{formatDateTime(ev.created_at)}</span>
               </div>
             ) : (
