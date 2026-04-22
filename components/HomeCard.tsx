@@ -1,29 +1,32 @@
 import Link from "next/link";
 
-type Props = {
+interface HomeCardProps {
   href: string;
   icon: string;
   title: string;
   subtitle: string;
-  badge?: string;
-};
+  accentColor: string; // 'duck', 'dolphin', 'mint', 'peach'
+}
 
-export function HomeCard({ href, icon, title, subtitle, badge }: Props) {
+export function HomeCard({ href, icon, title, subtitle, accentColor }: HomeCardProps) {
+  const colorMap: Record<string, string> = {
+    duck: "var(--duck)",
+    dolphin: "var(--dolphin)",
+    mint: "var(--mint)",
+    peach: "var(--peach)",
+  };
+
+  const borderColor = colorMap[accentColor] ?? colorMap.duck;
+
   return (
-    <Link href={href} className="block bg-white rounded-2xl p-5 shadow-sm border hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-4">
-        <div className="text-3xl">{icon}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-800">{title}</span>
-            {badge && (
-              <span className="text-xs bg-blue-100 text-blue-600 rounded-full px-2 py-0.5">{badge}</span>
-            )}
-          </div>
-          <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
-        </div>
-        <span className="text-gray-300">›</span>
-      </div>
+    <Link
+      href={href}
+      className="block bg-card rounded-2xl shadow-card p-5 hover:shadow-soft hover:-translate-y-0.5 transition-all"
+      style={{ borderTop: `4px solid ${borderColor}` }}
+    >
+      <div className="text-3xl mb-3">{icon}</div>
+      <div className="font-jua text-lg text-ink leading-tight">{title}</div>
+      <div className="font-gaegu text-sm text-ink-soft mt-0.5">{subtitle}</div>
     </Link>
   );
 }
