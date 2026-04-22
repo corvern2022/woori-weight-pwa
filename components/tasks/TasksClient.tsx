@@ -1,29 +1,39 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { TaskCard } from "./TaskCard";
 import { TaskForm } from "./TaskForm";
-import { TaskList } from "./TaskList";
 import { useTasks } from "./useTasks";
-import { FilterTab, Task } from "./types";
-import { BottomNav, Confetti } from "@/components/ui";
+import { Task } from "./types";
+import { BackBtn, CloudDeco, Confetti } from "@/components/ui";
+import { Duck } from "@/components/characters/Duck";
+import { Dolphin } from "@/components/characters/Dolphin";
+
+type Filter = '전체' | '창희' | '하경' | '같이' | '완료';
+
+const FILTERS: Filter[] = ['전체', '창희', '하경', '같이', '완료'];
+
+function filterTasks(tasks: Task[], filter: Filter): Task[] {
+  if (filter === '전체') return tasks.filter(t => !t.completed);
+  if (filter === '창희') return tasks.filter(t => !t.completed && (t.assignee === '창희' || t.assignee === '둘다'));
+  if (filter === '하경') return tasks.filter(t => !t.completed && (t.assignee === '하경' || t.assignee === '둘다'));
+  if (filter === '같이') return tasks.filter(t => !t.completed && t.assignee === '둘다');
+  if (filter === '완료') return tasks.filter(t => t.completed);
+  return tasks;
+}
 
 export function TasksClient() {
   const {
-    tasks, itemsByTask, eventsByTask, uiSettings, loading, toast,
-    addTask, updateTask, deleteTask, toggleDone,
-    addComment, addChecklistItem, toggleChecklistItem, updateChecklistItem, deleteChecklistItem,
+    tasks, eventsByTask, loading, toast,
+    addTask, updateTask, toggleDone,
   } = useTasks();
 
-  const [filter, setFilter] = useState<FilterTab>("all");
-  const [category, setCategory] = useState("all");
+  const router = useRouter();
+  const [filter, setFilter] = useState<Filter>('전체');
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-
-  const actor = typeof window !== "undefined"
-    ? localStorage.getItem("ori_ranger_actor") || "하경"
-    : "하경";
 
   function handleToggleDone(id: string, current: boolean) {
     toggleDone(id, current);
@@ -33,68 +43,103 @@ export function TasksClient() {
     }
   }
 
-  function handleAddComment(taskId: string, text: string) {
-    return addComment(taskId, text, actor);
-  }
-
-  function handleEdit(task: Task) {
-    setEditingTask(task);
-    setFormOpen(true);
-  }
-
-  function handleDelete(id: string, title: string) {
-    setDeleteTarget({ id, title });
-  }
-
-  async function confirmDelete() {
-    if (!deleteTarget) return;
-    await deleteTask(deleteTarget.id);
-    setDeleteTarget(null);
-  }
+  const visible = filterTasks(tasks, filter);
+  const doneCount = tasks.filter(t => t.completed).length;
 
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="bg-card border-b border-ink/10 shadow-soft sticky top-0 z-10 safe-top">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-jua text-ink">우리 할일</h1>
-          <button
-            className="bg-duck text-ink font-jua rounded-pill px-4 py-2 text-sm shadow-soft hover:bg-duck-deep transition-colors"
-            onClick={() => { setEditingTask(null); setFormOpen(true); }}
-          >
-            추가
-          </button>
-        </div>
-      </header>
+    <div style={{ width: '100%', height: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <CloudDeco style={{ position: 'absolute', top: 40, right: -40 }} size={100} opacity={0.5} />
 
-      <main className="max-w-lg mx-auto px-4 py-4 pb-20">
-        {loading ? (
-          <div className="flex justify-center items-center py-20 gap-1">
-            {[0,1,2].map((i) => (
-              <span key={i} className="w-2 h-2 bg-duck rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-            ))}
+      {/* Header */}
+      <div style={{ padding: '54px 22px 12px', position: 'relative' }}>
+        <BackBtn label="홈" onClick={() => router.push('/')} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
+          <div>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5 }}>할 일</div>
+            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink-soft)' }}>{doneCount}/{tasks.length} 완료 · 화이팅 🌊</div>
           </div>
-        ) : (
-          <TaskList
-            tasks={tasks}
-            itemsByTask={itemsByTask}
-            eventsByTask={eventsByTask}
-            uiSettings={uiSettings}
-            actor={actor}
-            filter={filter}
-            category={category}
-            onFilterChange={setFilter}
-            onCategoryChange={setCategory}
-            onToggleDone={handleToggleDone}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onAddComment={handleAddComment}
-            onAddChecklistItem={addChecklistItem}
-            onToggleChecklistItem={toggleChecklistItem}
-            onUpdateChecklistItem={updateChecklistItem}
-            onDeleteChecklistItem={deleteChecklistItem}
-          />
-        )}
-      </main>
+          <div style={{ display: 'flex' }}>
+            <div style={{ transform: 'rotate(-10deg)' }}><Duck size={50} variant="strong" palette="yellow" /></div>
+            <div style={{ transform: 'rotate(12deg) translateX(-6px)' }}><Dolphin size={56} variant="happy" palette="blue" /></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 22px 12px', overflowX: 'auto' }}>
+        {FILTERS.map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 100,
+              border: 'none',
+              cursor: 'pointer',
+              background: filter === f ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--card)',
+              color: filter === f ? '#fff' : 'var(--ink-soft)',
+              fontFamily: 'Jua, sans-serif',
+              fontSize: 15,
+              boxShadow: filter === f ? '0 4px 12px rgba(0,0,0,0.18)' : 'var(--shadow-soft)',
+              flexShrink: 0,
+            }}
+          >
+            {f === '창희' && '🦆 '}{f === '하경' && '🐬 '}{f === '같이' && '💞 '}{f}
+          </button>
+        ))}
+      </div>
+
+      {/* Task list */}
+      {loading ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          {[0, 1, 2].map(i => (
+            <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--duck)', display: 'inline-block', animation: 'bounce 0.6s infinite', animationDelay: `${i * 0.15}s` }} />
+          ))}
+        </div>
+      ) : (
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px 100px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {visible.map(t => (
+            <TaskCard
+              key={t.id}
+              t={t}
+              events={eventsByTask[t.id] || []}
+              onOpen={() => router.push(`/tasks/${t.id}`)}
+              onToggle={() => handleToggleDone(t.id, t.completed)}
+            />
+          ))}
+          {visible.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive', fontSize: 18 }}>
+              <Dolphin size={70} variant="happy" palette="blue" />
+              <div>여기엔 아무것도 없어!</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* FAB */}
+      <button
+        onClick={() => { setEditingTask(null); setFormOpen(true); }}
+        style={{
+          position: 'absolute',
+          bottom: 28,
+          right: 22,
+          width: 52,
+          height: 52,
+          borderRadius: 26,
+          background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
+          border: 'none',
+          cursor: 'pointer',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.22)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10,
+        }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.8" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
 
       <TaskForm
         open={formOpen}
@@ -104,28 +149,13 @@ export function TasksClient() {
         onUpdate={updateTask}
       />
 
-      {deleteTarget && (
-        <div className="fixed inset-0 bg-ink/40 flex items-center justify-center z-50">
-          <div className="bg-card rounded-2xl border border-ink/10 p-6 mx-4 w-full max-w-sm space-y-4">
-            <p className="text-sm text-ink">
-              <strong>&quot;{deleteTarget.title}&quot;</strong>을(를) 삭제할까요?
-            </p>
-            <div className="flex gap-2">
-              <button className="flex-1 border border-ink/10 rounded-lg py-2 text-sm text-ink-soft" onClick={() => setDeleteTarget(null)}>취소</button>
-              <button className="flex-1 bg-red-500 text-white rounded-lg py-2 text-sm font-medium" onClick={confirmDelete}>삭제</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink text-white text-sm rounded-full px-4 py-2 shadow-lg z-50">
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, whiteSpace: 'nowrap' }}>
           {toast}
         </div>
       )}
 
       <Confetti trigger={showConfetti} />
-      <BottomNav active="tasks" />
     </div>
   );
 }

@@ -79,19 +79,10 @@ export function TaskList({ tasks, itemsByTask, eventsByTask, uiSettings, actor, 
         filtered.map((task) => (
           <TaskCard
             key={task.id}
-            task={task}
-            items={itemsByTask[task.id] || []}
+            t={task}
             events={eventsByTask[task.id] || []}
-            uiSettings={uiSettings}
-            actor={actor}
-            onToggleDone={onToggleDone}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onAddComment={onAddComment}
-            onAddChecklistItem={onAddChecklistItem}
-            onToggleChecklistItem={onToggleChecklistItem}
-            onUpdateChecklistItem={onUpdateChecklistItem}
-            onDeleteChecklistItem={onDeleteChecklistItem}
+            onOpen={() => onEdit(task)}
+            onToggle={() => onToggleDone(task.id, task.completed)}
           />
         ))
       )}
