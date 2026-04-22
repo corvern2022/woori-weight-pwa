@@ -3,6 +3,7 @@ export { Avatar } from './Avatar';
 export { BackBtn } from './BackBtn';
 export { CloudDeco } from './CloudDeco';
 export { BottomNav } from './BottomNav';
+export { Confetti } from './Confetti';
 
 export type { } from './WhoBadge';
 export type { } from './Avatar';

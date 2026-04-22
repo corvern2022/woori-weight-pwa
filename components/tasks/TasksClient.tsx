@@ -5,7 +5,7 @@ import { TaskForm } from "./TaskForm";
 import { TaskList } from "./TaskList";
 import { useTasks } from "./useTasks";
 import { FilterTab, Task } from "./types";
-import { BottomNav } from "@/components/ui";
+import { BottomNav, Confetti } from "@/components/ui";
 
 export function TasksClient() {
   const {
@@ -19,10 +19,19 @@ export function TasksClient() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const actor = typeof window !== "undefined"
     ? localStorage.getItem("ori_ranger_actor") || "하경"
     : "하경";
+
+  function handleToggleDone(id: string, current: boolean) {
+    toggleDone(id, current);
+    if (!current) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 1500);
+    }
+  }
 
   function handleAddComment(taskId: string, text: string) {
     return addComment(taskId, text, actor);
@@ -75,7 +84,7 @@ export function TasksClient() {
             category={category}
             onFilterChange={setFilter}
             onCategoryChange={setCategory}
-            onToggleDone={toggleDone}
+            onToggleDone={handleToggleDone}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAddComment={handleAddComment}
@@ -115,6 +124,7 @@ export function TasksClient() {
         </div>
       )}
 
+      <Confetti trigger={showConfetti} />
       <BottomNav active="tasks" />
     </div>
   );

@@ -104,6 +104,11 @@ button, input { font: inherit; }
   100% { transform: translateX(200%); }
 }
 
+@keyframes confettiFly {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-200px) translateX(var(--dx)) rotate(720deg); opacity: 0; }
+}
+
 .date-input {
   -webkit-appearance: none;
   appearance: none;
