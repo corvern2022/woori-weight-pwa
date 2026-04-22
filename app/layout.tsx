@@ -2,21 +2,21 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "우리 체중계",
-  description: "2인 공유 체중 기록 PWA",
-  applicationName: "우리 체중계",
+  title: "우리 공간",
+  description: "커플 공유 앱 — 할일 & 체중",
+  applicationName: "우리 공간",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "우리 체중계",
+    title: "우리 공간",
   },
-  themeColor: "#ffffff",
 };
 
 export const viewport: Viewport = {
   viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
