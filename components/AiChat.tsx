@@ -64,31 +64,45 @@ export function AiChat({ summary }: Props) {
   }
 
   return (
-    <section className="rounded-2xl bg-card p-4 shadow-card">
-      <h2 className="text-lg font-bold">AI 문답</h2>
-      <div className="mt-4 max-h-72 space-y-3 overflow-y-auto rounded-xl bg-slate-50 p-3">
+    <section className="flex flex-col h-full">
+      <div className="flex-1 space-y-3 overflow-y-auto no-scrollbar p-4">
         {messages.length === 0 ? (
-          <p className="text-sm text-slate-500">질문을 입력하면 최근 기록 기반으로 분석해줘요.</p>
+          <p className="font-gaegu text-sm text-ink-mute">질문을 입력하면 최근 기록 기반으로 분석해줘요.</p>
         ) : (
           messages.map((m) => (
             <div
               key={m.id}
-              className={`rounded-xl px-3 py-2 text-sm ${
-                m.role === "user" ? "ml-8 bg-blue-100" : "mr-8 bg-white"
-              }`}
+              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <p className="whitespace-pre-wrap leading-6">{m.content}</p>
+              <div
+                className={`max-w-[80%] px-3 py-2 text-sm ${
+                  m.role === "user"
+                    ? "bg-duck-soft text-ink rounded-2xl rounded-br-sm"
+                    : "bg-dolphin-soft text-ink rounded-2xl rounded-bl-sm"
+                }`}
+              >
+                <p className="font-gaegu whitespace-pre-wrap leading-6">{m.content}</p>
+              </div>
             </div>
           ))
         )}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-dolphin-soft rounded-2xl rounded-bl-sm px-3 py-2 flex gap-1">
+              <span className="w-2 h-2 rounded-full bg-dolphin animate-bounce [animation-delay:0ms]" />
+              <span className="w-2 h-2 rounded-full bg-dolphin animate-bounce [animation-delay:150ms]" />
+              <span className="w-2 h-2 rounded-full bg-dolphin animate-bounce [animation-delay:300ms]" />
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="safe-bottom sticky bottom-0 mt-3 flex gap-2 bg-card pt-2">
+      <div className="bg-card border-t border-ink/10 p-3 flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="예: 최근 30일 패턴 알려줘"
-          className="flex-1 rounded-xl border border-slate-200 px-3 py-3"
+          className="bg-card-alt border border-ink/15 text-ink rounded-pill flex-1 px-4 py-2"
           onKeyDown={(e) => {
             if (e.key === "Enter") sendQuestion(input);
           }}
@@ -97,7 +111,9 @@ export function AiChat({ summary }: Props) {
           type="button"
           disabled={!canSend}
           onClick={() => sendQuestion(input)}
-          className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className={`rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
+            canSend ? "bg-dolphin text-white" : "bg-card-alt text-ink-mute"
+          }`}
         >
           전송
         </button>
