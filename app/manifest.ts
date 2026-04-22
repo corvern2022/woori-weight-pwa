@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "우리 체중계",
-    short_name: "우리 체중계",
-    description: "2인 공유 체중 기록 웹앱",
+    name: "오리 레인저",
+    short_name: "오리 레인저",
+    description: "창희 하경의 공유 앱 — 할일 & 체중",
     start_url: "/",
     display: "standalone",
-    background_color: "#f5f8fb",
-    theme_color: "#ffffff",
+    background_color: "#EAF4FB",
+    theme_color: "#EAF4FB",
     lang: "ko-KR",
     icons: [
       { src: "/icon", sizes: "512x512", type: "image/png" },

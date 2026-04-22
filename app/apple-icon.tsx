@@ -9,19 +9,17 @@ export default function AppleIcon() {
     (
       <div
         style={{
-          background: "#1677ff",
+          background: "linear-gradient(135deg, #EAF4FB, #CDE9F6)",
           width: "100%",
           height: "100%",
           borderRadius: 36,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "white",
-          fontSize: 42,
-          fontWeight: 700,
+          fontSize: 72,
         }}
       >
-        체중
+        🦆🐬
       </div>
     ),
     size,

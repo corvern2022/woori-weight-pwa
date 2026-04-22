@@ -9,18 +9,17 @@ export default function Icon() {
     (
       <div
         style={{
-          background: "linear-gradient(135deg, #1677ff, #14b8a6)",
+          background: "linear-gradient(135deg, #EAF4FB, #CDE9F6)",
           width: "100%",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "white",
-          fontSize: 86,
-          fontWeight: 700,
+          fontSize: 220,
+          borderRadius: 0,
         }}
       >
-        우리
+        🦆🐬
       </div>
     ),
     size,
