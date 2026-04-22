@@ -8,10 +8,8 @@ import { DuckDolphinPair } from "@/components/characters";
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-bg flex flex-col">
-      {/* Header */}
       <header className="relative overflow-hidden flex flex-col items-center justify-end pb-6 pt-10 px-4"
         style={{ minHeight: "38vh", background: "linear-gradient(180deg, var(--bg-deep, #dbeafe) 0%, var(--bg) 100%)" }}>
-        {/* Floating clouds */}
         <div className="absolute top-4 left-4 opacity-30">
           <CloudDeco size={64} />
         </div>
@@ -22,19 +20,16 @@ export default function HomePage() {
           <CloudDeco size={80} />
         </div>
 
-        {/* Title */}
         <div className="relative z-10 text-center mb-4">
           <h1 className="font-jua text-3xl text-ink">오리 레인저 🦆🐬</h1>
           <p className="font-gaegu text-ink-soft mt-1">창희 하경의 공간</p>
         </div>
 
-        {/* Characters */}
         <div className="relative z-10">
           <DuckDolphinPair size={110} />
         </div>
       </header>
 
-      {/* Nav cards grid */}
       <main className="flex-1 px-4 py-6 pb-24">
         <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
           <HomeCard
