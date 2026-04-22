@@ -1,28 +1,27 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/themeContext";
 
 export const metadata: Metadata = {
-  title: "우리 공간",
-  description: "커플 공유 앱 — 할일 & 체중",
-  applicationName: "우리 공간",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "우리 공간",
-  },
+  title: "오리 레인저",
+  description: "창희하경 커플 공유 앱 — 할일 & 체중",
+  applicationName: "오리 레인저",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "오리 레인저" },
 };
 
 export const viewport: Viewport = {
   viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ffffff",
+  themeColor: "#EAF4FB",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
