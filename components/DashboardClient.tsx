@@ -8,6 +8,7 @@ import { GoalCard } from "@/components/GoalCard";
 import { PeriodToggle } from "@/components/PeriodToggle";
 import { TodayEntryCard } from "@/components/TodayEntryCard";
 import { WeightChart } from "@/components/WeightChart";
+import { BottomNav } from "@/components/ui";
 import { addDaysISO, buildDateRange, toSeoulISODate } from "@/lib/date";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { AiSummary, ChartPoint, HouseholdMember, WeighInRow } from "@/lib/types";
@@ -343,16 +344,16 @@ export function DashboardClient() {
   if (!myUserId && members.length > 0) {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 safe-top safe-bottom">
-        <section className="rounded-2xl bg-card p-6 shadow-card">
-          <h1 className="text-2xl font-bold">우리 체중계</h1>
-          <p className="mt-2 text-sm text-slate-500">나는 누구인가요?</p>
+        <section className="rounded-3xl bg-card p-6 shadow-card">
+          <h1 className="font-jua text-2xl text-ink">우리 체중계</h1>
+          <p className="mt-2 font-gaegu text-sm text-ink-soft">나는 누구인가요?</p>
           <div className="mt-4 space-y-2">
             {members.map((m) => (
               <button
                 key={m.user_id}
                 type="button"
                 onClick={() => selectUser(m.user_id)}
-                className="w-full rounded-xl border border-slate-200 py-3 text-lg font-semibold hover:bg-slate-50"
+                className="w-full rounded-xl border border-ink/10 py-3 font-gaegu text-lg font-semibold text-ink hover:bg-card-alt"
               >
                 {m.display_name}
               </button>
@@ -364,16 +365,16 @@ export function DashboardClient() {
   }
 
   if (loading && members.length === 0) {
-    return <main className="p-4 text-sm text-slate-500">불러오는 중...</main>;
+    return <main className="p-4 font-gaegu text-sm text-ink-mute">불러오는 중...</main>;
   }
 
   return (
-    <main className="mx-auto w-full max-w-xl px-4 pb-8 pt-4 safe-top safe-bottom">
+    <main className="mx-auto w-full max-w-xl px-4 pb-20 pt-4 safe-top safe-bottom">
       <header className="mb-4 rounded-2xl bg-card p-4 shadow-card">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">우리 체중계</h1>
-            <p className="text-xs text-slate-500">현재: {myName}</p>
+            <h1 className="font-jua text-2xl text-ink">우리 체중계</h1>
+            <p className="font-gaegu text-xs text-ink-mute">현재: {myName}</p>
           </div>
           <button
             type="button"
@@ -381,14 +382,14 @@ export function DashboardClient() {
               localStorage.removeItem(LOCAL_KEY);
               setMyUserId(null);
             }}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            className="rounded-xl border border-ink/10 px-3 py-2 font-gaegu text-sm text-ink"
           >
             전환
           </button>
         </div>
       </header>
 
-      {loading ? <p className="mb-4 text-sm text-slate-500">불러오는 중...</p> : null}
+      {loading ? <p className="mb-4 font-gaegu text-sm text-ink-mute">불러오는 중...</p> : null}
       {error ? <p className="mb-4 text-sm text-red-500">에러: {error}</p> : null}
 
       <div className="space-y-4">
@@ -408,15 +409,15 @@ export function DashboardClient() {
 
         <section className="rounded-2xl bg-card p-4 shadow-card">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold">체중 그래프</h2>
+            <h2 className="font-jua text-lg text-ink">체중 그래프</h2>
             <PeriodToggle value={rangeDays} onChange={setRangeDays} />
           </div>
 
-          <div className="mt-3 inline-flex rounded-xl bg-slate-100 p-1">
+          <div className="mt-3 inline-flex rounded-xl bg-card-alt p-1">
             <button
               type="button"
-              className={`rounded-lg px-3 py-2 text-sm ${
-                viewMode === "both" ? "bg-white font-semibold shadow" : "text-slate-500"
+              className={`rounded-lg px-3 py-2 font-gaegu text-sm ${
+                viewMode === "both" ? "bg-accent font-semibold text-white shadow" : "text-ink-soft"
               }`}
               onClick={() => setViewMode("both")}
             >
@@ -424,8 +425,8 @@ export function DashboardClient() {
             </button>
             <button
               type="button"
-              className={`rounded-lg px-3 py-2 text-sm ${
-                viewMode === "me" ? "bg-white font-semibold shadow" : "text-slate-500"
+              className={`rounded-lg px-3 py-2 font-gaegu text-sm ${
+                viewMode === "me" ? "bg-accent font-semibold text-white shadow" : "text-ink-soft"
               }`}
               onClick={() => setViewMode("me")}
             >
@@ -433,7 +434,7 @@ export function DashboardClient() {
             </button>
           </div>
 
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 font-gaegu text-xs text-ink-mute">
             파랑: {myName}
             {partner ? ` / 민트: ${partner.display_name}` : ""}
           </p>
@@ -467,10 +468,12 @@ export function DashboardClient() {
       </div>
 
       {toast ? (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full bg-ink px-4 py-2 font-gaegu text-sm text-white shadow-card">
           {toast}
         </div>
       ) : null}
+
+      <BottomNav active="weight" />
     </main>
   );
 }

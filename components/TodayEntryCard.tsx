@@ -28,49 +28,49 @@ export function TodayEntryCard({
   onSave,
 }: Props) {
   return (
-    <section className="rounded-2xl bg-card p-4 shadow-card">
-      <h2 className="text-lg font-bold">기록 입력</h2>
-      <p className="mt-1 text-sm text-slate-500">오늘: {todayISO} (Asia/Seoul)</p>
-      <p className="mt-1 text-sm text-slate-600">
+    <section className="rounded-2xl bg-card p-4 shadow-soft">
+      <h2 className="font-jua text-lg text-ink">기록 입력</h2>
+      <p className="mt-1 font-gaegu text-sm text-ink-soft">오늘: {todayISO} (Asia/Seoul)</p>
+      <p className="mt-1 font-gaegu text-sm text-ink-soft">
         선택 날짜: {formatISOWithWeekdayKorean(selectedDate)}
       </p>
       <div className="mt-3 flex items-end gap-2">
         <label className="min-w-0 flex-1">
-          <span className="mb-1 block text-sm text-slate-600">기록 날짜</span>
+          <span className="mb-1 block font-gaegu text-sm text-ink-soft">기록 날짜</span>
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => onChangeDate(e.target.value)}
-            className="date-input w-full rounded-xl border border-slate-200 px-3 py-3"
+            className="date-input w-full rounded-xl border border-ink/15 bg-card-alt px-3 py-3 text-ink"
           />
         </label>
         <button
           type="button"
           onClick={onPreviousDate}
-          className="rounded-xl border border-slate-200 px-3 py-3 text-sm"
+          className="rounded-xl border border-ink/15 bg-card-alt px-3 py-3 font-gaegu text-sm text-ink"
         >
           이전날
         </button>
         <button
           type="button"
           onClick={onNextDate}
-          className="rounded-xl border border-slate-200 px-3 py-3 text-sm"
+          className="rounded-xl border border-ink/15 bg-card-alt px-3 py-3 font-gaegu text-sm text-ink"
         >
           다음날
         </button>
       </div>
       <div className="mt-4 flex items-end gap-3">
         <label className="flex-1">
-          <span className="mb-1 block text-sm text-slate-600">몸무게 (kg)</span>
+          <span className="mb-1 block font-gaegu text-sm text-ink-soft">몸무게 (kg)</span>
           <input
             value={weightInput}
             onChange={(e) => onChangeWeight(e.target.value)}
             inputMode="decimal"
             placeholder="예: 72.3"
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg"
+            className="w-full rounded-xl border border-ink/15 bg-card-alt px-4 py-3 text-lg text-ink"
           />
         </label>
-        <label className="inline-flex items-center gap-2 pb-3 text-sm text-slate-700">
+        <label className="inline-flex items-center gap-2 pb-3 font-gaegu text-sm text-ink-soft">
           <input
             type="checkbox"
             checked={drank}
@@ -83,7 +83,7 @@ export function TodayEntryCard({
           type="button"
           onClick={onSave}
           disabled={saving}
-          className="rounded-xl bg-accent px-5 py-3 text-base font-semibold text-white disabled:opacity-50"
+          className="rounded-pill bg-duck px-5 py-3 font-jua text-base text-ink disabled:opacity-50"
         >
           {saving ? "저장 중..." : "저장"}
         </button>
