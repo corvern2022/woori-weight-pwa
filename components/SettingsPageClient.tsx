@@ -1,102 +1,126 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { BottomNav } from '@/components/ui';
-import { DuckDolphinPair } from '@/components/characters';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Duck, Dolphin } from '@/components/characters';
 import { useTheme } from '@/lib/themeContext';
 
-type Actor = '창희' | '하경';
+function getDaysTogether(): number {
+  const start = new Date('2025-12-16');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  return Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function BackBtn() {
+  const router = useRouter();
+  return (
+    <button
+      onClick={() => router.push('/')}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        background: 'none', border: 'none', cursor: 'pointer',
+        fontFamily: 'Jua, sans-serif', fontSize: 15,
+        color: 'var(--accent-deep)', padding: 0,
+      }}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-deep)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      홈
+    </button>
+  );
+}
+
+function SettingGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: 'var(--ink-soft)', padding: '0 6px 6px', letterSpacing: 0.5 }}>{title}</div>
+      <div style={{ background: 'var(--card)', borderRadius: 20, boxShadow: 'var(--shadow-soft)', overflow: 'hidden' }}>{children}</div>
+    </div>
+  );
+}
+
+function SettingRow({ label, value, onToggle, hint }: { label: string; value: boolean; onToggle: () => void; hint?: string }) {
+  return (
+    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid rgba(42,61,84,0.08)' }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 15 }}>{label}</div>
+        {hint && <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)' }}>{hint}</div>}
+      </div>
+      <button onClick={onToggle} style={{
+        width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+        background: value ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--ink-mute)',
+        position: 'relative', transition: 'all 0.25s',
+      }}>
+        <div style={{
+          width: 20, height: 20, borderRadius: 10, background: '#fff',
+          position: 'absolute', top: 3, left: value ? 21 : 3, transition: 'left 0.25s',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+        }}/>
+      </button>
+    </div>
+  );
+}
+
+function StaticRow({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+  return (
+    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(42,61,84,0.08)', cursor: 'pointer' }}>
+      <div style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 15, color: warn ? 'var(--peach-deep)' : 'var(--ink)' }}>{label}</div>
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 14, color: 'var(--ink-soft)' }}>{value}</div>
+    </div>
+  );
+}
 
 export function SettingsPageClient() {
   const { dark, setDark } = useTheme();
-  const [actor, setActor] = useState<Actor | null>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('ori_ranger_actor') as Actor | null;
-    if (saved === '창희' || saved === '하경') {
-      setActor(saved);
-    }
-  }, []);
-
-  function selectActor(value: Actor) {
-    setActor(value);
-    localStorage.setItem('ori_ranger_actor', value);
-  }
+  const [notif, setNotif] = useState(true);
+  const [weeklyReport, setWeeklyReport] = useState(true);
+  const days = getDaysTogether();
 
   return (
-    <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-card border-b border-ink/10 shadow-soft safe-top">
-        <div className="max-w-lg mx-auto px-4 py-3">
-          <h1 className="font-jua text-ink text-xl">설정 ⚙️</h1>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="space-y-4 max-w-lg mx-auto px-4 py-4 pb-20">
-
-        {/* Section 1: 내 정보 */}
-        <section className="bg-card rounded-2xl shadow-soft p-4">
-          <p className="font-jua text-ink-soft text-sm mb-3">내 정보</p>
-          <p className="font-gaegu text-ink-soft text-sm mb-2">나는:</p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => selectActor('창희')}
-              className={`flex-1 py-2 px-4 rounded-pill font-gaegu text-base transition-colors ${
-                actor === '창희'
-                  ? 'bg-duck text-white'
-                  : 'bg-card-alt text-ink-mute'
-              }`}
-            >
-              🦆 창희
-            </button>
-            <button
-              onClick={() => selectActor('하경')}
-              className={`flex-1 py-2 px-4 rounded-pill font-gaegu text-base transition-colors ${
-                actor === '하경'
-                  ? 'bg-dolphin text-white'
-                  : 'bg-card-alt text-ink-mute'
-              }`}
-            >
-              🐬 하경
-            </button>
-          </div>
-        </section>
-
-        {/* Section 2: 화면 설정 */}
-        <section className="bg-card rounded-2xl shadow-soft p-4">
-          <p className="font-jua text-ink-soft text-sm mb-3">화면 설정</p>
-          <div className="flex items-center justify-between">
-            <span className="font-gaegu text-ink">다크 모드</span>
-            <button
-              onClick={() => setDark(!dark)}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                dark ? 'bg-duck' : 'bg-ink/20'
-              }`}
-              aria-label="다크 모드 토글"
-            >
-              <span
-                className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                  dark ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-        </section>
-
-        {/* Section 3: 앱 정보 */}
-        <section className="bg-card rounded-2xl shadow-soft p-4">
-          <p className="font-jua text-ink-soft text-sm mb-3">앱 정보</p>
-          <div className="flex flex-col items-center gap-2">
-            <DuckDolphinPair size={80} />
-            <p className="font-jua text-ink text-lg">오리 레인저</p>
-            <p className="font-gaegu text-ink-mute text-sm">1.0.0</p>
-          </div>
-        </section>
-
+    <div style={{ width: '100%', height: '100%', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '54px 22px 10px' }}>
+        <BackBtn />
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5, marginTop: 4 }}>설정</div>
       </div>
 
-      <BottomNav active="home" />
+      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '4px 18px 50px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Couple card */}
+        <div style={{ background: 'linear-gradient(135deg, var(--accent-soft), var(--card))', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Duck size={44} variant="strong" palette="yellow"/>
+          <Dolphin size={48} variant="happy" palette="blue"/>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>창희 &amp; 하경</div>
+            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 · 시작일 2025.12.16</div>
+          </div>
+        </div>
+
+        <SettingGroup title="화면">
+          <SettingRow label="다크모드 🌙" value={dark} onToggle={() => setDark(!dark)} hint="야간에 눈이 편해"/>
+        </SettingGroup>
+
+        <SettingGroup title="알림 & 리포트">
+          <SettingRow label="주간 리포트" value={weeklyReport} onToggle={() => setWeeklyReport(!weeklyReport)} hint="매주 일요일 오리가 요약해줘"/>
+          <SettingRow label="푸시 알림" value={notif} onToggle={() => setNotif(!notif)} hint="할 일 · 댓글 · 체중 입력 알림"/>
+        </SettingGroup>
+
+        <SettingGroup title="목표">
+          <StaticRow label="창희 목표 체중" value="69.0kg"/>
+          <StaticRow label="하경 목표 체중" value="50.0kg"/>
+          <StaticRow label="주 음주 제한" value="2회"/>
+        </SettingGroup>
+
+        <SettingGroup title="데이터">
+          <StaticRow label="내보내기 (CSV)" value="→"/>
+          <StaticRow label="초기화" value="→" warn/>
+        </SettingGroup>
+
+        <div style={{ textAlign: 'center', fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-mute)', marginTop: 10 }}>
+          오리 레인저 v1.0 · made with 🩵
+        </div>
+      </div>
     </div>
   );
 }
