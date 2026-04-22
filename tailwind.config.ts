@@ -15,6 +15,7 @@ const config: Config = {
       },
       colors: {
         bg: "var(--bg)",
+        "bg-deep": "var(--bg-deep)",
         card: "var(--card)",
         "card-alt": "var(--card-alt)",
         ink: "var(--ink)",
@@ -31,6 +32,7 @@ const config: Config = {
         "duck-deep": "var(--duck-deep)",
         "duck-soft": "var(--duck-soft)",
         dolphin: "var(--dolphin)",
+        "dolphin-deep": "var(--dolphin-deep)",
         "dolphin-soft": "var(--dolphin-soft)",
         pink: "var(--pink)",
       },

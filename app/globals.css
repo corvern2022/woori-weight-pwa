@@ -9,6 +9,7 @@
   --font-gaegu: 'Gaegu';
 
   --bg: #EAF4FB;
+  --bg-deep: #D4ECF7;
   --card: #FFFFFF;
   --card-alt: #F5FAFE;
   --ink: #2A3D54;
@@ -25,6 +26,7 @@
   --duck-deep: #E8B020;
   --duck-soft: #FFF2C4;
   --dolphin: #5BBFE8;
+  --dolphin-deep: #2F95C4;
   --dolphin-soft: #CDE9F6;
   --pink: #FFB3C8;
   --shadow: 0 2px 0 rgba(42,61,84,0.04), 0 10px 26px -8px rgba(47,149,196,0.22);
@@ -33,6 +35,7 @@
 
 .dark {
   --bg: #0F1E2E;
+  --bg-deep: #152838;
   --card: #1E3447;
   --card-alt: #17293A;
   --ink: #E8F2FB;
@@ -49,6 +52,7 @@
   --duck-deep: #E8B820;
   --duck-soft: #3A3018;
   --dolphin: #6FCCF2;
+  --dolphin-deep: #4FB5E0;
   --dolphin-soft: #1F3E54;
   --pink: #FFB3C8;
   --shadow: 0 2px 0 rgba(0,0,0,0.2), 0 10px 26px -8px rgba(0,0,0,0.4);
