@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 interface BottomNavProps {
   active: 'home' | 'tasks' | 'weight' | 'chat';
@@ -16,17 +15,7 @@ const tabs = [
 ];
 
 export const BottomNav: React.FC<BottomNavProps> = ({ active }) => {
-  const pathname = usePathname();
-
-  const getActiveTab = () => {
-    if (pathname === '/') return 'home';
-    if (pathname.startsWith('/tasks')) return 'tasks';
-    if (pathname.startsWith('/weight')) return 'weight';
-    if (pathname.startsWith('/chat')) return 'chat';
-    return active;
-  };
-
-  const activeTab = getActiveTab();
+  const activeTab = active;
 
   return (
     <nav
@@ -40,7 +29,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ active }) => {
             <Link
               key={tab.id}
               href={tab.href}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
                 isActive ? 'text-accent' : 'text-ink-mute'
               }`}
               aria-current={isActive ? 'page' : undefined}
