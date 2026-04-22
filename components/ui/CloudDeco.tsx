@@ -18,17 +18,16 @@ export const CloudDeco: React.FC<CloudDecoProps> = ({
       className={`text-white ${className}`}
       style={{
         width: size,
-        height: size,
+        height: size * 0.6,
         opacity,
-        animation: 'floatCloud 6s ease-in-out infinite',
         ...style,
       }}
     >
-      <svg viewBox="0 0 200 120" width="100%" height="100%" style={{ display: 'block' }}>
-        <ellipse cx="100" cy="80" rx="90" ry="40" fill="currentColor" />
-        <circle cx="70" cy="65" r="35" fill="currentColor" />
-        <circle cx="110" cy="55" r="42" fill="currentColor" />
-        <circle cx="150" cy="68" r="30" fill="currentColor" />
+      <svg viewBox="0 0 120 72" width="100%" height="100%" style={{ display: 'block' }}>
+        <ellipse cx="30" cy="50" rx="26" ry="20" fill="currentColor" />
+        <ellipse cx="60" cy="38" rx="34" ry="28" fill="currentColor" />
+        <ellipse cx="90" cy="50" rx="28" ry="20" fill="currentColor" />
+        <ellipse cx="58" cy="56" rx="40" ry="14" fill="currentColor" />
       </svg>
     </div>
   );
