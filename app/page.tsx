@@ -88,16 +88,27 @@ function BigCard({
 }
 
 // ── TinyTask ─────────────────────────────────────────────────────────────────
-function TinyTask({ t, onToggle }: { t: Task; onToggle: () => void }) {
-  const whoMap: Record<string, string> = { 하경: 'dolphin', 창희: 'duck', 둘다: 'duck' }
-  void whoMap
+function dueDateChip(dateStr: string | null, todayStr: string): { label: string; color: string; bg: string } | null {
+  if (!dateStr) return null
+  if (dateStr === todayStr) return { label: '오늘', color: 'var(--mint-deep)', bg: 'var(--mint)' }
+  if (dateStr < todayStr) {
+    const diff = Math.round((new Date(todayStr).getTime() - new Date(dateStr).getTime()) / 86400000)
+    return { label: `${diff}일 지남`, color: 'var(--peach-deep)', bg: '#FFE8E0' }
+  }
+  const diff = Math.round((new Date(dateStr).getTime() - new Date(todayStr).getTime()) / 86400000)
+  return { label: `${diff}일 후`, color: 'var(--ink-soft)', bg: 'var(--bg-deep)' }
+}
+
+function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; todayStr: string }) {
+  const chip = dueDateChip(t.due_date, todayStr)
+  const whoEmoji = t.assignee === '창희' ? '🦆' : t.assignee === '하경' ? '🐬' : '💞'
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        padding: '6px 0',
+        padding: '8px 0',
         borderBottom: '1px dashed var(--accent-soft)',
       }}
     >
@@ -114,13 +125,13 @@ function TinyTask({ t, onToggle }: { t: Task; onToggle: () => void }) {
           justifyContent: 'center',
           flexShrink: 0,
           cursor: 'pointer',
-          margin: '-12px -12px -12px -12px',
+          marginLeft: -12,
         }}
       >
         <div style={{
-          width: 20,
-          height: 20,
-          borderRadius: 10,
+          width: 22,
+          height: 22,
+          borderRadius: 11,
           background: t.completed ? 'var(--accent)' : 'transparent',
           border: t.completed ? 'none' : '2px solid var(--ink-mute)',
           display: 'flex',
@@ -128,24 +139,37 @@ function TinyTask({ t, onToggle }: { t: Task; onToggle: () => void }) {
           justifyContent: 'center',
         }}>
           {t.completed && (
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
+            <svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
               <path d="M2 5l2 2 4-5" />
             </svg>
           )}
         </div>
       </button>
-      <div
-        style={{
-          flex: 1,
-          fontFamily: 'Gaegu, sans-serif',
-          fontSize: 15,
-          color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
-          textDecoration: t.completed ? 'line-through' : 'none',
-        }}
-      >
-        {t.title}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontFamily: 'Jua, sans-serif',
+            fontSize: 14,
+            color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
+            textDecoration: t.completed ? 'line-through' : 'none',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {t.title}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+          <span style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-soft)' }}>{whoEmoji} {t.assignee}</span>
+          {chip && (
+            <span style={{
+              fontSize: 11, padding: '1px 6px', borderRadius: 6,
+              fontFamily: 'Gaegu, sans-serif',
+              background: chip.bg, color: chip.color,
+            }}>{chip.label}</span>
+          )}
+        </div>
       </div>
-      <Avatar who={t.assignee === '하경' ? '하경' : '창희'} size={22} />
     </div>
   )
 }
@@ -246,9 +270,18 @@ export default function HomePage() {
     })
   }, [])
 
-  // 오늘 마감이거나 기한 지난 것 우선, 없으면 최근 추가된 것
-  const todayTasks = allTasks.filter(t => t.due_date && t.due_date <= todayStr).slice(0, 3)
+  // 오늘 마감 / 기한 지남 / 최근 할 일 구분
+  const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
+  const dueTodayTasks = allTasks.filter(t => t.due_date && t.due_date === todayStr)
+  const todayTasks = [...dueTodayTasks, ...overdueTasks].slice(0, 3)
   const tasks = todayTasks.length > 0 ? todayTasks : allTasks.slice(0, 3)
+
+  function sectionTitle() {
+    if (dueTodayTasks.length > 0 && overdueTasks.length === 0) return '오늘 마감 할 일'
+    if (overdueTasks.length > 0 && dueTodayTasks.length === 0) return '기한 지난 할 일 ⚠️'
+    if (dueTodayTasks.length > 0 && overdueTasks.length > 0) return '오늘 + 기한 지난 할 일'
+    return '최근 할 일'
+  }
 
   const handleToggle = async (task: Task) => {
     const supabase = getSupabaseClient()
@@ -362,7 +395,7 @@ export default function HomePage() {
       <div style={{ padding: '10px 18px 0' }}>
         <div style={{ background: 'var(--card)', borderRadius: 24, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>{todayTasks.length > 0 ? '오늘 마감 할 일' : '최근 할 일'}</div>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>{sectionTitle()}</div>
             <button
               onClick={() => router.push('/tasks')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--accent)' }}
@@ -376,7 +409,7 @@ export default function HomePage() {
             </div>
           )}
           {tasks.map(t => (
-            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} />
+            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
           ))}
         </div>
       </div>
