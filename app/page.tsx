@@ -7,6 +7,7 @@ import { Dolphin } from '@/components/characters/Dolphin'
 import { Avatar } from '@/components/ui/Avatar'
 import { CloudDeco } from '@/components/ui/CloudDeco'
 import { getSupabaseClient } from '@/lib/supabase'
+import { useWeather } from '@/lib/useWeather'
 import type { Task } from '@/components/tasks/types'
 
 // ── BigCard ──────────────────────────────────────────────────────────────────
@@ -192,10 +193,14 @@ function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' |
 }
 
 // ── HomePage ─────────────────────────────────────────────────────────────────
+const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+
 export default function HomePage() {
   const router = useRouter()
   const [tasks, setTasks] = useState<Task[]>([])
   const [openCount, setOpenCount] = useState(0)
+  const weather = useWeather()
+  const today = DAYS[new Date().getDay()]
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -241,7 +246,7 @@ export default function HomePage() {
       {/* Top text */}
       <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
         <div style={{ fontSize: 15, color: 'var(--ink-soft)', fontFamily: 'Gaegu, sans-serif' }}>
-          수요일 · 맑음 ☁️
+          {today} · {weather.label} {weather.emoji}{weather.temp !== null ? ` ${weather.temp}°` : ''}
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5 }}>
           안녕, <span style={{ color: 'var(--accent-deep)' }}>창희하경!</span>
@@ -250,24 +255,12 @@ export default function HomePage() {
 
       {/* Character area */}
       <div style={{ position: 'relative', height: 200, margin: '16px 0 8px' }}>
-        {/* Wave SVG */}
-        <svg
-          style={{ position: 'absolute', bottom: 50, left: '22%' }}
-          width="60"
-          height="14"
-          viewBox="0 0 60 14"
-          opacity="0.5"
-        >
-          <path d="M2 8 Q 10 2, 20 8 T 40 8 T 58 8" stroke="var(--accent-deep)" strokeWidth="1.5" fill="none" />
-        </svg>
-
-        {/* Duck */}
-        <div style={{ position: 'absolute', left: '16%', bottom: 20, animation: 'bobY 3.5s ease-in-out infinite' }}>
+        {/* Duck - left */}
+        <div style={{ position: 'absolute', left: '10%', bottom: 16, animation: 'bobY 3.5s ease-in-out infinite' }}>
           <Duck size={120} variant="strong" palette="yellow" />
         </div>
-
-        {/* Dolphin */}
-        <div style={{ position: 'absolute', right: '8%', bottom: 18, animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+        {/* Dolphin - right */}
+        <div style={{ position: 'absolute', right: '10%', bottom: 16, animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
           <Dolphin size={120} variant="happy" palette="blue" />
         </div>
 
