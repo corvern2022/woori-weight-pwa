@@ -571,8 +571,8 @@ export default function HomePage() {
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
         <BigCard
           title="할 일"
-          count={openCount}
-          subtitle="오늘 남음"
+          count={dueTodayTasks.length + overdueTasks.length > 0 ? dueTodayTasks.length + overdueTasks.length : openCount}
+          subtitle={dueTodayTasks.length > 0 && overdueTasks.length === 0 ? '오늘 마감' : overdueTasks.length > 0 && dueTodayTasks.length === 0 ? '기한 지남' : dueTodayTasks.length + overdueTasks.length > 0 ? '오늘+기한지남' : '미완료 전체'}
           color="var(--peach)"
           colorDeep="var(--peach-deep)"
           icon="task"
