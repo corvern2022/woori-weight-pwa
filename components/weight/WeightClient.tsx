@@ -27,7 +27,6 @@ export function WeightClient() {
 
   const W = 320, H = 160, P = 14;
 
-  type Series = { data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
   const series: Series[] = [];
   if (who === 'duck' || who === 'both') {
     const data = duckWeights;
@@ -81,46 +80,56 @@ export function WeightClient() {
           </div>
 
           {/* Line chart */}
-          <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>
-                {who === 'both' ? '우리 함께 2주' : `${who === 'duck' ? '창희' : '하경'} · 2주`}
-              </div>
-              <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>14일</div>
+          {who === 'both' ? (
+            // 같이 모드: 두 사람 각자 미니 차트
+            <div style={{ display: 'flex', gap: 10 }}>
+              {series.map((s, idx) => (
+                <MiniChart key={idx} s={s} W={W} H={130} P={P} gradId={`grad-w-${idx}`} />
+              ))}
             </div>
-            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
-              <defs>
-                {series.map((s, i) => (
-                  <linearGradient key={i} id={`grad-w-${i}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={s.color} stopOpacity="0.3" />
-                    <stop offset="100%" stopColor={s.color} stopOpacity="0" />
-                  </linearGradient>
-                ))}
-              </defs>
-              {series.map((s, idx) => {
-                const x = (i: number) => s.data.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (s.data.length - 1);
-                const y = (v: number) => P + 14 + ((s.mx - v) / (s.mx - s.mn)) * (H - P * 2 - 24);
-                const linePath = s.data.map((v, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(v)}`).join(' ');
-                const areaPath = `${linePath} L ${x(s.data.length - 1)} ${H - P} L ${P} ${H - P} Z`;
-                return (
-                  <g key={idx}>
-                    <path d={areaPath} fill={`url(#grad-w-${idx})`} />
-                    <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    {s.data.map((v, i) => (
-                      <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
-                    ))}
-                    <text x={x(s.data.length - 1) + 8} y={y(s.data[s.data.length - 1]) + 4} fontSize="11" fontFamily="Jua" fill={s.color}>{s.name}</text>
-                    {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
-                      <>
-                        <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.55" />
-                        <text x={P + 2} y={y(s.goal) - 3} fontSize="10" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
-                      </>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
+          ) : (
+            <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>
+                  {`${who === 'duck' ? '창희' : '하경'} · 2주`}
+                </div>
+                <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>14일</div>
+              </div>
+              {series.map((s, idx) => (
+                <svg key={idx} width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+                  <defs>
+                    <linearGradient id={`grad-w-${idx}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={s.color} stopOpacity="0.3" />
+                      <stop offset="100%" stopColor={s.color} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {(() => {
+                    const x = (i: number) => s.data.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (s.data.length - 1);
+                    const range = s.mx - s.mn || 1;
+                    const y = (v: number) => P + 14 + ((s.mx - v) / range) * (H - P * 2 - 24);
+                    const linePath = s.data.map((v, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(v)}`).join(' ');
+                    const areaPath = `${linePath} L ${x(s.data.length - 1)} ${H - P} L ${P} ${H - P} Z`;
+                    return (
+                      <g>
+                        <path d={areaPath} fill={`url(#grad-w-${idx})`} />
+                        <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        {s.data.map((v, i) => (
+                          <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
+                        ))}
+                        <text x={x(s.data.length - 1) + 8} y={y(s.data[s.data.length - 1]) + 4} fontSize="11" fontFamily="Jua" fill={s.color}>{s.name}</text>
+                        {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
+                          <>
+                            <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.55" />
+                            <text x={P + 2} y={y(s.goal) - 3} fontSize="10" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
+                          </>
+                        )}
+                      </g>
+                    );
+                  })()}
+                </svg>
+              ))}
+            </div>
+          )}
 
           {/* Weekly summary */}
           <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
@@ -220,6 +229,50 @@ function TodayCard({ who, weights }: { who: 'duck' | 'dolphin'; weights: number[
       <div style={{ fontSize: 12, color: +delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)', fontFamily: 'Gaegu, cursive' }}>
         {+delta < 0 ? '↓' : '↑'} {Math.abs(+delta)}
       </div>
+    </div>
+  );
+}
+
+type Series = { data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
+
+function MiniChart({ s, W, H, P, gradId }: { s: Series; W: number; H: number; P: number; gradId: string }) {
+  const x = (i: number) => s.data.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (s.data.length - 1);
+  const range = s.mx - s.mn || 1;
+  const y = (v: number) => P + 14 + ((s.mx - v) / range) * (H - P * 2 - 24);
+  const linePath = s.data.map((v, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(v)}`).join(' ');
+  const areaPath = `${linePath} L ${x(s.data.length - 1)} ${H - P} L ${P} ${H - P} Z`;
+  const last = s.data[s.data.length - 1];
+  const delta = +(last - s.data[0]).toFixed(1);
+
+  return (
+    <div style={{ flex: 1, background: 'var(--card)', borderRadius: 20, padding: '12px 12px 8px', boxShadow: 'var(--shadow-soft)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14, color: s.color }}>{s.name}</div>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, color: delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)' }}>
+          {delta < 0 ? '↓' : '↑'}{Math.abs(delta)}
+        </div>
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={s.color} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={s.color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill={`url(#${gradId})`} />
+        <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        {s.data.map((v, i) => (
+          <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4 : 2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
+        ))}
+        {/* 최신값 레이블 */}
+        <text x={x(s.data.length - 1)} y={y(last) - 7} fontSize="10" fontFamily="Jua" fill={s.color} textAnchor="middle">{last}kg</text>
+        {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
+          <>
+            <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
+            <text x={P + 2} y={y(s.goal) - 3} fontSize="9" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
+          </>
+        )}
+      </svg>
     </div>
   );
 }
