@@ -104,6 +104,20 @@ function TinyTask({ t, onToggle }: { t: Task; onToggle: () => void }) {
       <button
         onClick={onToggle}
         style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          background: 'transparent',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          cursor: 'pointer',
+          margin: '-12px -12px -12px -12px',
+        }}
+      >
+        <div style={{
           width: 20,
           height: 20,
           borderRadius: 10,
@@ -112,15 +126,13 @@ function TinyTask({ t, onToggle }: { t: Task; onToggle: () => void }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          flexShrink: 0,
-          cursor: 'pointer',
-        }}
-      >
-        {t.completed && (
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
-            <path d="M2 5l2 2 4-5" />
-          </svg>
-        )}
+        }}>
+          {t.completed && (
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M2 5l2 2 4-5" />
+            </svg>
+          )}
+        </div>
       </button>
       <div
         style={{

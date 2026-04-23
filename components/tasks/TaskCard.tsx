@@ -43,26 +43,36 @@ export function TaskCard({ t, events, onOpen, onToggle }: Props) {
         <button
           onClick={(e) => { e.stopPropagation(); onToggle(); }}
           style={{
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            border: 'none',
+            cursor: 'pointer',
+            marginTop: -8,
+            background: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{
             width: 28,
             height: 28,
             borderRadius: 14,
-            border: 'none',
-            cursor: 'pointer',
-            marginTop: 2,
             background: t.completed ? 'linear-gradient(135deg, var(--mint), var(--mint-deep))' : 'transparent',
             boxShadow: t.completed ? '0 3px 8px rgba(0,0,0,0.18)' : 'inset 0 0 0 2.5px var(--ink-mute)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            flexShrink: 0,
             transition: 'all 0.2s',
-          }}
-        >
+          }}>
           {t.completed && (
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
               <path d="M3 8l3 3 6-6"/>
             </svg>
           )}
+          </div>
         </button>
 
         <div style={{ flex: 1, minWidth: 0 }}>

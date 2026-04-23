@@ -217,7 +217,7 @@ export function TaskDetail({ taskId }: Props) {
       </div>
 
       {/* Input */}
-      <div style={{ padding: '8px 16px 46px', background: 'var(--card)', borderTop: '1px solid rgba(42,61,84,0.08)' }}>
+      <div style={{ padding: '8px 16px', paddingBottom: 'calc(46px + env(safe-area-inset-bottom, 0px))', background: 'var(--card)', borderTop: '1px solid rgba(42,61,84,0.08)' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{ flexShrink: 0 }}>
             {actor === '창희'

@@ -110,6 +110,25 @@ export function DrinkPageClient() {
 
   const monthLabel = `${year}년 ${month + 1}월`;
 
+  async function toggleDrink(userId: string | undefined, date: Date) {
+    if (!userId) return;
+    const ds = date.toISOString().slice(0, 10);
+    const existing = rows.find((r) => r.user_id === userId && r.date === ds);
+    const supabase = getSupabaseClient();
+    const newVal = !(existing?.drank ?? false);
+    if (existing) {
+      await supabase.from('weigh_ins').update({ drank: newVal }).eq('user_id', userId).eq('date', ds);
+    } else {
+      // Insert a placeholder row with drank=true (weight_kg 0 is a sentinel; user should log weight separately)
+      await supabase.from('weigh_ins').upsert([{ user_id: userId, date: ds, weight_kg: 0, drank: true }], { onConflict: 'user_id,date' });
+    }
+    setRows((prev) => {
+      const next = prev.filter((r) => !(r.user_id === userId && r.date === ds));
+      if (newVal) next.push({ date: ds, user_id: userId, weight_kg: existing?.weight_kg ?? 0, drank: true });
+      return next;
+    });
+  }
+
   return (
     <div style={{ width: '100%', height: '100%', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
@@ -162,8 +181,27 @@ export function DrinkPageClient() {
                   const duckDrank = drankOnDate(duckMember?.user_id, d);
                   const dolphinDrank = drankOnDate(dolphinMember?.user_id, d);
                   const isToday = ds === todayStr;
+                  const isFuture = ds > todayStr;
                   return (
-                    <div key={i} style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      key={i}
+                      style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: duckDrank || dolphinDrank ? 'var(--duck-soft)' : 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isFuture ? 'default' : 'pointer', opacity: isFuture ? 0.4 : 1 }}
+                      onClick={() => {
+                        if (isFuture) return;
+                        // Toggle: if neither drank, mark both; if duck drank toggle duck; if dolphin toggle dolphin; if both, clear both
+                        if (!duckDrank && !dolphinDrank) {
+                          void toggleDrink(duckMember?.user_id, d);
+                          void toggleDrink(dolphinMember?.user_id, d);
+                        } else if (duckDrank && dolphinDrank) {
+                          void toggleDrink(duckMember?.user_id, d);
+                          void toggleDrink(dolphinMember?.user_id, d);
+                        } else if (duckDrank) {
+                          void toggleDrink(duckMember?.user_id, d);
+                        } else {
+                          void toggleDrink(dolphinMember?.user_id, d);
+                        }
+                      }}
+                    >
                       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
                       <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
                         {duckDrank && <div style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--duck-deep)' }} />}
