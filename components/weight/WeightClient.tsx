@@ -21,7 +21,7 @@ export function WeightClient() {
       duckWeights={duckWeights}
       dolphinWeights={dolphinWeights}
       onBack={() => setView('list')}
-      onSave={async (who, kg) => { await addWeight(who, kg); setView('list'); }}
+      onSave={async (who, kg, date) => { await addWeight(who, kg, date); setView('list'); }}
     />;
   }
 
@@ -212,18 +212,20 @@ function WeightEntry({
   duckWeights: number[];
   dolphinWeights: number[];
   onBack: () => void;
-  onSave: (who: 'duck' | 'dolphin', kg: number) => Promise<void>;
+  onSave: (who: 'duck' | 'dolphin', kg: number, date: string) => Promise<void>;
 }) {
+  const todayStr = new Date().toISOString().slice(0, 10);
   const [who, setWho] = useState<'duck' | 'dolphin'>('duck');
   const current = who === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1];
   const [val, setVal] = useState(current);
+  const [date, setDate] = useState(todayStr);
   const [saving, setSaving] = useState(false);
 
   const step = (d: number) => setVal(v => Math.max(20, Math.min(200, +(v + d).toFixed(1))));
 
   const handleSave = async () => {
     setSaving(true);
-    await onSave(who, +val.toFixed(1));
+    await onSave(who, +val.toFixed(1), date);
     setSaving(false);
   };
 
@@ -231,7 +233,21 @@ function WeightEntry({
     <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '54px 22px 14px' }}>
         <BackBtn label="체중" onClick={onBack} />
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, letterSpacing: -0.5, marginTop: 6 }}>오늘 체중 기록 ⚖️</div>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, letterSpacing: -0.5, marginTop: 6 }}>체중 기록 ⚖️</div>
+      </div>
+
+      {/* Date picker */}
+      <div style={{ padding: '0 18px', marginBottom: 12 }}>
+        <div style={{ background: 'var(--card)', borderRadius: 14, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: 'var(--shadow-soft)' }}>
+          <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 14, color: 'var(--ink-soft)' }}>📅 날짜</span>
+          <input
+            type="date"
+            value={date}
+            max={todayStr}
+            onChange={e => setDate(e.target.value)}
+            style={{ flex: 1, border: 'none', background: 'transparent', fontFamily: 'Jua, sans-serif', fontSize: 14, color: 'var(--ink)', outline: 'none', cursor: 'pointer' }}
+          />
+        </div>
       </div>
 
       {/* Who toggle */}

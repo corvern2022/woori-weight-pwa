@@ -68,6 +68,11 @@ html, body {
   transition: background-color 0.3s, color 0.3s;
 }
 button, input { font: inherit; }
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+a { -webkit-tap-highlight-color: transparent; }
 
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
