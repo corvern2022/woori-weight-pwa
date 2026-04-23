@@ -251,6 +251,7 @@ export default function HomePage() {
   const [duckMood, setDuckMood] = useState<MoodState>(null)
   const [dolphinMood, setDolphinMood] = useState<MoodState>(null)
   const [moodModal, setMoodModal] = useState(false)
+  const [moodTarget, setMoodTarget] = useState<'duck' | 'dolphin'>('duck')
   const [moodDraft, setMoodDraft] = useState('')
   const [moodEmoji, setMoodEmoji] = useState('😊')
   const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경'
@@ -302,10 +303,10 @@ export default function HomePage() {
   }, [loadMoods])
 
   async function saveMood() {
-    const key = actor === '창희' ? 'mood_duck' : 'mood_dolphin'
+    const key = moodTarget === 'duck' ? 'mood_duck' : 'mood_dolphin'
     const value: MoodState = { emoji: moodEmoji, text: moodDraft.trim(), updated_at: new Date().toISOString() }
     await getSupabaseClient().from('app_config').upsert({ key, value, updated_at: new Date().toISOString() })
-    if (actor === '창희') setDuckMood(value)
+    if (moodTarget === 'duck') setDuckMood(value)
     else setDolphinMood(value)
     setMoodModal(false)
     setMoodDraft('')
@@ -405,7 +406,7 @@ export default function HomePage() {
               {duckMood.emoji} {duckMood.text || ''}
             </div>
           )}
-          <button onClick={() => setMoodModal(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
+          <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
             <Duck size={110} variant="strong" palette="yellow" />
           </button>
         </div>
@@ -421,7 +422,7 @@ export default function HomePage() {
               {dolphinMood.emoji} {dolphinMood.text || ''}
             </div>
           )}
-          <button onClick={() => setMoodModal(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+          <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
             <Dolphin size={110} variant="happy" palette="blue" />
           </button>
         </div>
@@ -439,7 +440,7 @@ export default function HomePage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setMoodModal(false)}>
           <div style={{ background: 'var(--card)', borderRadius: '24px 24px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
-              {actor === '창희' ? '🦆' : '🐬'} {actor} 오늘 기분은?
+              {moodTarget === 'duck' ? '🦆 창희' : '🐬 하경'} 오늘 기분은?
             </div>
             {/* 이모지 선택 */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 14 }}>
