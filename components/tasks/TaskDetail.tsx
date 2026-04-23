@@ -116,7 +116,7 @@ function SubItem({
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)',
+          fontFamily: 'Jua, sans-serif', fontSize: 15, color: 'var(--ink)',
           textDecoration: item.done ? 'line-through' : 'none',
           lineHeight: 1.4,
         }}>
@@ -124,7 +124,7 @@ function SubItem({
         </div>
         {label && (
           <span style={{
-            fontSize: 11, fontFamily: 'Gaegu, cursive',
+            fontSize: 11, fontFamily: 'Jua, sans-serif',
             color: isOverdue ? 'var(--peach-deep)' : label === '오늘' ? 'var(--mint-deep)' : 'var(--ink-mute)',
           }}>
             📅 {label}
@@ -499,7 +499,7 @@ export function TaskDetail({ taskId }: Props) {
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
               placeholder={mode === 'sub' ? '하위 아젠다 입력...' : '댓글 달기...'}
-              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)' }}
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: mode === 'sub' ? 'Jua, sans-serif' : 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)' }}
             />
             <button onClick={handleSend} disabled={sending || !input.trim()} style={{
               border: 'none', borderRadius: 12, padding: '5px 12px',
