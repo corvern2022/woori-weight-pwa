@@ -239,11 +239,75 @@ function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' |
   )
 }
 
+// ── OnboardingScreen ─────────────────────────────────────────────────────────
+function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') => void }) {
+  const [hovered, setHovered] = useState<'duck' | 'dolphin' | null>(null)
+  return (
+    <div style={{
+      minHeight: '100svh', background: 'var(--bg)', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 0, padding: '0 24px',
+    }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
+        오리 레인저
+      </div>
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 17, color: 'var(--ink-muted)', marginBottom: 48, textAlign: 'center' }}>
+        나는 누구인가요?
+      </div>
+
+      <div style={{ display: 'flex', gap: 20, width: '100%', maxWidth: 340 }}>
+        {/* 창희 */}
+        <button
+          onMouseEnter={() => setHovered('duck')}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => onSelect('창희')}
+          style={{
+            flex: 1, background: hovered === 'duck' ? 'var(--duck-soft)' : 'var(--card)',
+            border: `2.5px solid ${hovered === 'duck' ? 'var(--duck)' : 'transparent'}`,
+            borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            boxShadow: hovered === 'duck' ? '0 8px 28px rgba(255,200,50,0.25)' : 'var(--shadow)',
+            transition: 'all 0.2s',
+            transform: hovered === 'duck' ? 'translateY(-4px)' : 'none',
+          }}
+        >
+          <Duck size={90} variant="strong" palette="yellow" />
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20, color: 'var(--duck-deep)' }}>창희 🦆</div>
+        </button>
+
+        {/* 하경 */}
+        <button
+          onMouseEnter={() => setHovered('dolphin')}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => onSelect('하경')}
+          style={{
+            flex: 1, background: hovered === 'dolphin' ? 'var(--dolphin-soft)' : 'var(--card)',
+            border: `2.5px solid ${hovered === 'dolphin' ? 'var(--dolphin)' : 'transparent'}`,
+            borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            boxShadow: hovered === 'dolphin' ? '0 8px 28px rgba(99,163,253,0.25)' : 'var(--shadow)',
+            transition: 'all 0.2s',
+            transform: hovered === 'dolphin' ? 'translateY(-4px)' : 'none',
+          }}
+        >
+          <Dolphin size={90} variant="happy" palette="blue" />
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20, color: 'var(--accent-deep)' }}>하경 🐬</div>
+        </button>
+      </div>
+
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-muted)', marginTop: 32, textAlign: 'center' }}>
+        한 번만 선택하면 기억할게요 💾
+      </div>
+    </div>
+  )
+}
+
 // ── HomePage ─────────────────────────────────────────────────────────────────
 const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
 
 export default function HomePage() {
   const router = useRouter()
+  const [actor, setActor] = useState<string | null>(null)
   const [allTasks, setAllTasks] = useState<Task[]>([])
   const [openCount, setOpenCount] = useState(0)
   const [duckKg, setDuckKg] = useState<number | null>(null)
@@ -254,12 +318,18 @@ export default function HomePage() {
   const [moodTarget, setMoodTarget] = useState<'duck' | 'dolphin'>('duck')
   const [moodDraft, setMoodDraft] = useState('')
   const [moodEmoji, setMoodEmoji] = useState('😊')
-  const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경'
-  const pushUserId = typeof window !== 'undefined' ? localStorage.getItem('woori_weight_user_id') : null
+  const [pushUserId, setPushUserId] = useState<string | null>(null)
   usePush(pushUserId)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
   const todayStr = new Date().toISOString().slice(0, 10)
+
+  // 앱 초기화: localStorage에서 actor 읽기 (null=미로드, ''=미설정, '창희'/'하경'=설정됨)
+  useEffect(() => {
+    const saved = localStorage.getItem('ori_ranger_actor')
+    setActor(saved ?? '')  // 없으면 '' → 온보딩 표시
+    setPushUserId(localStorage.getItem('woori_weight_user_id'))
+  }, [])
 
   const loadMoods = useCallback(async () => {
     const supabase = getSupabaseClient()
@@ -311,6 +381,15 @@ export default function HomePage() {
     setMoodModal(false)
     setMoodDraft('')
   }
+
+  function handleOnboardingSelect(who: '창희' | '하경') {
+    localStorage.setItem('ori_ranger_actor', who)
+    setActor(who)
+  }
+
+  // 온보딩: actor 미설정 시 선택 화면 (null = 아직 로드 전, '' = 미설정)
+  if (actor === null) return null  // hydration 대기
+  if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
   // 오늘 마감 / 기한 지남 / 최근 할 일 구분
   const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
