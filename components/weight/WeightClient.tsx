@@ -209,7 +209,11 @@ function TodayCard({ who, weights }: { who: 'duck' | 'dolphin'; weights: number[
 
 type Series = { entries: WeightData[]; data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
 
+type Tooltip = { x: number; y: number; date: string; kg: number; name: string; color: string } | null;
+
 function CombinedChart({ series, W, H, P }: { series: Series[]; W: number; H: number; P: number }) {
+  const [tooltip, setTooltip] = useState<Tooltip>(null);
+
   // Collect all dates across all series, sorted
   const allDates = Array.from(new Set(series.flatMap(s => s.entries.map(e => e.date)))).sort();
   if (allDates.length === 0) return null;
@@ -296,7 +300,16 @@ function CombinedChart({ series, W, H, P }: { series: Series[]; W: number; H: nu
               <path d={areaPath} fill={`url(#cc-grad-${idx})`} />
               <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
               {pts.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === pts.length - 1 ? 2 : 1} />
+                <circle
+                  key={i}
+                  cx={p.x} cy={p.y}
+                  r={i === pts.length - 1 ? 4.5 : 2.2}
+                  fill={tooltip?.date === p.date && tooltip?.name === s.name ? '#fff' : s.color}
+                  stroke={s.color}
+                  strokeWidth={i === pts.length - 1 ? 2 : 1.5}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setTooltip(t => (t?.date === p.date && t?.name === s.name) ? null : { x: p.x, y: p.y, date: p.date, kg: p.kg, name: s.name, color: s.color })}
+                />
               ))}
               {/* Latest value label */}
               <text x={last.x} y={last.y - 8} fontSize="10" fontFamily="Jua" fill={s.color} textAnchor="middle">{last.kg}kg</text>
@@ -310,6 +323,25 @@ function CombinedChart({ series, W, H, P }: { series: Series[]; W: number; H: nu
             </g>
           );
         })}
+
+        {/* Tooltip bubble */}
+        {tooltip && (() => {
+          const bw = 72, bh = 34, br = 8;
+          // position bubble: prefer above, shift left if near right edge
+          let bx = tooltip.x - bw / 2;
+          let by = tooltip.y - bh - 12;
+          if (bx < P) bx = P;
+          if (bx + bw > W - P) bx = W - P - bw;
+          if (by < 4) by = tooltip.y + 14;
+          const dateLabel = `${parseInt(tooltip.date.slice(5,7))}월 ${parseInt(tooltip.date.slice(8,10))}일`;
+          return (
+            <g style={{ pointerEvents: 'none' }}>
+              <rect x={bx} y={by} width={bw} height={bh} rx={br} fill={tooltip.color} opacity="0.95" />
+              <text x={bx + bw / 2} y={by + 13} fontSize="9.5" fontFamily="Jua" fill="#fff" textAnchor="middle">{dateLabel}</text>
+              <text x={bx + bw / 2} y={by + 26} fontSize="11" fontFamily="Jua" fill="#fff" textAnchor="middle" fontWeight="bold">{tooltip.kg}kg</text>
+            </g>
+          );
+        })()}
       </svg>
     </div>
   );
