@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
+import { sendPushToPartner } from "@/lib/usePush";
 import {
   AppConfig,
   CHECKLIST_NO_DUE_SENTINEL,
@@ -13,6 +14,13 @@ import {
 } from "./types";
 
 const POLL_INTERVAL = 10000;
+
+async function getPartnerUserId(supabase: ReturnType<typeof getSupabaseClient>): Promise<string | null> {
+  const myId = typeof window !== 'undefined' ? localStorage.getItem('woori_weight_user_id') : null;
+  if (!myId) return null;
+  const { data } = await supabase.from('household_members').select('user_id').neq('user_id', myId);
+  return data?.[0]?.user_id ?? null;
+}
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -153,9 +161,18 @@ export function useTasks() {
       completed_at: !current ? now : null,
     }).eq("id", id);
     if (error) { showToast("상태 변경 실패."); return; }
+    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경';
     await addTaskEvent(id, "status_changed", {
       scope: "task", action: !current ? "completed" : "reopened",
     });
+    if (!current) {
+      // 할 일 완료 시 파트너에게 푸시 알림
+      const task = tasks.find(t => t.id === id);
+      const partnerUid = await getPartnerUserId(supabase);
+      if (partnerUid && task) {
+        sendPushToPartner(partnerUid, `${actor}이(가) 완료했어요 ✅`, task.title);
+      }
+    }
     await reload();
   }
 
@@ -167,6 +184,12 @@ export function useTasks() {
   async function addComment(taskId: string, text: string, actor: string) {
     if (!text.trim()) return;
     await addTaskEvent(taskId, "comment_added", { text }, actor);
+    // 댓글 작성 시 파트너에게 푸시 알림
+    const task = tasks.find(t => t.id === taskId);
+    const partnerUid = await getPartnerUserId(supabase);
+    if (partnerUid && task) {
+      sendPushToPartner(partnerUid, `${actor}이(가) 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`);
+    }
     await reload();
   }
 

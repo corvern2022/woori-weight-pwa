@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Duck } from '@/components/characters/Duck'
 import { Dolphin } from '@/components/characters/Dolphin'
@@ -8,7 +8,12 @@ import { Avatar } from '@/components/ui/Avatar'
 import { CloudDeco } from '@/components/ui/CloudDeco'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useWeather } from '@/lib/useWeather'
+import { usePush } from '@/lib/usePush'
 import type { Task } from '@/components/tasks/types'
+
+const MOOD_EMOJIS = ['😊','😄','🥰','😎','🤩','😌','😴','🥱','😤','🤔','😋','🥳','💪','🫶','✨']
+
+type MoodState = { emoji: string; text: string; updated_at: string } | null
 
 // ── BigCard ──────────────────────────────────────────────────────────────────
 function BigCard({
@@ -237,9 +242,27 @@ export default function HomePage() {
   const [openCount, setOpenCount] = useState(0)
   const [duckKg, setDuckKg] = useState<number | null>(null)
   const [dolphinKg, setDolphinKg] = useState<number | null>(null)
+  const [duckMood, setDuckMood] = useState<MoodState>(null)
+  const [dolphinMood, setDolphinMood] = useState<MoodState>(null)
+  const [moodModal, setMoodModal] = useState(false)
+  const [moodDraft, setMoodDraft] = useState('')
+  const [moodEmoji, setMoodEmoji] = useState('😊')
+  const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경'
+  const pushUserId = typeof window !== 'undefined' ? localStorage.getItem('woori_weight_user_id') : null
+  usePush(pushUserId)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
   const todayStr = new Date().toISOString().slice(0, 10)
+
+  const loadMoods = useCallback(async () => {
+    const supabase = getSupabaseClient()
+    const { data } = await supabase.from('app_config').select('key, value').in('key', ['mood_duck', 'mood_dolphin'])
+    if (!data) return
+    data.forEach((row: { key: string; value: MoodState }) => {
+      if (row.key === 'mood_duck') setDuckMood(row.value)
+      if (row.key === 'mood_dolphin') setDolphinMood(row.value)
+    })
+  }, [])
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -253,7 +276,7 @@ export default function HomePage() {
         if (data) { setAllTasks(data as Task[]); setOpenCount(data.length) }
       })
 
-    // 최근 체중 - 멤버 조회 후 각각 마지막 기록
+    // 최근 체중
     supabase.from('household_members').select('user_id, display_name').then(({ data: members }) => {
       if (!members) return
       members.forEach(async (m: { user_id: string; display_name: string }) => {
@@ -268,7 +291,19 @@ export default function HomePage() {
         else setDolphinKg(kg)
       })
     })
-  }, [])
+
+    loadMoods()
+  }, [loadMoods])
+
+  async function saveMood() {
+    const key = actor === '창희' ? 'mood_duck' : 'mood_dolphin'
+    const value: MoodState = { emoji: moodEmoji, text: moodDraft.trim(), updated_at: new Date().toISOString() }
+    await getSupabaseClient().from('app_config').upsert({ key, value, updated_at: new Date().toISOString() })
+    if (actor === '창희') setDuckMood(value)
+    else setDolphinMood(value)
+    setMoodModal(false)
+    setMoodDraft('')
+  }
 
   // 오늘 마감 / 기한 지남 / 최근 할 일 구분
   const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
@@ -351,21 +386,80 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Character area - pointerEvents none so characters don't steal taps */}
-      <div style={{ position: 'relative', height: 200, margin: '16px 0 8px', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', left: '10%', bottom: 16, animation: 'bobY 3.5s ease-in-out infinite' }}>
-          <Duck size={120} variant="strong" palette="yellow" />
+      {/* Character area */}
+      <div style={{ position: 'relative', height: 220, margin: '12px 0 8px' }}>
+        {/* Duck (창희) + 말풍선 */}
+        <div style={{ position: 'absolute', left: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {duckMood && (
+            <div style={{
+              background: 'var(--duck-soft)', border: '1.5px solid var(--duck)', borderRadius: '14px 14px 14px 4px',
+              padding: '5px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12, color: 'var(--duck-deep)',
+              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
+            }}>
+              {duckMood.emoji} {duckMood.text || ''}
+            </div>
+          )}
+          <button onClick={() => setMoodModal(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
+            <Duck size={110} variant="strong" palette="yellow" />
+          </button>
         </div>
-        <div style={{ position: 'absolute', right: '10%', bottom: 16, animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
-          <Dolphin size={120} variant="happy" palette="blue" />
+
+        {/* Dolphin (하경) + 말풍선 */}
+        <div style={{ position: 'absolute', right: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {dolphinMood && (
+            <div style={{
+              background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)', borderRadius: '14px 14px 4px 14px',
+              padding: '5px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12, color: 'var(--accent-deep)',
+              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
+            }}>
+              {dolphinMood.emoji} {dolphinMood.text || ''}
+            </div>
+          )}
+          <button onClick={() => setMoodModal(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+            <Dolphin size={110} variant="happy" palette="blue" />
+          </button>
         </div>
-        <svg style={{ position: 'absolute', bottom: 24, right: '22%' }} width="24" height="40" viewBox="0 0 24 40">
+
+        <svg style={{ position: 'absolute', bottom: 24, right: '22%', pointerEvents: 'none' }} width="24" height="40" viewBox="0 0 24 40">
           <circle cx="12" cy="32" r="3" fill="var(--accent)" opacity="0.5" />
           <circle cx="8" cy="20" r="2" fill="var(--accent)" opacity="0.35" />
           <circle cx="15" cy="10" r="2.5" fill="var(--accent)" opacity="0.25" />
         </svg>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0', pointerEvents: 'none' }} />
       </div>
+
+      {/* 기분 설정 모달 */}
+      {moodModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setMoodModal(false)}>
+          <div style={{ background: 'var(--card)', borderRadius: '24px 24px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
+              {actor === '창희' ? '🦆' : '🐬'} {actor} 오늘 기분은?
+            </div>
+            {/* 이모지 선택 */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 14 }}>
+              {MOOD_EMOJIS.map(e => (
+                <button key={e} onClick={() => setMoodEmoji(e)} style={{
+                  fontSize: 24, padding: '4px 8px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: moodEmoji === e ? 'var(--accent-soft)' : 'transparent',
+                  transform: moodEmoji === e ? 'scale(1.25)' : 'scale(1)', transition: 'all 0.15s',
+                }}>{e}</button>
+              ))}
+            </div>
+            {/* 텍스트 입력 */}
+            <input
+              value={moodDraft}
+              onChange={e => setMoodDraft(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && saveMood()}
+              placeholder="한 줄 메시지 (선택)"
+              maxLength={20}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14, border: '2px solid var(--accent-soft)', fontFamily: 'Jua, sans-serif', fontSize: 15, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12 }}
+            />
+            <button onClick={saveMood} style={{ width: '100%', padding: '12px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 16, cursor: 'pointer' }}>
+              저장하기 {moodEmoji}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* BigCard row */}
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>

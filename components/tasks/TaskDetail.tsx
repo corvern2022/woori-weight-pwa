@@ -147,11 +147,16 @@ function SubItem({
   );
 }
 
+const REACTION_EMOJIS = ['👍','❤️','🔥','😂','👏','🥹'];
+
 // ── Comment bubble ────────────────────────────────────────────────────────────
-function CommentBubble({ c }: { c: TaskEvent }) {
+function CommentBubble({ c, onReact }: { c: TaskEvent; onReact: (eventId: string, emoji: string) => void }) {
   const isDuck = c.actor === '창희';
+  const reactions = (c.payload?.reactions ?? {}) as Record<string, string[]>;
+  const [showPicker, setShowPicker] = useState(false);
+
   return (
-    <div style={{ display: 'flex', flexDirection: isDuck ? 'row' : 'row-reverse', gap: 8, marginBottom: 12, alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', flexDirection: isDuck ? 'row' : 'row-reverse', gap: 8, marginBottom: 14, alignItems: 'flex-start' }}>
       <div style={{ flexShrink: 0 }}>
         {isDuck
           ? <Duck size={32} variant="head" palette="yellow" />
@@ -170,6 +175,38 @@ function CommentBubble({ c }: { c: TaskEvent }) {
           lineHeight: 1.4,
         }}>
           {String(c.payload?.text ?? '')}
+        </div>
+
+        {/* 리액션 표시 + 추가 버튼 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5, justifyContent: isDuck ? 'flex-start' : 'flex-end', alignItems: 'center' }}>
+          {REACTION_EMOJIS.filter(e => reactions[e]?.length > 0).map(e => (
+            <button key={e} onClick={() => onReact(c.id, e)} style={{
+              border: 'none', borderRadius: 100, padding: '2px 8px', cursor: 'pointer', fontSize: 13,
+              background: 'var(--card)', boxShadow: 'var(--shadow-soft)',
+              display: 'flex', alignItems: 'center', gap: 2,
+            }}>
+              {e} <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 11, color: 'var(--ink-soft)' }}>{reactions[e].length}</span>
+            </button>
+          ))}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setShowPicker(v => !v)} style={{
+              border: 'none', borderRadius: 100, padding: '2px 8px', cursor: 'pointer', fontSize: 13,
+              background: 'var(--bg-deep)', color: 'var(--ink-mute)',
+            }}>＋</button>
+            {showPicker && (
+              <div style={{
+                position: 'absolute', [isDuck ? 'left' : 'right']: 0, bottom: 30,
+                background: 'var(--card)', borderRadius: 16, padding: '8px 10px',
+                boxShadow: 'var(--shadow)', display: 'flex', gap: 6, zIndex: 10, whiteSpace: 'nowrap',
+              }}>
+                {REACTION_EMOJIS.map(e => (
+                  <button key={e} onClick={() => { onReact(c.id, e); setShowPicker(false); }} style={{
+                    border: 'none', background: 'none', cursor: 'pointer', fontSize: 20, padding: '2px 4px',
+                  }}>{e}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -270,6 +307,22 @@ export function TaskDetail({ taskId }: Props) {
     setInput("");
     setInputDue("");
     setSending(false);
+  }
+
+  async function addReaction(eventId: string, emoji: string) {
+    const supabase = getSupabaseClient();
+    const target = comments.find(c => c.id === eventId);
+    if (!target) return;
+    const reactions = ((target.payload?.reactions ?? {}) as Record<string, string[]>);
+    const users = reactions[emoji] ?? [];
+    const myName = actor;
+    const next = users.includes(myName)
+      ? users.filter(u => u !== myName)
+      : [...users, myName];
+    const newReactions = { ...reactions, [emoji]: next };
+    const newPayload = { ...target.payload, reactions: newReactions };
+    await supabase.from('task_events').update({ payload: newPayload }).eq('id', eventId);
+    setComments(prev => prev.map(c => c.id === eventId ? { ...c, payload: newPayload } : c));
   }
 
   async function addComment() {
@@ -446,7 +499,7 @@ export function TaskDetail({ taskId }: Props) {
               첫 댓글을 남겨봐 💬
             </div>
           ) : (
-            comments.map(c => <CommentBubble key={c.id} c={c} />)
+            comments.map(c => <CommentBubble key={c.id} c={c} onReact={addReaction} />)
           )}
           <div ref={bottomRef} />
         </div>

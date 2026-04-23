@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
+import { sendPushToPartner } from "@/lib/usePush";
 
 const LOCAL_KEY = "woori_weight_user_id";
 
@@ -99,6 +100,14 @@ export function useWeights() {
 
     setToast("기록 완료! 🎉");
     setTimeout(() => setToast(null), 2000);
+
+    // 체중 기록 시 파트너에게 푸시
+    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경';
+    const partnerUid = who === 'duck' ? partnerId : myUserId;
+    if (supabase && partnerUid) {
+      sendPushToPartner(partnerUid, `${actor}이(가) 체중을 기록했어요 ⚖️`, `오늘 몸무게: ${kg}kg`);
+    }
+
     // Reload from DB so chart reflects actual saved data (including past-date entries)
     await loadData();
   }
