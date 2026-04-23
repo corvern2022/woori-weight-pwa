@@ -42,39 +42,39 @@ export function GoalCard({
   todayISO,
 }: Props) {
   return (
-    <section className="rounded-2xl bg-card p-4 shadow-card">
-      <h2 className="text-lg font-bold">목표 체중</h2>
+    <section className="rounded-2xl bg-card p-4 shadow-soft">
+      <h2 className="font-jua text-lg text-ink">목표 체중</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <label className="flex-1">
-          <span className="mb-1 block text-sm text-slate-600">목표 (kg)</span>
+          <span className="mb-1 block font-gaegu text-sm text-ink-soft">목표 (kg)</span>
           <input
             value={goalInput}
             onChange={(e) => onChangeGoal(e.target.value)}
             inputMode="decimal"
             placeholder="예: 72.0"
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-lg"
+            className="w-full rounded-xl border border-ink/15 bg-card-alt px-4 py-3 text-lg text-ink"
           />
         </label>
         <label>
-          <span className="mb-1 block text-sm text-slate-600">다이어트 시작일</span>
+          <span className="mb-1 block font-gaegu text-sm text-ink-soft">다이어트 시작일</span>
           <input
             type="date"
             value={dietStartDate}
             onChange={(e) => onChangeDietStartDate(e.target.value)}
-            className="date-input w-full rounded-xl border border-slate-200 px-4 py-3 text-base"
+            className="date-input w-full rounded-xl border border-ink/15 bg-card-alt px-4 py-3 text-base text-ink"
           />
         </label>
         <button
           type="button"
           onClick={onSaveGoal}
           disabled={saving}
-          className="rounded-xl bg-accent px-5 py-3 text-base font-semibold text-white disabled:opacity-50"
+          className="rounded-pill bg-mint px-5 py-3 font-jua text-base text-ink disabled:opacity-50"
         >
           {saving ? "저장 중..." : "저장"}
         </button>
       </div>
-      <p className="mt-3 text-sm text-slate-600">{goalMessage(currentWeight, goalInput)}</p>
-      <p className="mt-1 text-sm text-slate-600">{dDayText(dietStartDate, todayISO)}</p>
+      <p className="mt-3 font-gaegu text-sm text-ink-soft">{goalMessage(currentWeight, goalInput)}</p>
+      <p className="mt-1 font-gaegu text-sm text-ink-soft">{dDayText(dietStartDate, todayISO)}</p>
     </section>
   );
 }

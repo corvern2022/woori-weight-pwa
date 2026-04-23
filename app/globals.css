@@ -1,52 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  --font-jua: 'Jua';
+  --font-gaegu: 'Gaegu';
+
+  --bg: #EAF4FB;
+  --bg-deep: #D4ECF7;
+  --card: #FFFFFF;
+  --card-alt: #F5FAFE;
+  --ink: #2A3D54;
+  --ink-soft: #6B8AA8;
+  --ink-mute: #A6B7C7;
+  --accent: #5BBFE8;
+  --accent-deep: #2F95C4;
+  --accent-soft: #CDE9F6;
+  --mint: #9BDBC0;
+  --mint-deep: #5FB894;
+  --peach: #FFB89A;
+  --peach-deep: #E88560;
+  --duck: #FFC83A;
+  --duck-deep: #E8B020;
+  --duck-soft: #FFF2C4;
+  --dolphin: #5BBFE8;
+  --dolphin-deep: #2F95C4;
+  --dolphin-soft: #CDE9F6;
+  --pink: #FFB3C8;
+  --shadow: 0 2px 0 rgba(42,61,84,0.04), 0 10px 26px -8px rgba(47,149,196,0.22);
+  --shadow-soft: 0 1px 0 rgba(42,61,84,0.03), 0 6px 16px -6px rgba(47,149,196,0.15);
 }
 
-html,
-body {
+.dark {
+  --bg: #0F1E2E;
+  --bg-deep: #152838;
+  --card: #1E3447;
+  --card-alt: #17293A;
+  --ink: #E8F2FB;
+  --ink-soft: #8FA8BE;
+  --ink-mute: #5E7690;
+  --accent: #6FCCF2;
+  --accent-deep: #4FB5E0;
+  --accent-soft: #1F3E54;
+  --mint: #7ACFB0;
+  --mint-deep: #5FB894;
+  --peach: #FFB89A;
+  --peach-deep: #E88560;
+  --duck: #FFD76B;
+  --duck-deep: #E8B820;
+  --duck-soft: #3A3018;
+  --dolphin: #6FCCF2;
+  --dolphin-deep: #4FB5E0;
+  --dolphin-soft: #1F3E54;
+  --pink: #FFB3C8;
+  --shadow: 0 2px 0 rgba(0,0,0,0.2), 0 10px 26px -8px rgba(0,0,0,0.4);
+  --shadow-soft: 0 1px 0 rgba(0,0,0,0.2), 0 6px 16px -6px rgba(0,0,0,0.3);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
   margin: 0;
   min-height: 100%;
-  background: radial-gradient(circle at top, #eef5ff, #f5f8fb 55%);
-  color: #10243e;
+  background-color: var(--bg);
+  color: var(--ink);
+  transition: background-color 0.3s, color 0.3s;
+}
+button, input { font: inherit; }
+
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes slideInFromLeft {
+  from { transform: translateX(-18%); opacity: 0.5; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes floatCloud {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes bobY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes jumpDolphin {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-12px) rotate(5deg); }
+}
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes shine {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-button,
-input {
-  font: inherit;
+@keyframes confettiFly {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-200px) translateX(var(--dx)) rotate(720deg); opacity: 0; }
 }
 
 .date-input {
   -webkit-appearance: none;
   appearance: none;
-  background-color: #fff;
-  color: #10243e;
+  background-color: var(--card);
+  color: var(--ink);
   min-height: 48px;
-}
-
-.date-input::-webkit-date-and-time-value {
-  text-align: left;
-}
-
-.date-input::-webkit-datetime-edit {
-  padding: 0;
-}
-
-.date-input::-webkit-calendar-picker-indicator {
-  opacity: 1;
-}
-
-.safe-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
 }

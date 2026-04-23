@@ -1,0 +1,199 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getSupabaseClient } from '@/lib/supabase';
+import type { HouseholdMember, WeighInRow } from '@/lib/types';
+import { BackBtn } from '@/components/ui';
+
+const LOCAL_KEY = 'woori_weight_user_id';
+
+function buildMonthGrid(year: number, month: number): (Date | null)[] {
+  // month is 0-indexed
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  // Monday start: (getDay() + 6) % 7  => Mon=0, Sun=6
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const grid: (Date | null)[] = [];
+  for (let i = 0; i < startOffset; i++) grid.push(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) grid.push(new Date(year, month, d));
+  return grid;
+}
+
+export function DrinkPageClient() {
+  const router = useRouter();
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [members, setMembers] = useState<HouseholdMember[]>([]);
+  const [rows, setRows] = useState<WeighInRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_KEY);
+      if (saved) setMyUserId(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const supabase = getSupabaseClient();
+        const { data: memberRows, error: memberError } = await supabase
+          .from('household_members')
+          .select('user_id, display_name, household_id');
+        if (memberError) throw memberError;
+
+        const safeMembers = (memberRows ?? []) as Array<HouseholdMember & { household_id: string }>;
+        setMembers(safeMembers.map((m) => ({ user_id: m.user_id, display_name: m.display_name })));
+
+        const hid = safeMembers[0]?.household_id ?? null;
+        if (!hid) { setRows([]); return; }
+
+        const monthStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const monthEnd = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+
+        const { data: weighRows, error: weighError } = await supabase
+          .from('weigh_ins')
+          .select('*')
+          .eq('household_id', hid)
+          .gte('date', monthStart)
+          .lte('date', monthEnd)
+          .order('date', { ascending: true });
+        if (weighError) throw weighError;
+
+        setRows(
+          ((weighRows ?? []) as Array<{ date: string; user_id: string; weight_kg: number | string; drank?: boolean | null }>).map((r) => ({
+            date: r.date,
+            user_id: r.user_id,
+            weight_kg: Number(r.weight_kg),
+            drank: Boolean(r.drank),
+          })),
+        );
+      } catch {
+        // silently ignore
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadData();
+  }, [year, month]);
+
+  const grid = buildMonthGrid(year, month);
+  const todayStr = now.toISOString().slice(0, 10);
+
+  // Identify duck (창희) and dolphin (하경) members
+  // duck = first member, dolphin = second member (or by display_name)
+  const duckMember = members.find((m) => m.display_name.includes('창희')) ?? members[0];
+  const dolphinMember = members.find((m) => m.display_name.includes('하경')) ?? members[1];
+
+  function drankOnDate(userId: string | undefined, date: Date): boolean {
+    if (!userId) return false;
+    const ds = date.toISOString().slice(0, 10);
+    return rows.some((r) => r.user_id === userId && r.date === ds && r.drank);
+  }
+
+  // Count stats for current month
+  let duckCount = 0, dolphinCount = 0, bothCount = 0;
+  grid.forEach((d) => {
+    if (!d) return;
+    const dd = drankOnDate(duckMember?.user_id, d);
+    const dp = drankOnDate(dolphinMember?.user_id, d);
+    if (dd) duckCount++;
+    if (dp) dolphinCount++;
+    if (dd && dp) bothCount++;
+  });
+
+  const monthLabel = `${year}년 ${month + 1}월`;
+
+  return (
+    <div style={{ width: '100%', height: '100%', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
+      {/* Header */}
+      <div style={{ padding: '54px 22px 10px' }}>
+        <BackBtn label="홈" onClick={() => router.push('/')} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, letterSpacing: -0.5 }}>음주 캘린더 🍺</div>
+          <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)' }}>{monthLabel}</div>
+        </div>
+      </div>
+
+      {/* Stats cards */}
+      <div style={{ padding: '6px 18px 10px', display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1, background: 'var(--duck-soft)', borderRadius: 18, padding: 10 }}>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>🦆 창희</div>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, color: 'var(--duck-deep)', lineHeight: 1 }}>{duckCount}일</div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--dolphin-soft)', borderRadius: 18, padding: 10 }}>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>🐬 하경</div>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, color: 'var(--accent-deep)', lineHeight: 1 }}>{dolphinCount}일</div>
+        </div>
+        <div style={{ flex: 1, background: 'linear-gradient(135deg, var(--pink), var(--peach))', borderRadius: 18, padding: 10, color: 'var(--ink)' }}>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>💞 같이</div>
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, lineHeight: 1 }}>{bothCount}일</div>
+        </div>
+      </div>
+
+      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px 50px' }}>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, paddingTop: 40 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite' }} />
+            <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite', animationDelay: '150ms' }} />
+            <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite', animationDelay: '300ms' }} />
+          </div>
+        ) : (
+          <>
+            {/* Calendar card */}
+            <div style={{ background: 'var(--card)', borderRadius: 22, padding: 14, boxShadow: 'var(--shadow-soft)' }}>
+              {/* Day headers */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 6 }}>
+                {['월', '화', '수', '목', '금', '토', '일'].map((d, i) => (
+                  <div key={d} style={{ textAlign: 'center', fontFamily: 'Jua, sans-serif', fontSize: 11, color: i >= 5 ? 'var(--peach-deep)' : 'var(--ink-mute)', padding: '2px 0' }}>{d}</div>
+                ))}
+              </div>
+              {/* Calendar grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+                {grid.map((d, i) => {
+                  if (!d) return <div key={i} style={{ aspectRatio: '1' }} />;
+                  const ds = d.toISOString().slice(0, 10);
+                  const duckDrank = drankOnDate(duckMember?.user_id, d);
+                  const dolphinDrank = drankOnDate(dolphinMember?.user_id, d);
+                  const isToday = ds === todayStr;
+                  return (
+                    <div key={i} style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
+                      <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                        {duckDrank && <div style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--duck-deep)' }} />}
+                        {dolphinDrank && <div style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--accent-deep)' }} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Legend */}
+              <div style={{ display: 'flex', gap: 12, padding: '10px 4px 0', fontFamily: 'Gaegu, sans-serif', fontSize: 12, color: 'var(--ink-soft)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--duck-deep)' }} /> 창희
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--accent-deep)' }} /> 하경
+                </div>
+              </div>
+            </div>
+
+            {/* Coach comment */}
+            <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, marginTop: 12, boxShadow: 'var(--shadow-soft)' }}>
+              <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 15, marginBottom: 6 }}>💡 코치 한 마디</div>
+              <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+                이번 달 둘이 같이 마신 날이 {bothCount}일! 같이 마시는 게 훨씬 즐겁지만, 주 2회 이내로 유지해보자 🌊
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

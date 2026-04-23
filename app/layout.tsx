@@ -1,28 +1,32 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/themeContext";
 
 export const metadata: Metadata = {
-  title: "우리 체중계",
-  description: "2인 공유 체중 기록 PWA",
-  applicationName: "우리 체중계",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "우리 체중계",
-  },
-  themeColor: "#ffffff",
+  title: "오리 레인저",
+  description: "창희하경 커플 공유 앱 — 할일 & 체중",
+  applicationName: "오리 레인저",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "오리 레인저" },
 };
 
 export const viewport: Viewport = {
   viewportFit: "cover",
   width: "device-width",
   initialScale: 1,
+  themeColor: "#EAF4FB",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html:
+          `(function(){try{if(localStorage.getItem('oriDark')==='1')document.documentElement.classList.add('dark')}catch(e){}})()`
+        }} />
+      </head>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
