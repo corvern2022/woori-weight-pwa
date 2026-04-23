@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
+import { sendPushToPartner } from "@/lib/usePush";
 
 const LOCAL_KEY = "woori_weight_user_id";
 
@@ -14,8 +15,10 @@ export function useWeights() {
 
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
-  const [duckWeights, setDuckWeights] = useState<number[]>([70, 69.8, 69.5, 69.7, 69.3, 69.1, 69.0, 68.9, 68.7, 68.5, 68.6, 68.4, 68.2, 68.0]);
-  const [dolphinWeights, setDolphinWeights] = useState<number[]>([57, 56.8, 56.9, 56.7, 56.5, 56.4, 56.3, 56.2, 56.0, 55.9, 55.8, 55.7, 55.6, 55.5]);
+  const [duckId, setDuckId] = useState<string | null>(null);
+  const [dolphinId, setDolphinId] = useState<string | null>(null);
+  const [duckWeights, setDuckWeights] = useState<number[]>([]);
+  const [dolphinWeights, setDolphinWeights] = useState<number[]>([]);
   const [duckGoal, setDuckGoal] = useState<number | null>(null);
   const [dolphinGoal, setDolphinGoal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -57,11 +60,13 @@ export function useWeights() {
 
       const rows = (weighRows ?? []) as Array<{ date: string; user_id: string; weight_kg: number }>;
       // duck = '창희' (first member), dolphin = '하경' (second member)
-      const duckId = myMember?.display_name === '창희' ? myMember?.user_id : partnerMember?.user_id;
-      const dolphinId = myMember?.display_name === '하경' ? myMember?.user_id : partnerMember?.user_id;
+      const resolvedDuckId = members.find(m => m.display_name === '창희')?.user_id ?? null;
+      const resolvedDolphinId = members.find(m => m.display_name === '하경')?.user_id ?? null;
+      setDuckId(resolvedDuckId);
+      setDolphinId(resolvedDolphinId);
 
-      const duckData = rows.filter(r => r.user_id === duckId).map(r => r.weight_kg);
-      const dolphinData = rows.filter(r => r.user_id === dolphinId).map(r => r.weight_kg);
+      const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => r.weight_kg);
+      const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => r.weight_kg);
 
       if (duckData.length >= 2) setDuckWeights(duckData.slice(-14));
       if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-14));
@@ -84,7 +89,7 @@ export function useWeights() {
 
   async function addWeight(who: 'duck' | 'dolphin', kg: number, date?: string) {
     const today = date ?? new Date().toISOString().slice(0, 10);
-    const uid = who === 'duck' ? myUserId : partnerId;
+    const uid = who === 'duck' ? duckId : dolphinId;
 
     if (supabase && uid) {
       await supabase.from("weigh_ins").upsert(
@@ -99,6 +104,14 @@ export function useWeights() {
 
     setToast("기록 완료! 🎉");
     setTimeout(() => setToast(null), 2000);
+
+    // 체중 기록 시 파트너에게 푸시
+    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경';
+    const partnerUid = who === 'duck' ? partnerId : myUserId;
+    if (supabase && partnerUid) {
+      sendPushToPartner(partnerUid, `${actor}이(가) 체중을 기록했어요 ⚖️`, `오늘 몸무게: ${kg}kg`);
+    }
+
     // Reload from DB so chart reflects actual saved data (including past-date entries)
     await loadData();
   }

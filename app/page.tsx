@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Duck } from '@/components/characters/Duck'
 import { Dolphin } from '@/components/characters/Dolphin'
@@ -8,7 +8,23 @@ import { Avatar } from '@/components/ui/Avatar'
 import { CloudDeco } from '@/components/ui/CloudDeco'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useWeather } from '@/lib/useWeather'
+import { usePush } from '@/lib/usePush'
 import type { Task } from '@/components/tasks/types'
+
+const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
+  { emoji: '😊', label: '행복해',    color: '#D97706', bg: '#FEF3C7' },
+  { emoji: '🥰', label: '설레',      color: '#DB2777', bg: '#FCE7F3' },
+  { emoji: '🔥', label: '의욕넘쳐',  color: '#EA580C', bg: '#FFEDD5' },
+  { emoji: '😎', label: '여유로워',  color: '#0369A1', bg: '#E0F2FE' },
+  { emoji: '😌', label: '평온해',    color: '#059669', bg: '#D1FAE5' },
+  { emoji: '🥱', label: '피곤해',    color: '#6B7280', bg: '#F3F4F6' },
+  { emoji: '😤', label: '스트레스',  color: '#DC2626', bg: '#FEE2E2' },
+  { emoji: '🥺', label: '우울해',    color: '#7C3AED', bg: '#EDE9FE' },
+  { emoji: '💪', label: '힘차',      color: '#D97706', bg: '#FEF9C3' },
+  { emoji: '🫶', label: '사랑해',    color: '#BE185D', bg: '#FDF2F8' },
+]
+
+type MoodState = { emoji: string; text: string; updated_at: string } | null
 
 // ── BigCard ──────────────────────────────────────────────────────────────────
 function BigCard({
@@ -175,7 +191,7 @@ function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; to
 }
 
 // ── DockBtn ──────────────────────────────────────────────────────────────────
-function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' | 'drink' | 'gear'; label: string }) {
+function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' | 'drink' | 'gear' | 'mission'; label: string }) {
   return (
     <button
       onClick={onClick}
@@ -222,9 +238,78 @@ function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' |
             <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42" />
           </svg>
         )}
+        {icon === 'mission' && (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="8" cy="8" r="6" />
+            <path d="M8 4v4l2.5 2.5" />
+          </svg>
+        )}
       </div>
       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>{label}</div>
     </button>
+  )
+}
+
+// ── OnboardingScreen ─────────────────────────────────────────────────────────
+function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') => void }) {
+  const [hovered, setHovered] = useState<'duck' | 'dolphin' | null>(null)
+  return (
+    <div style={{
+      minHeight: '100svh', background: 'var(--bg)', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 0, padding: '0 24px',
+    }}>
+      <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
+        오리 레인저
+      </div>
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 17, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>
+        나는 누구인가요?
+      </div>
+
+      <div style={{ display: 'flex', gap: 20, width: '100%', maxWidth: 340 }}>
+        {/* 창희 */}
+        <button
+          onMouseEnter={() => setHovered('duck')}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => onSelect('창희')}
+          style={{
+            flex: 1, background: hovered === 'duck' ? 'var(--duck-soft)' : 'var(--card)',
+            border: `2.5px solid ${hovered === 'duck' ? 'var(--duck)' : 'transparent'}`,
+            borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            boxShadow: hovered === 'duck' ? '0 8px 28px rgba(255,200,50,0.25)' : 'var(--shadow)',
+            transition: 'all 0.2s',
+            transform: hovered === 'duck' ? 'translateY(-4px)' : 'none',
+          }}
+        >
+          <Duck size={90} variant="strong" palette="yellow" />
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20, color: 'var(--duck-deep)' }}>창희 🦆</div>
+        </button>
+
+        {/* 하경 */}
+        <button
+          onMouseEnter={() => setHovered('dolphin')}
+          onMouseLeave={() => setHovered(null)}
+          onClick={() => onSelect('하경')}
+          style={{
+            flex: 1, background: hovered === 'dolphin' ? 'var(--dolphin-soft)' : 'var(--card)',
+            border: `2.5px solid ${hovered === 'dolphin' ? 'var(--dolphin)' : 'transparent'}`,
+            borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            boxShadow: hovered === 'dolphin' ? '0 8px 28px rgba(99,163,253,0.25)' : 'var(--shadow)',
+            transition: 'all 0.2s',
+            transform: hovered === 'dolphin' ? 'translateY(-4px)' : 'none',
+          }}
+        >
+          <Dolphin size={90} variant="happy" palette="blue" />
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20, color: 'var(--accent-deep)' }}>하경 🐬</div>
+        </button>
+      </div>
+
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-mute)', marginTop: 32, textAlign: 'center' }}>
+        한 번만 선택하면 기억할게요 💾
+      </div>
+    </div>
   )
 }
 
@@ -233,13 +318,39 @@ const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '
 
 export default function HomePage() {
   const router = useRouter()
+  const [actor, setActor] = useState<string | null>(null)
   const [allTasks, setAllTasks] = useState<Task[]>([])
   const [openCount, setOpenCount] = useState(0)
   const [duckKg, setDuckKg] = useState<number | null>(null)
   const [dolphinKg, setDolphinKg] = useState<number | null>(null)
+  const [duckMood, setDuckMood] = useState<MoodState>(null)
+  const [dolphinMood, setDolphinMood] = useState<MoodState>(null)
+  const [moodModal, setMoodModal] = useState(false)
+  const [moodTarget, setMoodTarget] = useState<'duck' | 'dolphin'>('duck')
+  const [moodDraft, setMoodDraft] = useState('')
+  const [moodEmoji, setMoodEmoji] = useState('😊')
+  const [pushUserId, setPushUserId] = useState<string | null>(null)
+  usePush(pushUserId)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
   const todayStr = new Date().toISOString().slice(0, 10)
+
+  // 앱 초기화: localStorage에서 actor 읽기 (null=미로드, ''=미설정, '창희'/'하경'=설정됨)
+  useEffect(() => {
+    const saved = localStorage.getItem('ori_ranger_actor')
+    setActor(saved ?? '')  // 없으면 '' → 온보딩 표시
+    setPushUserId(localStorage.getItem('woori_weight_user_id'))
+  }, [])
+
+  const loadMoods = useCallback(async () => {
+    const supabase = getSupabaseClient()
+    const { data } = await supabase.from('app_config').select('key, value').in('key', ['mood_duck', 'mood_dolphin'])
+    if (!data) return
+    data.forEach((row: { key: string; value: MoodState }) => {
+      if (row.key === 'mood_duck') setDuckMood(row.value)
+      if (row.key === 'mood_dolphin') setDolphinMood(row.value)
+    })
+  }, [])
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -253,7 +364,7 @@ export default function HomePage() {
         if (data) { setAllTasks(data as Task[]); setOpenCount(data.length) }
       })
 
-    // 최근 체중 - 멤버 조회 후 각각 마지막 기록
+    // 최근 체중
     supabase.from('household_members').select('user_id, display_name').then(({ data: members }) => {
       if (!members) return
       members.forEach(async (m: { user_id: string; display_name: string }) => {
@@ -268,7 +379,29 @@ export default function HomePage() {
         else setDolphinKg(kg)
       })
     })
-  }, [])
+
+    loadMoods()
+  }, [loadMoods])
+
+  async function saveMood() {
+    const key = moodTarget === 'duck' ? 'mood_duck' : 'mood_dolphin'
+    const moodLabel = MOODS.find(m => m.emoji === moodEmoji)?.label ?? ''
+    const value: MoodState = { emoji: moodEmoji, text: moodDraft.trim() || moodLabel, updated_at: new Date().toISOString() }
+    await getSupabaseClient().from('app_config').upsert({ key, value, updated_at: new Date().toISOString() })
+    if (moodTarget === 'duck') setDuckMood(value)
+    else setDolphinMood(value)
+    setMoodModal(false)
+    setMoodDraft('')
+  }
+
+  function handleOnboardingSelect(who: '창희' | '하경') {
+    localStorage.setItem('ori_ranger_actor', who)
+    setActor(who)
+  }
+
+  // 온보딩: actor 미설정 시 선택 화면 (null = 아직 로드 전, '' = 미설정)
+  if (actor === null) return null  // hydration 대기
+  if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
   // 오늘 마감 / 기한 지남 / 최근 할 일 구분
   const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
@@ -315,23 +448,14 @@ export default function HomePage() {
       <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
         {/* Weather row + D-day badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 15, color: 'var(--ink-soft)', fontFamily: 'Gaegu, sans-serif' }}>
-              {today} · {weather.label} {weather.emoji}
-            </div>
-            {weather.temp !== null && (
-              <div style={{
-                background: 'linear-gradient(135deg, var(--accent-soft), var(--card))',
-                border: '1.5px solid var(--accent-soft)',
-                borderRadius: 100,
-                padding: '2px 10px',
-                fontFamily: 'Jua, sans-serif',
-                fontSize: 14,
-                color: 'var(--accent-deep)',
-              }}>
-                {weather.temp}°C
-              </div>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--ink-soft)', fontFamily: 'Jua, sans-serif' }}>
+            <span>{new Date().getMonth() + 1}월 {new Date().getDate()}일({['일','월','화','수','목','금','토'][new Date().getDay()]})</span>
+            <span style={{ color: 'var(--border)' }}>·</span>
+            <span>서울</span>
+            <span style={{ color: 'var(--border)' }}>·</span>
+            <span>{weather.label}</span>
+            <span>{weather.emoji}</span>
+            {weather.temp !== null && <span style={{ color: 'var(--accent-deep)', fontWeight: 700 }}>{weather.temp}°C</span>}
           </div>
           <div style={{
             background: 'linear-gradient(135deg, var(--peach), var(--pink))',
@@ -347,32 +471,130 @@ export default function HomePage() {
           </div>
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
-          안녕, <span style={{ color: 'var(--accent-deep)' }}>창희하경!</span>
+          <span style={{ color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            오리 레인저
+            {/* 파워레인저 헬멧 쓴 오리 SVG */}
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* 몸통 */}
+              <ellipse cx="16" cy="22" rx="8" ry="7" fill="#FCD34D"/>
+              {/* 날개 */}
+              <ellipse cx="9" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(-15 9 23)"/>
+              <ellipse cx="23" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(15 23 23)"/>
+              {/* 헬멧 (파워레인저 스타일) */}
+              <ellipse cx="16" cy="13" rx="8" ry="8.5" fill="#EF4444"/>
+              {/* 헬멧 바이저 (눈 부분 검은 V자) */}
+              <path d="M9 12 L16 17 L23 12" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M9 12 Q16 10 23 12 L23 14 Q16 12 9 14 Z" fill="#111827"/>
+              {/* 헬멧 꼭대기 핀 */}
+              <rect x="14.5" y="4" width="3" height="5" rx="1.5" fill="#DC2626"/>
+              {/* 부리 */}
+              <ellipse cx="16" cy="19.5" rx="3" ry="1.5" fill="#F97316"/>
+              {/* 발 */}
+              <ellipse cx="13" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
+              <ellipse cx="19" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
+            </svg>
+          </span>
         </div>
       </div>
 
-      {/* Character area - pointerEvents none so characters don't steal taps */}
-      <div style={{ position: 'relative', height: 200, margin: '16px 0 8px', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', left: '10%', bottom: 16, animation: 'bobY 3.5s ease-in-out infinite' }}>
-          <Duck size={120} variant="strong" palette="yellow" />
+      {/* Character area */}
+      <div style={{ position: 'relative', height: 220, margin: '12px 0 8px' }}>
+        {/* Duck (창희) + 말풍선 */}
+        <div style={{ position: 'absolute', left: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {duckMood && (
+            <div style={{
+              background: 'var(--duck-soft)', border: '1.5px solid var(--duck)', borderRadius: '14px 14px 14px 4px',
+              padding: '5px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12, color: 'var(--duck-deep)',
+              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
+            }}>
+              {duckMood.emoji} {duckMood.text || ''}
+            </div>
+          )}
+          <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
+            <Duck size={110} variant="strong" palette="yellow" />
+          </button>
         </div>
-        <div style={{ position: 'absolute', right: '10%', bottom: 16, animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
-          <Dolphin size={120} variant="happy" palette="blue" />
+
+        {/* Dolphin (하경) + 말풍선 */}
+        <div style={{ position: 'absolute', right: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {dolphinMood && (
+            <div style={{
+              background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)', borderRadius: '14px 14px 4px 14px',
+              padding: '5px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12, color: 'var(--accent-deep)',
+              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
+            }}>
+              {dolphinMood.emoji} {dolphinMood.text || ''}
+            </div>
+          )}
+          <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+            <Dolphin size={110} variant="happy" palette="blue" />
+          </button>
         </div>
-        <svg style={{ position: 'absolute', bottom: 24, right: '22%' }} width="24" height="40" viewBox="0 0 24 40">
+
+        <svg style={{ position: 'absolute', bottom: 24, right: '22%', pointerEvents: 'none' }} width="24" height="40" viewBox="0 0 24 40">
           <circle cx="12" cy="32" r="3" fill="var(--accent)" opacity="0.5" />
           <circle cx="8" cy="20" r="2" fill="var(--accent)" opacity="0.35" />
           <circle cx="15" cy="10" r="2.5" fill="var(--accent)" opacity="0.25" />
         </svg>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0', pointerEvents: 'none' }} />
       </div>
+
+      {/* 기분 설정 모달 */}
+      {moodModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setMoodModal(false)}>
+          <div style={{ background: 'var(--card)', borderRadius: '24px 24px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
+              {moodTarget === 'duck' ? '🦆 창희' : '🐬 하경'} 오늘 기분은?
+            </div>
+            {/* 감정 칩 선택 */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {MOODS.map(m => {
+                const selected = moodEmoji === m.emoji
+                return (
+                  <button
+                    key={m.emoji}
+                    onClick={() => setMoodEmoji(m.emoji)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      padding: '8px 14px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                      background: selected ? m.bg : 'var(--bg)',
+                      outline: selected ? `2px solid ${m.color}` : '2px solid transparent',
+                      transition: 'all 0.15s',
+                      transform: selected ? 'scale(1.06)' : 'scale(1)',
+                    }}
+                  >
+                    <span style={{ fontSize: 22, lineHeight: 1 }}>{m.emoji}</span>
+                    <span style={{
+                      fontFamily: 'Jua, sans-serif', fontSize: 15,
+                      color: selected ? m.color : 'var(--ink-mute)',
+                      fontWeight: selected ? 700 : 400,
+                    }}>{m.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+            {/* 텍스트 입력 */}
+            <input
+              value={moodDraft}
+              onChange={e => setMoodDraft(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && saveMood()}
+              placeholder="한 줄 메시지 (선택)"
+              maxLength={20}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14, border: '2px solid var(--accent-soft)', fontFamily: 'Jua, sans-serif', fontSize: 15, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12 }}
+            />
+            <button onClick={saveMood} style={{ width: '100%', padding: '12px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 16, cursor: 'pointer' }}>
+              저장하기 {moodEmoji}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* BigCard row */}
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
         <BigCard
           title="할 일"
-          count={openCount}
-          subtitle="오늘 남음"
+          count={dueTodayTasks.length + overdueTasks.length > 0 ? dueTodayTasks.length + overdueTasks.length : openCount}
+          subtitle={dueTodayTasks.length > 0 && overdueTasks.length === 0 ? '오늘 마감' : overdueTasks.length > 0 && dueTodayTasks.length === 0 ? '기한 지남' : dueTodayTasks.length + overdueTasks.length > 0 ? '오늘+기한지남' : '미완료 전체'}
           color="var(--peach)"
           colorDeep="var(--peach-deep)"
           icon="task"
@@ -417,6 +639,7 @@ export default function HomePage() {
       {/* Bottom dock */}
       <div style={{ padding: '14px 18px 0', display: 'flex', gap: 10 }}>
         <DockBtn onClick={() => router.push('/chat')} icon="chat" label="AI 코치" />
+        <DockBtn onClick={() => router.push('/missions')} icon="mission" label="커플 미션" />
         <DockBtn onClick={() => router.push('/drink')} icon="drink" label="음주 캘린더" />
         <DockBtn onClick={() => router.push('/settings')} icon="gear" label="설정" />
       </div>
