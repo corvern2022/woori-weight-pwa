@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { Duck } from "@/components/characters/Duck";
 import { Dolphin } from "@/components/characters/Dolphin";
 import { BackBtn } from "@/components/ui";
-import { useWeights } from "./useWeights";
+import { useWeights, WeightEntry as WeightData } from "./useWeights";
 
 type View = 'list' | 'entry';
 type WhoFilter = 'duck' | 'both' | 'dolphin';
 
 export function WeightClient() {
   const router = useRouter();
-  const { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
+  const { duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
   const [view, setView] = useState<View>('list');
   const [who, setWho] = useState<WhoFilter>('both');
   const [period, setPeriod] = useState<14 | 30>(30);
@@ -26,14 +26,18 @@ export function WeightClient() {
     />;
   }
 
-  const W = 320, H = 160, P = 14;
+  const W = 340, H = 180, P = 16;
 
-  const duckData = (who === 'duck' || who === 'both') ? duckWeights.slice(-period) : [];
-  const dolphinData = (who === 'dolphin' || who === 'both') ? dolphinWeights.slice(-period) : [];
+  const duckSlice = (who === 'duck' || who === 'both') ? duckEntries.slice(-period) : [];
+  const dolphinSlice = (who === 'dolphin' || who === 'both') ? dolphinEntries.slice(-period) : [];
+
+  // For backward compat (weekly summary)
+  const duckData = duckSlice.map(e => e.kg);
+  const dolphinData = dolphinSlice.map(e => e.kg);
 
   const series: Series[] = [];
-  if (duckData.length > 0) series.push({ data: duckData, mn: Math.min(...duckData) - 0.3, mx: Math.max(...duckData) + 0.3, color: 'var(--duck-deep)', name: '창희', goal: duckGoal });
-  if (dolphinData.length > 0) series.push({ data: dolphinData, mn: Math.min(...dolphinData) - 0.3, mx: Math.max(...dolphinData) + 0.3, color: 'var(--accent-deep)', name: '하경', goal: dolphinGoal });
+  if (duckData.length > 0) series.push({ entries: duckSlice, data: duckData, mn: Math.min(...duckData) - 0.3, mx: Math.max(...duckData) + 0.3, color: 'var(--duck-deep)', name: '창희', goal: duckGoal });
+  if (dolphinData.length > 0) series.push({ entries: dolphinSlice, data: dolphinData, mn: Math.min(...dolphinData) - 0.3, mx: Math.max(...dolphinData) + 0.3, color: 'var(--accent-deep)', name: '하경', goal: dolphinGoal });
 
   return (
     <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -96,56 +100,9 @@ export function WeightClient() {
             </div>
           </div>
 
-          {/* Line chart */}
-          {who === 'both' ? (
-            // 같이 모드: 두 사람 각자 미니 차트
-            <div style={{ display: 'flex', gap: 10 }}>
-              {series.map((s, idx) => (
-                <MiniChart key={idx} s={s} W={W} H={130} P={P} gradId={`grad-w-${idx}`} />
-              ))}
-            </div>
-          ) : (
-            <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>
-                  {`${who === 'duck' ? '창희' : '하경'} · ${period === 14 ? '2주' : '1달'}`}
-                </div>
-                <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>{period}일</div>
-              </div>
-              {series.map((s, idx) => (
-                <svg key={idx} width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
-                  <defs>
-                    <linearGradient id={`grad-w-${idx}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={s.color} stopOpacity="0.3" />
-                      <stop offset="100%" stopColor={s.color} stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  {(() => {
-                    const x = (i: number) => s.data.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (s.data.length - 1);
-                    const range = s.mx - s.mn || 1;
-                    const y = (v: number) => P + 14 + ((s.mx - v) / range) * (H - P * 2 - 24);
-                    const linePath = s.data.map((v, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(v)}`).join(' ');
-                    const areaPath = `${linePath} L ${x(s.data.length - 1)} ${H - P} L ${P} ${H - P} Z`;
-                    return (
-                      <g>
-                        <path d={areaPath} fill={`url(#grad-w-${idx})`} />
-                        <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                        {s.data.map((v, i) => (
-                          <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
-                        ))}
-                        <text x={x(s.data.length - 1) + 8} y={y(s.data[s.data.length - 1]) + 4} fontSize="11" fontFamily="Jua" fill={s.color}>{s.name}</text>
-                        {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
-                          <>
-                            <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.55" />
-                            <text x={P + 2} y={y(s.goal) - 3} fontSize="10" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
-                          </>
-                        )}
-                      </g>
-                    );
-                  })()}
-                </svg>
-              ))}
-            </div>
+          {/* Line chart - always one combined chart */}
+          {series.length > 0 && (
+            <CombinedChart series={series} W={W} H={H} P={P} />
           )}
 
           {/* Weekly summary */}
@@ -250,45 +207,109 @@ function TodayCard({ who, weights }: { who: 'duck' | 'dolphin'; weights: number[
   );
 }
 
-type Series = { data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
+type Series = { entries: WeightData[]; data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
 
-function MiniChart({ s, W, H, P, gradId }: { s: Series; W: number; H: number; P: number; gradId: string }) {
-  const x = (i: number) => s.data.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (s.data.length - 1);
-  const range = s.mx - s.mn || 1;
-  const y = (v: number) => P + 14 + ((s.mx - v) / range) * (H - P * 2 - 24);
-  const linePath = s.data.map((v, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(v)}`).join(' ');
-  const areaPath = `${linePath} L ${x(s.data.length - 1)} ${H - P} L ${P} ${H - P} Z`;
-  const last = s.data[s.data.length - 1];
-  const delta = +(last - s.data[0]).toFixed(1);
+function CombinedChart({ series, W, H, P }: { series: Series[]; W: number; H: number; P: number }) {
+  // Collect all dates across all series, sorted
+  const allDates = Array.from(new Set(series.flatMap(s => s.entries.map(e => e.date)))).sort();
+  if (allDates.length === 0) return null;
+
+  // Unified Y range
+  const allKg = series.flatMap(s => s.data);
+  const globalMn = Math.min(...allKg) - 0.5;
+  const globalMx = Math.max(...allKg) + 0.5;
+  const range = globalMx - globalMn || 1;
+
+  const BOTTOM = 22; // space for date labels
+  const chartH = H - BOTTOM;
+  const xOf = (dateStr: string) => {
+    const i = allDates.indexOf(dateStr);
+    return allDates.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (allDates.length - 1);
+  };
+  const y = (v: number) => P + 10 + ((globalMx - v) / range) * (chartH - P - 10);
+
+  // Pick ~4 date labels to show on X axis
+  const labelIdxs = allDates.length <= 4
+    ? allDates.map((_, i) => i)
+    : [0, Math.floor(allDates.length / 3), Math.floor((allDates.length * 2) / 3), allDates.length - 1];
+  const uniqueLabelIdxs = Array.from(new Set(labelIdxs));
 
   return (
-    <div style={{ flex: 1, background: 'var(--card)', borderRadius: 20, padding: '12px 12px 8px', boxShadow: 'var(--shadow-soft)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14, color: s.color }}>{s.name}</div>
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, color: delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)' }}>
-          {delta < 0 ? '↓' : '↑'}{Math.abs(delta)}
-        </div>
+    <div style={{ background: 'var(--card)', borderRadius: 22, padding: '14px 12px 10px', boxShadow: 'var(--shadow-soft)' }}>
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 8, paddingLeft: 4 }}>
+        {series.map(s => {
+          const last = s.data[s.data.length - 1];
+          const delta = +(last - s.data[0]).toFixed(1);
+          return (
+            <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.color }} />
+              <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: s.color }}>{s.name}</span>
+              <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, color: delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)' }}>
+                {delta < 0 ? '↓' : '↑'}{Math.abs(delta)}
+              </span>
+            </div>
+          );
+        })}
       </div>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
         <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={s.color} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={s.color} stopOpacity="0" />
-          </linearGradient>
+          {series.map((s, idx) => (
+            <linearGradient key={idx} id={`cc-grad-${idx}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={s.color} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={s.color} stopOpacity="0" />
+            </linearGradient>
+          ))}
         </defs>
-        <path d={areaPath} fill={`url(#${gradId})`} />
-        <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        {s.data.map((v, i) => (
-          <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4 : 2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
-        ))}
-        {/* 최신값 레이블 */}
-        <text x={x(s.data.length - 1)} y={y(last) - 7} fontSize="10" fontFamily="Jua" fill={s.color} textAnchor="middle">{last}kg</text>
-        {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
-          <>
-            <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
-            <text x={P + 2} y={y(s.goal) - 3} fontSize="9" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
-          </>
-        )}
+
+        {/* Horizontal grid lines */}
+        {[0.25, 0.5, 0.75].map(t => {
+          const yv = P + 10 + t * (chartH - P - 10);
+          const kg = (globalMx - t * range).toFixed(1);
+          return (
+            <g key={t}>
+              <line x1={P} y1={yv} x2={W - P} y2={yv} stroke="var(--border)" strokeWidth="0.8" strokeDasharray="3 4" opacity="0.5" />
+              <text x={P - 2} y={yv + 3} fontSize="8" fontFamily="Jua" fill="var(--ink-soft)" textAnchor="end" opacity="0.6">{kg}</text>
+            </g>
+          );
+        })}
+
+        {/* Date X-axis labels */}
+        {uniqueLabelIdxs.map(i => {
+          const d = allDates[i];
+          const xv = xOf(d);
+          const label = `${parseInt(d.slice(5, 7))}/${parseInt(d.slice(8, 10))}`;
+          return (
+            <text key={d} x={xv} y={H - 4} fontSize="9" fontFamily="Jua" fill="var(--ink-soft)" textAnchor="middle" opacity="0.7">{label}</text>
+          );
+        })}
+
+        {/* Each series */}
+        {series.map((s, idx) => {
+          const pts = s.entries.map(e => ({ x: xOf(e.date), y: y(e.kg), kg: e.kg, date: e.date }));
+          if (pts.length === 0) return null;
+          const linePath = pts.map((p, i) => `${i ? 'L' : 'M'} ${p.x} ${p.y}`).join(' ');
+          const areaPath = `${linePath} L ${pts[pts.length - 1].x} ${chartH} L ${pts[0].x} ${chartH} Z`;
+          const last = pts[pts.length - 1];
+          return (
+            <g key={idx}>
+              <path d={areaPath} fill={`url(#cc-grad-${idx})`} />
+              <path d={linePath} stroke={s.color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {pts.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === pts.length - 1 ? 2 : 1} />
+              ))}
+              {/* Latest value label */}
+              <text x={last.x} y={last.y - 8} fontSize="10" fontFamily="Jua" fill={s.color} textAnchor="middle">{last.kg}kg</text>
+              {/* Goal line */}
+              {s.goal !== null && s.goal >= globalMn && s.goal <= globalMx && (
+                <>
+                  <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
+                  <text x={W - P - 2} y={y(s.goal) - 3} fontSize="9" fontFamily="Jua" fill={s.color} opacity="0.7" textAnchor="end">목표</text>
+                </>
+              )}
+            </g>
+          );
+        })}
       </svg>
     </div>
   );

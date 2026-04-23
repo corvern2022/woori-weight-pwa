@@ -19,6 +19,8 @@ export function useWeights() {
   const [dolphinId, setDolphinId] = useState<string | null>(null);
   const [duckWeights, setDuckWeights] = useState<number[]>([]);
   const [dolphinWeights, setDolphinWeights] = useState<number[]>([]);
+  const [duckEntries, setDuckEntries] = useState<WeightEntry[]>([]);
+  const [dolphinEntries, setDolphinEntries] = useState<WeightEntry[]>([]);
   const [duckGoal, setDuckGoal] = useState<number | null>(null);
   const [dolphinGoal, setDolphinGoal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,11 +67,14 @@ export function useWeights() {
       setDuckId(resolvedDuckId);
       setDolphinId(resolvedDolphinId);
 
-      const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => r.weight_kg);
-      const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => r.weight_kg);
+      const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => ({ date: r.date, kg: r.weight_kg }));
+      const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => ({ date: r.date, kg: r.weight_kg }));
 
-      if (duckData.length >= 2) setDuckWeights(duckData.slice(-30));
-      if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-30));
+      if (duckData.length >= 1) setDuckEntries(duckData.slice(-30));
+      if (dolphinData.length >= 1) setDolphinEntries(dolphinData.slice(-30));
+      // backward compat: weights array
+      if (duckData.length >= 1) setDuckWeights(duckData.slice(-30).map(e => e.kg));
+      if (dolphinData.length >= 1) setDolphinWeights(dolphinData.slice(-30).map(e => e.kg));
 
       // Load goals from app_config
       const { data: cfgRows } = await supabase.from("app_config").select("key, value").in("key", ["goal_duck", "goal_dolphin"]);
@@ -116,5 +121,5 @@ export function useWeights() {
     await loadData();
   }
 
-  return { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight };
+  return { duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight };
 }
