@@ -79,6 +79,10 @@ export function useWeights() {
         [{ user_id: uid, date: today, weight_kg: kg, drank: false }],
         { onConflict: "user_id,date" }
       );
+    } else if (!uid) {
+      setToast("유저 정보가 없어요. 잠시 후 다시 시도해주세요 😢");
+      setTimeout(() => setToast(null), 3000);
+      return;
     }
 
     if (who === 'duck') {

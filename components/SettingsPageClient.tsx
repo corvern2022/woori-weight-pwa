@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Duck, Dolphin } from '@/components/characters';
 import { useTheme } from '@/lib/themeContext';
@@ -113,6 +113,23 @@ export function SettingsPageClient() {
   const [drinkLimit, setDrinkLimit] = useState('2');
   const [toast, setToast] = useState<string | null>(null);
   const days = getDaysTogether();
+
+  useEffect(() => {
+    async function loadGoals() {
+      try {
+        const supabase = getSupabaseClient();
+        const { data } = await supabase.from('app_config').select('key, value').in('key', ['goal_duck', 'goal_dolphin', 'drink_limit']);
+        if (!data) return;
+        data.forEach((row: { key: string; value: { v: string } | string }) => {
+          const v = typeof row.value === 'object' && row.value !== null ? (row.value as { v: string }).v : String(row.value);
+          if (row.key === 'goal_duck') setDuckGoal(v);
+          if (row.key === 'goal_dolphin') setDolphinGoal(v);
+          if (row.key === 'drink_limit') setDrinkLimit(v);
+        });
+      } catch { /* ignore */ }
+    }
+    void loadGoals();
+  }, []);
 
   function showToast(msg: string) {
     setToast(msg);
