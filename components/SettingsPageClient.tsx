@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Duck, Dolphin } from '@/components/characters';
 import { useTheme } from '@/lib/themeContext';
+import { getSupabaseClient } from '@/lib/supabase';
 
 function getDaysTogether(): number {
   const start = new Date('2025-12-16');
@@ -64,11 +65,42 @@ function SettingRow({ label, value, onToggle, hint }: { label: string; value: bo
   );
 }
 
-function StaticRow({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+function EditableRow({ label, value, unit, onSave }: { label: string; value: string; unit: string; onSave: (v: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  function handleSave() {
+    onSave(draft);
+    setEditing(false);
+  }
+
   return (
-    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(42,61,84,0.08)', cursor: 'pointer' }}>
-      <div style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 15, color: warn ? 'var(--peach-deep)' : 'var(--ink)' }}>{label}</div>
-      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 14, color: 'var(--ink-soft)' }}>{value}</div>
+    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(42,61,84,0.08)' }}>
+      <div style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 15 }}>{label}</div>
+      {editing ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <input
+            type="number"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            style={{
+              width: 70, padding: '4px 8px', borderRadius: 10, border: '1.5px solid var(--accent)',
+              fontFamily: 'Jua, sans-serif', fontSize: 15, textAlign: 'center',
+              background: 'var(--bg)', color: 'var(--ink)', outline: 'none',
+            }}
+            autoFocus
+          />
+          <span style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>{unit}</span>
+          <button onClick={handleSave} style={{ border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '4px 10px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>저장</button>
+        </div>
+      ) : (
+        <button
+          onClick={() => { setDraft(value); setEditing(true); }}
+          style={{ border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'Gaegu, cursive', fontSize: 14, color: 'var(--accent-deep)', display: 'flex', alignItems: 'center', gap: 4 }}
+        >
+          {value}{unit} <span style={{ fontSize: 12 }}>✏️</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -76,8 +108,26 @@ function StaticRow({ label, value, warn }: { label: string; value: string; warn?
 export function SettingsPageClient() {
   const { dark, setDark } = useTheme();
   const [notif, setNotif] = useState(true);
-  const [weeklyReport, setWeeklyReport] = useState(true);
+  const [duckGoal, setDuckGoal] = useState('69.0');
+  const [dolphinGoal, setDolphinGoal] = useState('50.0');
+  const [drinkLimit, setDrinkLimit] = useState('2');
+  const [toast, setToast] = useState<string | null>(null);
   const days = getDaysTogether();
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  }
+
+  async function saveGoal(key: string, value: string) {
+    try {
+      const supabase = getSupabaseClient();
+      await supabase.from('app_config').upsert({ key, value: { v: value }, updated_at: new Date().toISOString() });
+      showToast('저장됐어 ✅');
+    } catch {
+      showToast('저장 실패');
+    }
+  }
 
   return (
     <div style={{ width: '100%', height: '100%', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
@@ -101,26 +151,26 @@ export function SettingsPageClient() {
           <SettingRow label="다크모드 🌙" value={dark} onToggle={() => setDark(!dark)} hint="야간에 눈이 편해"/>
         </SettingGroup>
 
-        <SettingGroup title="알림 & 리포트">
-          <SettingRow label="주간 리포트" value={weeklyReport} onToggle={() => setWeeklyReport(!weeklyReport)} hint="매주 일요일 오리가 요약해줘"/>
+        <SettingGroup title="알림">
           <SettingRow label="푸시 알림" value={notif} onToggle={() => setNotif(!notif)} hint="할 일 · 댓글 · 체중 입력 알림"/>
         </SettingGroup>
 
         <SettingGroup title="목표">
-          <StaticRow label="창희 목표 체중" value="69.0kg"/>
-          <StaticRow label="하경 목표 체중" value="50.0kg"/>
-          <StaticRow label="주 음주 제한" value="2회"/>
-        </SettingGroup>
-
-        <SettingGroup title="데이터">
-          <StaticRow label="내보내기 (CSV)" value="→"/>
-          <StaticRow label="초기화" value="→" warn/>
+          <EditableRow label="🦆 창희 목표 체중" value={duckGoal} unit="kg" onSave={v => { setDuckGoal(v); saveGoal('goal_duck', v); }} />
+          <EditableRow label="🐬 하경 목표 체중" value={dolphinGoal} unit="kg" onSave={v => { setDolphinGoal(v); saveGoal('goal_dolphin', v); }} />
+          <EditableRow label="🍺 주 음주 제한" value={drinkLimit} unit="회" onSave={v => { setDrinkLimit(v); saveGoal('drink_limit', v); }} />
         </SettingGroup>
 
         <div style={{ textAlign: 'center', fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-mute)', marginTop: 10 }}>
           오리 레인저 v1.0 · made with 🩵
         </div>
       </div>
+
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', zIndex: 50, whiteSpace: 'nowrap' }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

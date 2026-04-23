@@ -81,8 +81,8 @@ function BigCard({
         )}
       </div>
       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17 }}>{title}</div>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>
-      <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)' }}>{subtitle}</div>
+      {count !== "" && <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>}
+      {subtitle !== "" && <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)' }}>{subtitle}</div>}
     </button>
   )
 }
@@ -197,10 +197,11 @@ const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '
 
 export default function HomePage() {
   const router = useRouter()
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [allTasks, setAllTasks] = useState<Task[]>([])
   const [openCount, setOpenCount] = useState(0)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
+  const todayStr = new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -208,20 +209,23 @@ export default function HomePage() {
       .from('tasks')
       .select('*')
       .eq('completed', false)
-      .order('created_at', { ascending: false })
-      .limit(5)
+      .order('due_date', { ascending: true, nullsFirst: false })
       .then(({ data }) => {
         if (data) {
-          setTasks(data as Task[])
+          setAllTasks(data as Task[])
           setOpenCount(data.length)
         }
       })
   }, [])
 
+  // 오늘 마감이거나 기한 지난 것 우선, 없으면 최근 추가된 것
+  const todayTasks = allTasks.filter(t => t.due_date && t.due_date <= todayStr).slice(0, 3)
+  const tasks = todayTasks.length > 0 ? todayTasks : allTasks.slice(0, 3)
+
   const handleToggle = async (task: Task) => {
     const supabase = getSupabaseClient()
     await supabase.from('tasks').update({ completed: !task.completed }).eq('id', task.id)
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t))
+    setAllTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t))
   }
 
   return (
@@ -298,8 +302,8 @@ export default function HomePage() {
         />
         <BigCard
           title="체중"
-          count="↓0.1"
-          subtitle="둘 합계"
+          count=""
+          subtitle=""
           color="var(--accent)"
           colorDeep="var(--accent-deep)"
           icon="weight"
@@ -311,7 +315,7 @@ export default function HomePage() {
       <div style={{ padding: '10px 18px 0' }}>
         <div style={{ background: 'var(--card)', borderRadius: 24, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>오늘 우리가 할 일</div>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>{todayTasks.length > 0 ? '오늘 마감 할 일' : '최근 할 일'}</div>
             <button
               onClick={() => router.push('/tasks')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--accent)' }}
@@ -324,7 +328,7 @@ export default function HomePage() {
               할 일이 없어요 🎉
             </div>
           )}
-          {tasks.slice(0, 3).map(t => (
+          {tasks.map(t => (
             <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} />
           ))}
         </div>

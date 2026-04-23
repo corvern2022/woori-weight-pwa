@@ -70,8 +70,8 @@ export function useWeights() {
     }
   }
 
-  async function addWeight(who: 'duck' | 'dolphin', kg: number) {
-    const today = new Date().toISOString().slice(0, 10);
+  async function addWeight(who: 'duck' | 'dolphin', kg: number, date?: string) {
+    const today = date ?? new Date().toISOString().slice(0, 10);
     const uid = who === 'duck' ? myUserId : partnerId;
 
     if (supabase && uid) {
