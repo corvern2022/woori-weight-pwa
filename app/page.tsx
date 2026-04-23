@@ -480,7 +480,7 @@ export default function HomePage() {
           </div>
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
-          안녕, <span style={{ color: 'var(--accent-deep)' }}>창희하경!</span>
+          안녕, <span style={{ color: 'var(--accent-deep)' }}>창희 하경!</span>
         </div>
       </div>
 
