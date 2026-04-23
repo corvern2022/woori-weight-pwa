@@ -82,7 +82,7 @@ function BigCard({
       </div>
       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17 }}>{title}</div>
       {count !== "" && <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>}
-      {subtitle !== "" && <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)' }}>{subtitle}</div>}
+      {subtitle !== "" && <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14, color: 'var(--ink-soft)', marginTop: 4 }}>{subtitle}</div>}
     </button>
   )
 }
@@ -199,23 +199,39 @@ export default function HomePage() {
   const router = useRouter()
   const [allTasks, setAllTasks] = useState<Task[]>([])
   const [openCount, setOpenCount] = useState(0)
+  const [duckKg, setDuckKg] = useState<number | null>(null)
+  const [dolphinKg, setDolphinKg] = useState<number | null>(null)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
   const todayStr = new Date().toISOString().slice(0, 10)
 
   useEffect(() => {
     const supabase = getSupabaseClient()
+
     supabase
       .from('tasks')
       .select('*')
       .eq('completed', false)
       .order('due_date', { ascending: true, nullsFirst: false })
       .then(({ data }) => {
-        if (data) {
-          setAllTasks(data as Task[])
-          setOpenCount(data.length)
-        }
+        if (data) { setAllTasks(data as Task[]); setOpenCount(data.length) }
       })
+
+    // 최근 체중 - 멤버 조회 후 각각 마지막 기록
+    supabase.from('household_members').select('user_id, display_name').then(({ data: members }) => {
+      if (!members) return
+      members.forEach(async (m: { user_id: string; display_name: string }) => {
+        const { data } = await supabase
+          .from('weigh_ins')
+          .select('weight_kg')
+          .eq('user_id', m.user_id)
+          .order('date', { ascending: false })
+          .limit(1)
+        const kg = data?.[0]?.weight_kg ?? null
+        if (m.display_name === '창희') setDuckKg(kg)
+        else setDolphinKg(kg)
+      })
+    })
   }, [])
 
   // 오늘 마감이거나 기한 지난 것 우선, 없으면 최근 추가된 것
@@ -303,7 +319,9 @@ export default function HomePage() {
         <BigCard
           title="체중"
           count=""
-          subtitle=""
+          subtitle={duckKg !== null || dolphinKg !== null
+            ? `🦆 ${duckKg ?? '-'}  🐬 ${dolphinKg ?? '-'}`
+            : ""}
           color="var(--accent)"
           colorDeep="var(--accent-deep)"
           icon="weight"
