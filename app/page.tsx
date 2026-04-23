@@ -280,10 +280,40 @@ export default function HomePage() {
 
       {/* Top text */}
       <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
-        <div style={{ fontSize: 15, color: 'var(--ink-soft)', fontFamily: 'Gaegu, sans-serif' }}>
-          {today} · {weather.label} {weather.emoji}{weather.temp !== null ? ` ${weather.temp}°` : ''}
+        {/* Weather row + D-day badge */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 15, color: 'var(--ink-soft)', fontFamily: 'Gaegu, sans-serif' }}>
+              {today} · {weather.label} {weather.emoji}
+            </div>
+            {weather.temp !== null && (
+              <div style={{
+                background: 'linear-gradient(135deg, var(--accent-soft), var(--card))',
+                border: '1.5px solid var(--accent-soft)',
+                borderRadius: 100,
+                padding: '2px 10px',
+                fontFamily: 'Jua, sans-serif',
+                fontSize: 14,
+                color: 'var(--accent-deep)',
+              }}>
+                {weather.temp}°C
+              </div>
+            )}
+          </div>
+          <div style={{
+            background: 'linear-gradient(135deg, var(--peach), var(--pink))',
+            borderRadius: 100,
+            padding: '3px 12px',
+            fontFamily: 'Jua, sans-serif',
+            fontSize: 13,
+            color: '#fff',
+            boxShadow: 'var(--shadow-soft)',
+            whiteSpace: 'nowrap',
+          }}>
+            💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date('2023-07-08').setHours(0,0,0,0)) / 86400000)}
+          </div>
         </div>
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5 }}>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
           안녕, <span style={{ color: 'var(--accent-deep)' }}>창희하경!</span>
         </div>
       </div>

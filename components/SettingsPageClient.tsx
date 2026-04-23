@@ -7,7 +7,7 @@ import { useTheme } from '@/lib/themeContext';
 import { getSupabaseClient } from '@/lib/supabase';
 
 function getDaysTogether(): number {
-  const start = new Date('2025-12-16');
+  const start = new Date('2023-07-08');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   start.setHours(0, 0, 0, 0);
@@ -160,7 +160,7 @@ export function SettingsPageClient() {
           <Dolphin size={48} variant="happy" palette="blue"/>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>창희 &amp; 하경</div>
-            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 · 시작일 2025.12.16</div>
+            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 💞 시작일 2023.07.08</div>
           </div>
         </div>
 
