@@ -86,7 +86,7 @@ export default function MissionsPage() {
     })
     if (changed) saveMissions(updated)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missions.length])
+  }, [JSON.stringify(missions)])
 
   async function saveMissions(list: Mission[]) {
     setMissions(list)
@@ -120,6 +120,13 @@ export default function MissionsPage() {
     setTimeout(() => setCelebrating(null), 3000)
   }
 
+  async function failMission(id: string) {
+    const updated = missions.map(m =>
+      m.id === id ? { ...m, status: 'failed' as MissionStatus, completed_at: new Date().toISOString() } : m
+    )
+    await saveMissions(updated)
+  }
+
   async function deleteMission(id: string) {
     await saveMissions(missions.filter(m => m.id !== id))
   }
@@ -128,7 +135,7 @@ export default function MissionsPage() {
   const done = missions.filter(m => m.status !== 'active')
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'var(--font-body)' }}>
+    <div style={{ minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'Jua, sans-serif' }}>
       {/* 헤더 */}
       <div style={{ padding: '56px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
@@ -197,7 +204,7 @@ export default function MissionsPage() {
                     style={{ flex: 1, background: '#4ade8022', color: '#16a34a', border: '1px solid #4ade80', borderRadius: 12, padding: '8px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
                   >🏆 완료 선언</button>
                   <button
-                    onClick={() => deleteMission(m.id)}
+                    onClick={() => failMission(m.id)}
                     style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 12, padding: '8px 14px', fontSize: 13, color: 'var(--ink-muted)', cursor: 'pointer' }}
                   >포기</button>
                 </div>

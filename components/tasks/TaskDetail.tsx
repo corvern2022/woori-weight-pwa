@@ -227,7 +227,7 @@ export function TaskDetail({ taskId }: Props) {
   const [input, setInput] = useState("");
   const [inputDue, setInputDue] = useState("");
   const [sending, setSending] = useState(false);
-  const [actor, setActor] = useState("하경");
+  const [actor, setActor] = useState("");
   const [mode, setMode] = useState<InputMode>('sub');
   const [editingTitle, setEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState("");

@@ -290,7 +290,7 @@ function WeightEntry({
 }) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const [who, setWho] = useState<'duck' | 'dolphin'>('duck');
-  const current = who === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1];
+  const current = (who === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1]) ?? 60;
   const [val, setVal] = useState(current);
   const [date, setDate] = useState(todayStr);
   const [saving, setSaving] = useState(false);
@@ -331,7 +331,7 @@ function WeightEntry({
             key={v}
             onClick={() => {
               setWho(v);
-              setVal(v === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1]);
+              setVal((v === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1]) ?? 60);
             }}
             style={{
               flex: 1, padding: '10px 0', border: 'none', borderRadius: 14, cursor: 'pointer',

@@ -262,7 +262,7 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
         오리 레인저
       </div>
-      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 17, color: 'var(--ink-muted)', marginBottom: 48, textAlign: 'center' }}>
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 17, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>
         나는 누구인가요?
       </div>
 
@@ -306,7 +306,7 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
         </button>
       </div>
 
-      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-muted)', marginTop: 32, textAlign: 'center' }}>
+      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-mute)', marginTop: 32, textAlign: 'center' }}>
         한 번만 선택하면 기억할게요 💾
       </div>
     </div>
@@ -471,7 +471,7 @@ export default function HomePage() {
           </div>
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
-          안녕, <span style={{ color: 'var(--accent-deep)' }}>창희 하경!</span>
+          안녕, <span style={{ color: 'var(--accent-deep)' }}>{actor}!</span>
         </div>
       </div>
 
@@ -544,7 +544,7 @@ export default function HomePage() {
                     <span style={{ fontSize: 22, lineHeight: 1 }}>{m.emoji}</span>
                     <span style={{
                       fontFamily: 'Jua, sans-serif', fontSize: 15,
-                      color: selected ? m.color : 'var(--ink-muted)',
+                      color: selected ? m.color : 'var(--ink-mute)',
                       fontWeight: selected ? 700 : 400,
                     }}>{m.label}</span>
                   </button>

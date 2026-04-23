@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, reason: "no subscription" });
     }
 
-    const sub = JSON.parse(data.subscription);
+    const sub = typeof data.subscription === 'string' ? JSON.parse(data.subscription) : data.subscription;
     const payload = JSON.stringify({
       title,
       body: body ?? "",
