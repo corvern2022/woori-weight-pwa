@@ -71,6 +71,10 @@ export function TaskDetail({ taskId }: Props) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [actor, setActor] = useState("하경");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [editDesc, setEditDesc] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -90,6 +94,22 @@ export function TaskDetail({ taskId }: Props) {
   }, [taskId]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  async function saveTitle() {
+    if (!task || !editTitle.trim()) return;
+    const supabase = getSupabaseClient();
+    await supabase.from("tasks").update({ title: editTitle.trim() }).eq("id", taskId);
+    setTask(t => t ? { ...t, title: editTitle.trim() } : t);
+    setEditingTitle(false);
+  }
+
+  async function saveDesc() {
+    if (!task) return;
+    const supabase = getSupabaseClient();
+    await supabase.from("tasks").update({ description: editDesc.trim() || null }).eq("id", taskId);
+    setTask(t => t ? { ...t, description: editDesc.trim() || null } : t);
+    setEditingDesc(false);
+  }
 
   async function toggleDone() {
     if (!task) return;
@@ -158,13 +178,47 @@ export function TaskDetail({ taskId }: Props) {
           )}
         </div>
 
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 24, letterSpacing: -0.4, marginTop: 8, color: task.completed ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: task.completed ? 'line-through' : 'none', lineHeight: 1.3 }}>
-          {task.title}
-        </div>
+        {editingTitle ? (
+          <div style={{ marginTop: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
+            <input
+              value={editTitle}
+              onChange={e => setEditTitle(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') setEditingTitle(false); }}
+              autoFocus
+              style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 20, border: '2px solid var(--accent)', borderRadius: 12, padding: '6px 10px', background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }}
+            />
+            <button onClick={saveTitle} style={{ border: 'none', borderRadius: 10, background: 'var(--accent)', color: '#fff', padding: '6px 12px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>저장</button>
+            <button onClick={() => setEditingTitle(false)} style={{ border: 'none', borderRadius: 10, background: 'var(--bg-deep)', color: 'var(--ink-soft)', padding: '6px 10px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>✕</button>
+          </div>
+        ) : (
+          <div
+            onClick={() => { setEditTitle(task.title); setEditingTitle(true); }}
+            style={{ fontFamily: 'Jua, sans-serif', fontSize: 24, letterSpacing: -0.4, marginTop: 8, color: task.completed ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: task.completed ? 'line-through' : 'none', lineHeight: 1.3, cursor: 'text' }}
+          >
+            {task.title} <span style={{ fontSize: 14, color: 'var(--ink-mute)' }}>✏️</span>
+          </div>
+        )}
 
-        {task.description && (
-          <div style={{ marginTop: 8, fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-            {task.description}
+        {editingDesc ? (
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <textarea
+              value={editDesc}
+              onChange={e => setEditDesc(e.target.value)}
+              autoFocus
+              rows={3}
+              style={{ fontFamily: 'Gaegu, cursive', fontSize: 15, border: '2px solid var(--accent)', borderRadius: 12, padding: '8px 10px', background: 'var(--bg)', color: 'var(--ink)', outline: 'none', resize: 'none' }}
+            />
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={saveDesc} style={{ border: 'none', borderRadius: 10, background: 'var(--accent)', color: '#fff', padding: '6px 14px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>저장</button>
+              <button onClick={() => setEditingDesc(false)} style={{ border: 'none', borderRadius: 10, background: 'var(--bg-deep)', color: 'var(--ink-soft)', padding: '6px 10px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>취소</button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => { setEditDesc(task.description || ''); setEditingDesc(true); }}
+            style={{ marginTop: 8, fontFamily: 'Gaegu, cursive', fontSize: 15, color: task.description ? 'var(--ink-soft)' : 'var(--ink-mute)', lineHeight: 1.5, cursor: 'text', minHeight: 24 }}
+          >
+            {task.description || <span>설명 추가... <span style={{ fontSize: 13 }}>✏️</span></span>}
           </div>
         )}
 

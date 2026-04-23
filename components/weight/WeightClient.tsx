@@ -12,7 +12,7 @@ type WhoFilter = 'duck' | 'both' | 'dolphin';
 
 export function WeightClient() {
   const router = useRouter();
-  const { duckWeights, dolphinWeights, loading, toast, addWeight } = useWeights();
+  const { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
   const [view, setView] = useState<View>('list');
   const [who, setWho] = useState<WhoFilter>('both');
 
@@ -27,15 +27,15 @@ export function WeightClient() {
 
   const W = 320, H = 160, P = 14;
 
-  type Series = { data: number[]; mn: number; mx: number; color: string; name: string };
+  type Series = { data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
   const series: Series[] = [];
   if (who === 'duck' || who === 'both') {
     const data = duckWeights;
-    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--duck-deep)', name: '창희' });
+    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--duck-deep)', name: '창희', goal: duckGoal });
   }
   if (who === 'dolphin' || who === 'both') {
     const data = dolphinWeights;
-    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--accent-deep)', name: '하경' });
+    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--accent-deep)', name: '하경', goal: dolphinGoal });
   }
 
   return (
@@ -110,6 +110,12 @@ export function WeightClient() {
                       <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
                     ))}
                     <text x={x(s.data.length - 1) + 8} y={y(s.data[s.data.length - 1]) + 4} fontSize="11" fontFamily="Jua" fill={s.color}>{s.name}</text>
+                    {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
+                      <>
+                        <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.55" />
+                        <text x={P + 2} y={y(s.goal) - 3} fontSize="10" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
+                      </>
+                    )}
                   </g>
                 );
               })}
