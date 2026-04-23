@@ -251,15 +251,14 @@ export default function HomePage() {
         background: 'linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 60%, var(--bg) 100%)',
         color: 'var(--ink)',
         position: 'relative',
-        overflow: 'hidden',
-        paddingBottom: 120,
+        paddingBottom: 40,
       }}
     >
-      {/* Header clouds */}
-      <div style={{ position: 'absolute', top: 58, left: -20, animation: 'floatCloud 8s ease-in-out infinite', color: 'white', opacity: 0.5 }}>
+      {/* Header clouds - pointer-events none so they don't block taps */}
+      <div style={{ position: 'absolute', top: 58, left: -20, animation: 'floatCloud 8s ease-in-out infinite', opacity: 0.5, pointerEvents: 'none', zIndex: 0 }}>
         <CloudDeco size={100} opacity={1} />
       </div>
-      <div style={{ position: 'absolute', top: 130, right: -30, animation: 'floatCloud 10s ease-in-out infinite 2s', color: 'white', opacity: 0.35 }}>
+      <div style={{ position: 'absolute', top: 130, right: -30, animation: 'floatCloud 10s ease-in-out infinite 2s', opacity: 0.35, pointerEvents: 'none', zIndex: 0 }}>
         <CloudDeco size={90} opacity={1} />
       </div>
 
@@ -273,36 +272,20 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Character area */}
-      <div style={{ position: 'relative', height: 200, margin: '16px 0 8px' }}>
-        {/* Duck - left */}
+      {/* Character area - pointerEvents none so characters don't steal taps */}
+      <div style={{ position: 'relative', height: 200, margin: '16px 0 8px', pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', left: '10%', bottom: 16, animation: 'bobY 3.5s ease-in-out infinite' }}>
           <Duck size={120} variant="strong" palette="yellow" />
         </div>
-        {/* Dolphin - right */}
         <div style={{ position: 'absolute', right: '10%', bottom: 16, animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
           <Dolphin size={120} variant="happy" palette="blue" />
         </div>
-
-        {/* Bubbles */}
         <svg style={{ position: 'absolute', bottom: 24, right: '22%' }} width="24" height="40" viewBox="0 0 24 40">
           <circle cx="12" cy="32" r="3" fill="var(--accent)" opacity="0.5" />
           <circle cx="8" cy="20" r="2" fill="var(--accent)" opacity="0.35" />
           <circle cx="15" cy="10" r="2.5" fill="var(--accent)" opacity="0.25" />
         </svg>
-
-        {/* Gradient wave */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 60,
-            background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)',
-            borderRadius: '50% 50% 0 0 / 20% 20% 0 0',
-          }}
-        />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0' }} />
       </div>
 
       {/* BigCard row */}
@@ -353,7 +336,7 @@ export default function HomePage() {
       </div>
 
       {/* Bottom dock */}
-      <div style={{ position: 'absolute', bottom: 50, left: 18, right: 18, display: 'flex', gap: 10, zIndex: 3 }}>
+      <div style={{ padding: '14px 18px 0', display: 'flex', gap: 10 }}>
         <DockBtn onClick={() => router.push('/chat')} icon="chat" label="AI 코치" />
         <DockBtn onClick={() => router.push('/drink')} icon="drink" label="음주 캘린더" />
         <DockBtn onClick={() => router.push('/settings')} icon="gear" label="설정" />

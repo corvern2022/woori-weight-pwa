@@ -60,17 +60,22 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+html {
+  touch-action: manipulation;
+}
 html, body {
   margin: 0;
   min-height: 100%;
   background-color: var(--bg);
   color: var(--ink);
   transition: background-color 0.3s, color 0.3s;
+  -webkit-tap-highlight-color: transparent;
 }
 button, input { font: inherit; }
 button {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  cursor: pointer;
 }
 a { -webkit-tap-highlight-color: transparent; }
 
