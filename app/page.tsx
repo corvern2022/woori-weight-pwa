@@ -471,7 +471,29 @@ export default function HomePage() {
           </div>
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
-          <span style={{ color: 'var(--accent-deep)' }}>오리 레인저</span>
+          <span style={{ color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            오리 레인저
+            {/* 파워레인저 헬멧 쓴 오리 SVG */}
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* 몸통 */}
+              <ellipse cx="16" cy="22" rx="8" ry="7" fill="#FCD34D"/>
+              {/* 날개 */}
+              <ellipse cx="9" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(-15 9 23)"/>
+              <ellipse cx="23" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(15 23 23)"/>
+              {/* 헬멧 (파워레인저 스타일) */}
+              <ellipse cx="16" cy="13" rx="8" ry="8.5" fill="#EF4444"/>
+              {/* 헬멧 바이저 (눈 부분 검은 V자) */}
+              <path d="M9 12 L16 17 L23 12" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <path d="M9 12 Q16 10 23 12 L23 14 Q16 12 9 14 Z" fill="#111827"/>
+              {/* 헬멧 꼭대기 핀 */}
+              <rect x="14.5" y="4" width="3" height="5" rx="1.5" fill="#DC2626"/>
+              {/* 부리 */}
+              <ellipse cx="16" cy="19.5" rx="3" ry="1.5" fill="#F97316"/>
+              {/* 발 */}
+              <ellipse cx="13" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
+              <ellipse cx="19" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
+            </svg>
+          </span>
         </div>
       </div>
 
