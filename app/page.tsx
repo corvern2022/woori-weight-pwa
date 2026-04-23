@@ -11,7 +11,18 @@ import { useWeather } from '@/lib/useWeather'
 import { usePush } from '@/lib/usePush'
 import type { Task } from '@/components/tasks/types'
 
-const MOOD_EMOJIS = ['😊','😄','🥰','😎','🤩','😌','😴','🥱','😤','🤔','😋','🥳','💪','🫶','✨']
+const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
+  { emoji: '😊', label: '행복해',    color: '#D97706', bg: '#FEF3C7' },
+  { emoji: '🥰', label: '설레',      color: '#DB2777', bg: '#FCE7F3' },
+  { emoji: '🔥', label: '의욕넘쳐',  color: '#EA580C', bg: '#FFEDD5' },
+  { emoji: '😎', label: '여유로워',  color: '#0369A1', bg: '#E0F2FE' },
+  { emoji: '😌', label: '평온해',    color: '#059669', bg: '#D1FAE5' },
+  { emoji: '🥱', label: '피곤해',    color: '#6B7280', bg: '#F3F4F6' },
+  { emoji: '😤', label: '스트레스',  color: '#DC2626', bg: '#FEE2E2' },
+  { emoji: '🥺', label: '우울해',    color: '#7C3AED', bg: '#EDE9FE' },
+  { emoji: '💪', label: '힘차',      color: '#D97706', bg: '#FEF9C3' },
+  { emoji: '🫶', label: '사랑해',    color: '#BE185D', bg: '#FDF2F8' },
+]
 
 type MoodState = { emoji: string; text: string; updated_at: string } | null
 
@@ -374,7 +385,8 @@ export default function HomePage() {
 
   async function saveMood() {
     const key = moodTarget === 'duck' ? 'mood_duck' : 'mood_dolphin'
-    const value: MoodState = { emoji: moodEmoji, text: moodDraft.trim(), updated_at: new Date().toISOString() }
+    const moodLabel = MOODS.find(m => m.emoji === moodEmoji)?.label ?? ''
+    const value: MoodState = { emoji: moodEmoji, text: moodDraft.trim() || moodLabel, updated_at: new Date().toISOString() }
     await getSupabaseClient().from('app_config').upsert({ key, value, updated_at: new Date().toISOString() })
     if (moodTarget === 'duck') setDuckMood(value)
     else setDolphinMood(value)
@@ -521,15 +533,32 @@ export default function HomePage() {
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
               {moodTarget === 'duck' ? '🦆 창희' : '🐬 하경'} 오늘 기분은?
             </div>
-            {/* 이모지 선택 */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 14 }}>
-              {MOOD_EMOJIS.map(e => (
-                <button key={e} onClick={() => setMoodEmoji(e)} style={{
-                  fontSize: 24, padding: '4px 8px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: moodEmoji === e ? 'var(--accent-soft)' : 'transparent',
-                  transform: moodEmoji === e ? 'scale(1.25)' : 'scale(1)', transition: 'all 0.15s',
-                }}>{e}</button>
-              ))}
+            {/* 감정 칩 선택 */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {MOODS.map(m => {
+                const selected = moodEmoji === m.emoji
+                return (
+                  <button
+                    key={m.emoji}
+                    onClick={() => setMoodEmoji(m.emoji)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 5,
+                      padding: '8px 14px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                      background: selected ? m.bg : 'var(--bg)',
+                      outline: selected ? `2px solid ${m.color}` : '2px solid transparent',
+                      transition: 'all 0.15s',
+                      transform: selected ? 'scale(1.06)' : 'scale(1)',
+                    }}
+                  >
+                    <span style={{ fontSize: 18, lineHeight: 1 }}>{m.emoji}</span>
+                    <span style={{
+                      fontFamily: 'Jua, sans-serif', fontSize: 13,
+                      color: selected ? m.color : 'var(--ink-muted)',
+                      fontWeight: selected ? 700 : 400,
+                    }}>{m.label}</span>
+                  </button>
+                )
+              })}
             </div>
             {/* 텍스트 입력 */}
             <input
