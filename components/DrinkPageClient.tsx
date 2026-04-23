@@ -130,7 +130,7 @@ export function DrinkPageClient() {
   }
 
   return (
-    <div style={{ width: '100%', height: '100%', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ padding: '54px 22px 10px' }}>
         <BackBtn label="홈" onClick={() => router.push('/')} />

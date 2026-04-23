@@ -26,8 +26,8 @@ function decodeWeatherCode(code: number): { label: string; emoji: string } {
 
 export function useWeather(): WeatherState {
   const [state, setState] = useState<WeatherState>({
-    label: "맑음",
-    emoji: "☁️",
+    label: "날씨 확인 중",
+    emoji: "🌤️",
     temp: null,
     loading: true,
   });

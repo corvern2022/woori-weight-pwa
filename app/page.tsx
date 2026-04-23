@@ -252,8 +252,12 @@ export default function HomePage() {
 
   const handleToggle = async (task: Task) => {
     const supabase = getSupabaseClient()
-    await supabase.from('tasks').update({ completed: !task.completed }).eq('id', task.id)
-    setAllTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t))
+    await supabase.from('tasks').update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq('id', task.id)
+    setAllTasks(prev => {
+      const next = prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t)
+      setOpenCount(next.filter(t => !t.completed).length)
+      return next
+    })
   }
 
   return (
@@ -315,8 +319,8 @@ export default function HomePage() {
           title="체중"
           count=""
           subtitle={duckKg !== null || dolphinKg !== null
-            ? `🦆 ${duckKg ?? '-'}  🐬 ${dolphinKg ?? '-'}`
-            : ""}
+            ? `🦆 ${duckKg ?? '-'}kg  🐬 ${dolphinKg ?? '-'}kg`
+            : "기록 불러오는 중..."}
           color="var(--accent)"
           colorDeep="var(--accent-deep)"
           icon="weight"
