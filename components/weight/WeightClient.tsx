@@ -15,6 +15,7 @@ export function WeightClient() {
   const { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
   const [view, setView] = useState<View>('list');
   const [who, setWho] = useState<WhoFilter>('both');
+  const [period, setPeriod] = useState<14 | 30>(30);
 
   if (view === 'entry') {
     return <WeightEntry
@@ -27,15 +28,12 @@ export function WeightClient() {
 
   const W = 320, H = 160, P = 14;
 
+  const duckData = (who === 'duck' || who === 'both') ? duckWeights.slice(-period) : [];
+  const dolphinData = (who === 'dolphin' || who === 'both') ? dolphinWeights.slice(-period) : [];
+
   const series: Series[] = [];
-  if (who === 'duck' || who === 'both') {
-    const data = duckWeights;
-    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--duck-deep)', name: '창희', goal: duckGoal });
-  }
-  if (who === 'dolphin' || who === 'both') {
-    const data = dolphinWeights;
-    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--accent-deep)', name: '하경', goal: dolphinGoal });
-  }
+  if (duckData.length > 0) series.push({ data: duckData, mn: Math.min(...duckData) - 0.3, mx: Math.max(...duckData) + 0.3, color: 'var(--duck-deep)', name: '창희', goal: duckGoal });
+  if (dolphinData.length > 0) series.push({ data: dolphinData, mn: Math.min(...dolphinData) - 0.3, mx: Math.max(...dolphinData) + 0.3, color: 'var(--accent-deep)', name: '하경', goal: dolphinGoal });
 
   return (
     <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -79,6 +77,25 @@ export function WeightClient() {
             <TodayCard who="dolphin" weights={dolphinWeights} />
           </div>
 
+          {/* Period toggle */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ background: 'var(--card)', borderRadius: 100, padding: 3, display: 'flex', boxShadow: 'var(--shadow-soft)' }}>
+              {([14, 30] as (14 | 30)[]).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  style={{
+                    border: 'none',
+                    background: period === p ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'transparent',
+                    borderRadius: 100, padding: '5px 14px', cursor: 'pointer',
+                    fontFamily: 'Jua, sans-serif', fontSize: 13,
+                    color: period === p ? '#fff' : 'var(--ink-soft)',
+                  }}
+                >{p === 14 ? '2주' : '1달'}</button>
+              ))}
+            </div>
+          </div>
+
           {/* Line chart */}
           {who === 'both' ? (
             // 같이 모드: 두 사람 각자 미니 차트
@@ -91,9 +108,9 @@ export function WeightClient() {
             <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>
-                  {`${who === 'duck' ? '창희' : '하경'} · 2주`}
+                  {`${who === 'duck' ? '창희' : '하경'} · ${period === 14 ? '2주' : '1달'}`}
                 </div>
-                <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>14일</div>
+                <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>{period}일</div>
               </div>
               {series.map((s, idx) => (
                 <svg key={idx} width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
@@ -288,12 +305,17 @@ function WeightEntry({
   onBack: () => void;
   onSave: (who: 'duck' | 'dolphin', kg: number, date: string) => Promise<void>;
 }) {
+  const actorName = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '';
+  const isChang = actorName === '창희';
   const todayStr = new Date().toISOString().slice(0, 10);
-  const [who, setWho] = useState<'duck' | 'dolphin'>('duck');
+  const [who, setWho] = useState<'duck' | 'dolphin'>(actorName === '창희' ? 'duck' : 'dolphin');
   const current = (who === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1]) ?? 60;
   const [val, setVal] = useState(current);
   const [date, setDate] = useState(todayStr);
   const [saving, setSaving] = useState(false);
+
+  // suppress unused warning
+  void isChang; void setWho;
 
   const step = (d: number) => setVal(v => Math.max(20, Math.min(200, +(v + d).toFixed(1))));
 
@@ -324,23 +346,12 @@ function WeightEntry({
         </div>
       </div>
 
-      {/* Who toggle */}
-      <div style={{ padding: '0 18px', display: 'flex', gap: 8, marginBottom: 18 }}>
-        {([['duck', '🦆 창희'], ['dolphin', '🐬 하경']] as ['duck' | 'dolphin', string][]).map(([v, l]) => (
-          <button
-            key={v}
-            onClick={() => {
-              setWho(v);
-              setVal((v === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1]) ?? 60);
-            }}
-            style={{
-              flex: 1, padding: '10px 0', border: 'none', borderRadius: 14, cursor: 'pointer',
-              background: who === v ? (v === 'duck' ? 'var(--duck)' : 'var(--dolphin)') : 'var(--card)',
-              color: who === v && v === 'dolphin' ? '#fff' : 'var(--ink)',
-              fontFamily: 'Jua, sans-serif', fontSize: 14, boxShadow: 'var(--shadow-soft)',
-            }}
-          >{l}</button>
-        ))}
+      {/* 본인 것만 수정 가능 */}
+      <div style={{ padding: '0 18px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {actorName === '창희'
+          ? <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16, color: 'var(--duck-deep)' }}>🦆 창희의 체중</div>
+          : <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16, color: 'var(--accent-deep)' }}>🐬 하경의 체중</div>
+        }
       </div>
 
       {/* Character + number picker */}
@@ -355,7 +366,30 @@ function WeightEntry({
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <button onClick={() => step(-0.1)} style={{ width: 54, height: 54, borderRadius: 27, border: 'none', background: 'var(--card)', boxShadow: 'var(--shadow-soft)', cursor: 'pointer', fontFamily: 'Jua, sans-serif', fontSize: 28, color: 'var(--ink-soft)' }}>−</button>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 84, letterSpacing: -2, color: 'var(--accent-deep)', lineHeight: 1 }}>{val.toFixed(1)}</div>
+            <input
+              type="number"
+              value={val}
+              onChange={e => {
+                const v = parseFloat(e.target.value)
+                if (!isNaN(v) && v >= 20 && v <= 200) setVal(+v.toFixed(1))
+              }}
+              step="0.1"
+              min="20"
+              max="200"
+              style={{
+                fontFamily: 'Jua, sans-serif',
+                fontSize: 72,
+                color: 'var(--accent-deep)',
+                lineHeight: 1,
+                width: 180,
+                border: 'none',
+                borderBottom: '3px solid var(--accent)',
+                background: 'transparent',
+                outline: 'none',
+                textAlign: 'center',
+                letterSpacing: -2,
+              }}
+            />
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, color: 'var(--ink-soft)' }}>kg</div>
           </div>
           <button onClick={() => step(0.1)} style={{ width: 54, height: 54, borderRadius: 27, border: 'none', background: 'var(--card)', boxShadow: 'var(--shadow-soft)', cursor: 'pointer', fontFamily: 'Jua, sans-serif', fontSize: 28, color: 'var(--ink-soft)' }}>＋</button>

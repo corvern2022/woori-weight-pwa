@@ -511,7 +511,34 @@ export default function HomePage() {
             </div>
           )}
           <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
-            <Duck size={110} variant="strong" palette="yellow" />
+            <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* 몸통 */}
+              <ellipse cx="55" cy="78" rx="28" ry="25" fill="#FDE68A"/>
+              {/* 날개 L */}
+              <ellipse cx="28" cy="82" rx="12" ry="7" fill="#FBBF24" transform="rotate(-20 28 82)"/>
+              {/* 날개 R */}
+              <ellipse cx="82" cy="82" rx="12" ry="7" fill="#FBBF24" transform="rotate(20 82 82)"/>
+              {/* 헬멧 */}
+              <ellipse cx="55" cy="44" rx="27" ry="30" fill="#EF4444"/>
+              {/* 헬멧 광택 */}
+              <ellipse cx="45" cy="30" rx="9" ry="6" fill="#FCA5A5" opacity="0.5"/>
+              {/* 헬멧 핀 */}
+              <rect x="50" y="12" width="10" height="16" rx="5" fill="#DC2626"/>
+              {/* 바이저 */}
+              <path d="M30 43 Q55 56 80 43 Q55 36 30 43Z" fill="#1E293B"/>
+              {/* 바이저 반짝임 */}
+              <path d="M34 41 Q55 52 76 41" stroke="#475569" strokeWidth="2" fill="none" opacity="0.4"/>
+              {/* 부리 */}
+              <path d="M46 70 Q55 76 64 70 Q55 82 46 70Z" fill="#FB923C"/>
+              {/* 볼터치 */}
+              <ellipse cx="36" cy="60" rx="6" ry="3.5" fill="#FCA5A5" opacity="0.4"/>
+              <ellipse cx="74" cy="60" rx="6" ry="3.5" fill="#FCA5A5" opacity="0.4"/>
+              {/* 발 */}
+              <ellipse cx="43" cy="104" rx="11" ry="5" fill="#FB923C"/>
+              <ellipse cx="67" cy="104" rx="11" ry="5" fill="#FB923C"/>
+              {/* 별 */}
+              <text x="76" y="22" fontSize="18" textAnchor="middle">⭐</text>
+            </svg>
           </button>
         </div>
 
@@ -527,7 +554,34 @@ export default function HomePage() {
             </div>
           )}
           <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
-            <Dolphin size={110} variant="happy" palette="blue" />
+            <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* 꼬리 */}
+              <path d="M55 95 Q40 105 30 100 Q45 90 55 95Z" fill="#60A5FA"/>
+              <path d="M55 95 Q70 105 80 100 Q65 90 55 95Z" fill="#60A5FA"/>
+              {/* 몸통 */}
+              <ellipse cx="55" cy="76" rx="24" ry="22" fill="#93C5FD"/>
+              {/* 지느러미 L */}
+              <path d="M32 72 Q20 80 22 90 Q30 80 36 78Z" fill="#60A5FA"/>
+              {/* 지느러미 R */}
+              <path d="M78 72 Q90 80 88 90 Q80 80 74 78Z" fill="#60A5FA"/>
+              {/* 헬멧 */}
+              <ellipse cx="55" cy="44" rx="26" ry="28" fill="#A78BFA"/>
+              {/* 헬멧 광택 */}
+              <ellipse cx="45" cy="30" rx="8" ry="5.5" fill="#C4B5FD" opacity="0.55"/>
+              {/* 등지느러미/핀 */}
+              <path d="M49 14 Q55 6 61 14 Q57 12 55 14 Q53 12 49 14Z" fill="#7C3AED"/>
+              {/* 바이저 */}
+              <path d="M31 43 Q55 55 79 43 Q55 36 31 43Z" fill="#1E293B"/>
+              {/* 바이저 반짝임 */}
+              <path d="M35 41 Q55 51 75 41" stroke="#6366F1" strokeWidth="2" fill="none" opacity="0.5"/>
+              {/* 입 */}
+              <path d="M45 68 Q55 74 65 68" stroke="#7C3AED" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* 볼터치 */}
+              <ellipse cx="37" cy="58" rx="6" ry="3.5" fill="#C4B5FD" opacity="0.5"/>
+              <ellipse cx="73" cy="58" rx="6" ry="3.5" fill="#C4B5FD" opacity="0.5"/>
+              {/* 반짝임 */}
+              <text x="78" y="22" fontSize="18" textAnchor="middle">✨</text>
+            </svg>
           </button>
         </div>
 

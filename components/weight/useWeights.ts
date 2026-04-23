@@ -68,8 +68,8 @@ export function useWeights() {
       const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => r.weight_kg);
       const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => r.weight_kg);
 
-      if (duckData.length >= 2) setDuckWeights(duckData.slice(-14));
-      if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-14));
+      if (duckData.length >= 2) setDuckWeights(duckData.slice(-30));
+      if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-30));
 
       // Load goals from app_config
       const { data: cfgRows } = await supabase.from("app_config").select("key, value").in("key", ["goal_duck", "goal_dolphin"]);
