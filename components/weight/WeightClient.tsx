@@ -12,7 +12,7 @@ type WhoFilter = 'duck' | 'both' | 'dolphin';
 
 export function WeightClient() {
   const router = useRouter();
-  const { duckWeights, dolphinWeights, loading, toast, addWeight } = useWeights();
+  const { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
   const [view, setView] = useState<View>('list');
   const [who, setWho] = useState<WhoFilter>('both');
 
@@ -27,15 +27,15 @@ export function WeightClient() {
 
   const W = 320, H = 160, P = 14;
 
-  type Series = { data: number[]; mn: number; mx: number; color: string; name: string };
+  type Series = { data: number[]; mn: number; mx: number; color: string; name: string; goal: number | null };
   const series: Series[] = [];
   if (who === 'duck' || who === 'both') {
     const data = duckWeights;
-    series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--duck-deep)', name: '창희' });
+    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--duck-deep)', name: '창희', goal: duckGoal });
   }
   if (who === 'dolphin' || who === 'both') {
     const data = dolphinWeights;
-    series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--accent-deep)', name: '하경' });
+    if (data.length > 0) series.push({ data, mn: Math.min(...data) - 0.3, mx: Math.max(...data) + 0.3, color: 'var(--accent-deep)', name: '하경', goal: dolphinGoal });
   }
 
   return (
@@ -98,7 +98,7 @@ export function WeightClient() {
                 ))}
               </defs>
               {series.map((s, idx) => {
-                const x = (i: number) => P + (i * (W - P * 2)) / (s.data.length - 1);
+                const x = (i: number) => s.data.length <= 1 ? W / 2 : P + (i * (W - P * 2)) / (s.data.length - 1);
                 const y = (v: number) => P + 14 + ((s.mx - v) / (s.mx - s.mn)) * (H - P * 2 - 24);
                 const linePath = s.data.map((v, i) => `${i ? 'L' : 'M'} ${x(i)} ${y(v)}`).join(' ');
                 const areaPath = `${linePath} L ${x(s.data.length - 1)} ${H - P} L ${P} ${H - P} Z`;
@@ -110,6 +110,12 @@ export function WeightClient() {
                       <circle key={i} cx={x(i)} cy={y(v)} r={i === s.data.length - 1 ? 4.5 : 2.2} fill={s.color} stroke="var(--card)" strokeWidth={i === s.data.length - 1 ? 2 : 1} />
                     ))}
                     <text x={x(s.data.length - 1) + 8} y={y(s.data[s.data.length - 1]) + 4} fontSize="11" fontFamily="Jua" fill={s.color}>{s.name}</text>
+                    {s.goal !== null && s.goal >= s.mn && s.goal <= s.mx && (
+                      <>
+                        <line x1={P} y1={y(s.goal)} x2={W - P} y2={y(s.goal)} stroke={s.color} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.55" />
+                        <text x={P + 2} y={y(s.goal) - 3} fontSize="10" fontFamily="Jua" fill={s.color} opacity="0.7">목표</text>
+                      </>
+                    )}
                   </g>
                 );
               })}
@@ -171,6 +177,21 @@ export function WeightClient() {
 }
 
 function TodayCard({ who, weights }: { who: 'duck' | 'dolphin'; weights: number[] }) {
+  if (weights.length === 0) {
+    const bg = who === 'duck' ? 'var(--duck-soft)' : 'var(--dolphin-soft)';
+    const col = who === 'duck' ? 'var(--duck-deep)' : 'var(--accent-deep)';
+    const border = who === 'duck' ? 'var(--duck-soft)' : 'var(--dolphin-soft)';
+    return (
+      <div style={{ flex: 1, background: `linear-gradient(160deg, ${bg}, var(--card))`, borderRadius: 22, padding: 14, boxShadow: 'var(--shadow-soft)', border: `1.5px solid ${border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+          {who === 'duck' ? <Duck size={28} variant="head" palette="yellow" /> : <Dolphin size={28} variant="head" palette="blue" />}
+          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13 }}>{who === 'duck' ? '창희' : '하경'}</div>
+        </div>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, color: col }}>-</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive' }}>기록 없음</div>
+      </div>
+    );
+  }
   const last = weights[weights.length - 1];
   const prev = weights[weights.length - 2] ?? last;
   const delta = (last - prev).toFixed(1);

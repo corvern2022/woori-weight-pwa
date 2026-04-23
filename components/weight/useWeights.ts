@@ -16,6 +16,8 @@ export function useWeights() {
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [duckWeights, setDuckWeights] = useState<number[]>([70, 69.8, 69.5, 69.7, 69.3, 69.1, 69.0, 68.9, 68.7, 68.5, 68.6, 68.4, 68.2, 68.0]);
   const [dolphinWeights, setDolphinWeights] = useState<number[]>([57, 56.8, 56.9, 56.7, 56.5, 56.4, 56.3, 56.2, 56.0, 55.9, 55.8, 55.7, 55.6, 55.5]);
+  const [duckGoal, setDuckGoal] = useState<number | null>(null);
+  const [dolphinGoal, setDolphinGoal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -63,6 +65,16 @@ export function useWeights() {
 
       if (duckData.length >= 2) setDuckWeights(duckData.slice(-14));
       if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-14));
+
+      // Load goals from app_config
+      const { data: cfgRows } = await supabase.from("app_config").select("key, value").in("key", ["goal_duck", "goal_dolphin"]);
+      (cfgRows ?? []).forEach((row: { key: string; value: { v: string } | string }) => {
+        const v = parseFloat(typeof row.value === 'object' ? (row.value as { v: string }).v : String(row.value));
+        if (!isNaN(v)) {
+          if (row.key === "goal_duck") setDuckGoal(v);
+          if (row.key === "goal_dolphin") setDolphinGoal(v);
+        }
+      });
     } catch {
       // keep defaults
     } finally {
@@ -79,25 +91,17 @@ export function useWeights() {
         [{ user_id: uid, date: today, weight_kg: kg, drank: false }],
         { onConflict: "user_id,date" }
       );
-    }
-
-    if (who === 'duck') {
-      setDuckWeights(prev => {
-        const next = [...prev];
-        next[next.length - 1] = kg;
-        return next;
-      });
-    } else {
-      setDolphinWeights(prev => {
-        const next = [...prev];
-        next[next.length - 1] = kg;
-        return next;
-      });
+    } else if (!uid) {
+      setToast("유저 정보가 없어요. 잠시 후 다시 시도해주세요 😢");
+      setTimeout(() => setToast(null), 3000);
+      return;
     }
 
     setToast("기록 완료! 🎉");
     setTimeout(() => setToast(null), 2000);
+    // Reload from DB so chart reflects actual saved data (including past-date entries)
+    await loadData();
   }
 
-  return { duckWeights, dolphinWeights, loading, toast, addWeight };
+  return { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight };
 }

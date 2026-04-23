@@ -103,24 +103,42 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
             </label>
           </div>
 
-          <select
-            className="w-full border border-ink/15 bg-card-alt text-ink rounded-xl px-3 py-2 text-sm"
-            value={form.assignee}
-            onChange={(e) => setForm((f) => ({ ...f, assignee: e.target.value as FormData["assignee"] }))}
-          >
-            <option value="하경">하경</option>
-            <option value="창희">창희</option>
-            <option value="둘다">둘다</option>
-          </select>
+          {/* Assignee chips */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {([['하경', '🐬'], ['창희', '🦆'], ['둘다', '💞']] as [FormData['assignee'], string][]).map(([v, emoji]) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, assignee: v }))}
+                style={{
+                  flex: 1, padding: '8px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
+                  fontFamily: 'Jua, sans-serif', fontSize: 13,
+                  background: form.assignee === v
+                    ? (v === '창희' ? 'var(--duck)' : v === '하경' ? 'var(--dolphin)' : 'linear-gradient(135deg, var(--pink), var(--peach))')
+                    : 'var(--card-alt)',
+                  color: form.assignee === v && v === '하경' ? '#fff' : 'var(--ink)',
+                  boxShadow: form.assignee === v ? 'var(--shadow-soft)' : 'none',
+                }}
+              >{emoji} {v}</button>
+            ))}
+          </div>
 
-          <select
-            className="w-full border border-ink/15 bg-card-alt text-ink placeholder:text-ink-mute rounded-xl px-3 py-2 text-sm"
-            value={form.category}
-            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-          >
-            <option value="">카테고리 선택</option>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+          {/* Category chips */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {(['', ...CATEGORIES] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, category: c }))}
+                style={{
+                  padding: '5px 12px', border: 'none', borderRadius: 100, cursor: 'pointer',
+                  fontFamily: 'Jua, sans-serif', fontSize: 12,
+                  background: form.category === c ? 'var(--accent)' : 'var(--card-alt)',
+                  color: form.category === c ? '#fff' : 'var(--ink-soft)',
+                }}
+              >{c === '' ? '없음' : c}</button>
+            ))}
+          </div>
 
           <div className="flex gap-2 pt-2">
             <button type="button" className="flex-1 border border-ink/15 rounded-pill py-2 text-sm text-ink-soft" onClick={onClose}>취소</button>

@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Duck, Dolphin } from '@/components/characters';
 import { useTheme } from '@/lib/themeContext';
 import { getSupabaseClient } from '@/lib/supabase';
 
 function getDaysTogether(): number {
-  const start = new Date('2025-12-16');
+  const start = new Date('2023-07-08');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   start.setHours(0, 0, 0, 0);
@@ -114,6 +114,23 @@ export function SettingsPageClient() {
   const [toast, setToast] = useState<string | null>(null);
   const days = getDaysTogether();
 
+  useEffect(() => {
+    async function loadGoals() {
+      try {
+        const supabase = getSupabaseClient();
+        const { data } = await supabase.from('app_config').select('key, value').in('key', ['goal_duck', 'goal_dolphin', 'drink_limit']);
+        if (!data) return;
+        data.forEach((row: { key: string; value: { v: string } | string }) => {
+          const v = typeof row.value === 'object' && row.value !== null ? (row.value as { v: string }).v : String(row.value);
+          if (row.key === 'goal_duck') setDuckGoal(v);
+          if (row.key === 'goal_dolphin') setDolphinGoal(v);
+          if (row.key === 'drink_limit') setDrinkLimit(v);
+        });
+      } catch { /* ignore */ }
+    }
+    void loadGoals();
+  }, []);
+
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2000);
@@ -143,7 +160,7 @@ export function SettingsPageClient() {
           <Dolphin size={48} variant="happy" palette="blue"/>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>창희 &amp; 하경</div>
-            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 · 시작일 2025.12.16</div>
+            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 💞 시작일 2023.07.08</div>
           </div>
         </div>
 

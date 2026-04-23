@@ -159,8 +159,9 @@ export function useTasks() {
     await reload();
   }
 
-  async function addTaskEvent(taskId: string, eventType: TaskEvent["event_type"], payload: Record<string, unknown>, actor = "하경") {
-    await supabase.from("task_events").insert([{ task_id: taskId, event_type: eventType, actor, payload }]);
+  async function addTaskEvent(taskId: string, eventType: TaskEvent["event_type"], payload: Record<string, unknown>, actor?: string) {
+    const resolvedActor = actor ?? (typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경');
+    await supabase.from("task_events").insert([{ task_id: taskId, event_type: eventType, actor: resolvedActor, payload }]);
   }
 
   async function addComment(taskId: string, text: string, actor: string) {
