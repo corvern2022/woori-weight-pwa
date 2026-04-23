@@ -23,6 +23,7 @@ function buildMonthGrid(year: number, month: number): (Date | null)[] {
 export function DrinkPageClient() {
   const router = useRouter();
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [actor, setActor] = useState<string>('');
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [rows, setRows] = useState<WeighInRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ export function DrinkPageClient() {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(LOCAL_KEY);
       if (saved) setMyUserId(saved);
+      setActor(localStorage.getItem('ori_ranger_actor') ?? '');
     }
   }, []);
 
@@ -108,6 +110,7 @@ export function DrinkPageClient() {
     if (dd && dp) bothCount++;
   });
 
+  void myUserId;
   const monthLabel = `${year}년 ${month + 1}월`;
 
   async function toggleDrink(userId: string | undefined, date: Date) {
@@ -188,18 +191,9 @@ export function DrinkPageClient() {
                       style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: duckDrank || dolphinDrank ? 'var(--duck-soft)' : 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isFuture ? 'default' : 'pointer', opacity: isFuture ? 0.4 : 1 }}
                       onClick={() => {
                         if (isFuture) return;
-                        // Toggle: if neither drank, mark both; if duck drank toggle duck; if dolphin toggle dolphin; if both, clear both
-                        if (!duckDrank && !dolphinDrank) {
-                          void toggleDrink(duckMember?.user_id, d);
-                          void toggleDrink(dolphinMember?.user_id, d);
-                        } else if (duckDrank && dolphinDrank) {
-                          void toggleDrink(duckMember?.user_id, d);
-                          void toggleDrink(dolphinMember?.user_id, d);
-                        } else if (duckDrank) {
-                          void toggleDrink(duckMember?.user_id, d);
-                        } else {
-                          void toggleDrink(dolphinMember?.user_id, d);
-                        }
+                        // Only toggle current actor's drink status
+                        const myMember = actor === '창희' ? duckMember : dolphinMember;
+                        void toggleDrink(myMember?.user_id, d);
                       }}
                     >
                       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
