@@ -61,9 +61,9 @@ export function useWeights() {
         .limit(200);
 
       const rows = (weighRows ?? []) as Array<{ date: string; user_id: string; weight_kg: number }>;
-      // duck = '창희' (first member), dolphin = '하경' (second member)
-      const resolvedDuckId = members.find(m => m.display_name === '창희')?.user_id ?? null;
+      // dolphin = '하경', duck = whoever is not '하경'
       const resolvedDolphinId = members.find(m => m.display_name === '하경')?.user_id ?? null;
+      const resolvedDuckId = members.find(m => m.display_name !== '하경')?.user_id ?? null;
       setDuckId(resolvedDuckId);
       setDolphinId(resolvedDolphinId);
 
