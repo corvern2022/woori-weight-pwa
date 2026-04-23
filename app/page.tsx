@@ -448,23 +448,14 @@ export default function HomePage() {
       <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
         {/* Weather row + D-day badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 15, color: 'var(--ink-soft)', fontFamily: 'Gaegu, sans-serif' }}>
-              {today} · {weather.label} {weather.emoji}
-            </div>
-            {weather.temp !== null && (
-              <div style={{
-                background: 'linear-gradient(135deg, var(--accent-soft), var(--card))',
-                border: '1.5px solid var(--accent-soft)',
-                borderRadius: 100,
-                padding: '2px 10px',
-                fontFamily: 'Jua, sans-serif',
-                fontSize: 14,
-                color: 'var(--accent-deep)',
-              }}>
-                {weather.temp}°C
-              </div>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--ink-soft)', fontFamily: 'Jua, sans-serif' }}>
+            <span>{new Date().getMonth() + 1}월 {new Date().getDate()}일({['일','월','화','수','목','금','토'][new Date().getDay()]})</span>
+            <span style={{ color: 'var(--border)' }}>·</span>
+            <span>서울</span>
+            <span style={{ color: 'var(--border)' }}>·</span>
+            <span>{weather.label}</span>
+            <span>{weather.emoji}</span>
+            {weather.temp !== null && <span style={{ color: 'var(--accent-deep)', fontWeight: 700 }}>{weather.temp}°C</span>}
           </div>
           <div style={{
             background: 'linear-gradient(135deg, var(--peach), var(--pink))',
