@@ -550,9 +550,9 @@ export default function HomePage() {
                       transform: selected ? 'scale(1.06)' : 'scale(1)',
                     }}
                   >
-                    <span style={{ fontSize: 18, lineHeight: 1 }}>{m.emoji}</span>
+                    <span style={{ fontSize: 22, lineHeight: 1 }}>{m.emoji}</span>
                     <span style={{
-                      fontFamily: 'Jua, sans-serif', fontSize: 13,
+                      fontFamily: 'Jua, sans-serif', fontSize: 15,
                       color: selected ? m.color : 'var(--ink-muted)',
                       fontWeight: selected ? 700 : 400,
                     }}>{m.label}</span>
