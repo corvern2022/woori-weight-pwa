@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Task, TaskEvent } from "./types";
 import { WhoBadge } from "@/components/ui/WhoBadge";
 
@@ -24,13 +25,16 @@ function dueLabel(dateStr: string | null): string {
   return `${diff}일 후`;
 }
 
-export function TaskCard({ t, events, onOpen, onToggle }: Props) {
+export const TaskCard = memo(function TaskCard({ t, events, onOpen, onToggle }: Props) {
   const commentCount = events.filter((e) => e.event_type === "comment_added").length;
   const label = dueLabel(t.due_date);
 
   return (
     <div
       onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onOpen(); }}
       style={{
         background: 'var(--card)',
         borderRadius: 20,
@@ -40,21 +44,22 @@ export function TaskCard({ t, events, onOpen, onToggle }: Props) {
         cursor: 'pointer',
       }}
     >
-      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          aria-label={t.completed ? "완료 취소" : "완료 표시"}
           style={{
             width: 44,
             height: 44,
             borderRadius: 22,
             border: 'none',
             cursor: 'pointer',
-            marginTop: -8,
             background: 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            alignSelf: 'center',
           }}
         >
           <div style={{
@@ -69,7 +74,7 @@ export function TaskCard({ t, events, onOpen, onToggle }: Props) {
             transition: 'all 0.2s',
           }}>
           {t.completed && (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round">
               <path d="M3 8l3 3 6-6"/>
             </svg>
           )}
@@ -112,4 +117,4 @@ export function TaskCard({ t, events, onOpen, onToggle }: Props) {
       </div>
     </div>
   );
-}
+});

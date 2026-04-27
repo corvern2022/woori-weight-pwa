@@ -15,6 +15,14 @@ import {
 
 const POLL_INTERVAL = 10000;
 
+function subjectMarker(name: string): string {
+  const last = name[name.length - 1];
+  const code = last.charCodeAt(0);
+  if (code < 0xAC00 || code > 0xD7A3) return '이(가)'; // 한글 아니면 fallback
+  const jongseong = (code - 0xAC00) % 28;
+  return jongseong === 0 ? '가' : '이';
+}
+
 async function getPartnerUserId(supabase: ReturnType<typeof getSupabaseClient>): Promise<string | null> {
   const myId = typeof window !== 'undefined' ? localStorage.getItem('woori_weight_user_id') : null;
   if (!myId) return null;
@@ -58,6 +66,7 @@ export function useTasks() {
       const { data: taskData, error } = await supabase
         .from("tasks")
         .select("*")
+        .order("completed", { ascending: true })
         .order("due_date", { ascending: true, nullsFirst: false });
       if (error) {
         showToast("불러오기 실패. 다시 시도해주세요.");
@@ -191,7 +200,7 @@ export function useTasks() {
       // 할 일 완료 시 파트너에게 푸시 알림
       const partnerUid = await getPartnerUserId(supabase);
       if (partnerUid && task) {
-        sendPushToPartner(partnerUid, `${actor}이(가) 완료했어요 ✅`, task.title);
+        sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 완료했어요 ✅`, task.title);
       }
     }
     // 백그라운드 reload (UI는 이미 업데이트됨)
@@ -210,7 +219,7 @@ export function useTasks() {
     const task = tasks.find(t => t.id === taskId);
     const partnerUid = await getPartnerUserId(supabase);
     if (partnerUid && task) {
-      sendPushToPartner(partnerUid, `${actor}이(가) 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`);
+      sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`);
     }
     await reload();
   }

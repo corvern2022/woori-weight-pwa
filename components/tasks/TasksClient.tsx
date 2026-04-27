@@ -67,10 +67,12 @@ export function TasksClient() {
       </div>
 
       {/* Filter tabs */}
-      <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 22px 12px', overflowX: 'auto' }}>
+      <div role="tablist" className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 22px 12px', overflowX: 'auto' }}>
         {FILTERS.map(f => (
           <button
             key={f}
+            role="tab"
+            aria-selected={filter === f}
             onClick={() => setFilter(f)}
             style={{
               padding: '8px 16px',
