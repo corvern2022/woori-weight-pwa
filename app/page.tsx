@@ -430,14 +430,27 @@ export default function HomePage() {
   }
 
   // 온보딩: actor 미설정 시 선택 화면 (null = 아직 로드 전, '' = 미설정)
-  if (actor === null) return null  // hydration 대기
+  if (actor === null) return (
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, color: 'var(--accent-deep)' }}>오리 레인저 🦆</div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {[0,1,2].map(i => (
+          <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', animation: 'bounce 0.8s infinite', animationDelay: `${i*0.15}s` }} />
+        ))}
+      </div>
+    </div>
+  )  // hydration 대기
   if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
-  // 오늘 마감 / 최근 할 일 구분 (기한 지난 할일은 홈에서 제외)
-  const dueTodayTasks = allTasks.filter(t => t.due_date && t.due_date === todayStr)
-  const tasks = dueTodayTasks.length > 0 ? dueTodayTasks.slice(0, 3) : allTasks.slice(0, 3)
+  // 기한 지난 / 오늘 마감 / 최근 할 일 구분
+  const overdueTasks = allTasks.filter(t => !t.completed && t.due_date && t.due_date < todayStr)
+  const dueTodayTasks = allTasks.filter(t => !t.completed && t.due_date && t.due_date === todayStr)
+  const urgentTasks = [...overdueTasks, ...dueTodayTasks]
+  const tasks = urgentTasks.length > 0 ? urgentTasks.slice(0, 3) : allTasks.filter(t => !t.completed).slice(0, 3)
 
   function sectionTitle() {
+    if (overdueTasks.length > 0 && dueTodayTasks.length > 0) return `⚠️ 기한 지남 ${overdueTasks.length}개 · 오늘 마감 ${dueTodayTasks.length}개`
+    if (overdueTasks.length > 0) return `⚠️ 기한 지난 할 일 ${overdueTasks.length}개`
     if (dueTodayTasks.length > 0) return '오늘 마감 할 일'
     return '최근 할 일'
   }
@@ -578,6 +591,11 @@ export default function HomePage() {
               <text x="76" y="22" fontSize="18" textAnchor="middle">⭐</text>
             </svg>
           </button>
+          {!duckMood && (
+            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)', marginTop: -4, textAlign: 'center' }}>
+              탭 👆
+            </div>
+          )}
         </div>
 
         {/* Dolphin (하경) + 말풍선 */}
@@ -621,6 +639,11 @@ export default function HomePage() {
               <text x="78" y="22" fontSize="18" textAnchor="middle">✨</text>
             </svg>
           </button>
+          {!dolphinMood && (
+            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)', marginTop: -4, textAlign: 'center' }}>
+              탭 👆
+            </div>
+          )}
         </div>
 
         <svg style={{ position: 'absolute', bottom: 24, right: '22%', pointerEvents: 'none' }} width="24" height="40" viewBox="0 0 24 40">
@@ -685,8 +708,8 @@ export default function HomePage() {
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
         <BigCard
           title="할 일"
-          count={dueTodayTasks.length > 0 ? dueTodayTasks.length : openCount}
-          subtitle={dueTodayTasks.length > 0 ? '오늘 마감' : '미완료 전체'}
+          count={urgentTasks.length > 0 ? urgentTasks.length : openCount}
+          subtitle={overdueTasks.length > 0 ? '긴급 처리 필요' : dueTodayTasks.length > 0 ? '오늘 마감' : '미완료 전체'}
           color="var(--peach)"
           colorDeep="var(--peach-deep)"
           icon="task"
