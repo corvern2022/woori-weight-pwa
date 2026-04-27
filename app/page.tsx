@@ -273,6 +273,7 @@ export default function HomePage() {
   const [anniversaryDate, setAnniversaryDate] = useState('2023-07-08')
   const [editingAnniversary, setEditingAnniversary] = useState(false)
   const [pushUserId, setPushUserId] = useState<string | null>(null)
+  const [showInstallBanner, setShowInstallBanner] = useState(false)
   usePush(pushUserId)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
@@ -303,6 +304,15 @@ export default function HomePage() {
       setActor(saved ?? '')
     }
     void initActor()
+  }, [])
+
+  useEffect(() => {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    const isStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
+    const dismissed = localStorage.getItem('pwa_install_dismissed')
+    if (isIOS && !isStandalone && !dismissed) {
+      setShowInstallBanner(true)
+    }
   }, [])
 
   const loadMoods = useCallback(async () => {
@@ -438,6 +448,25 @@ export default function HomePage() {
         paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
       }}
     >
+      {/* iOS PWA install banner */}
+      {showInstallBanner && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
+          color: '#fff', padding: 'calc(env(safe-area-inset-top) + 10px) 16px 12px',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14 }}>알림을 받으려면 홈 화면에 추가하세요 📲</div>
+            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 12, opacity: 0.85, marginTop: 2 }}>Safari → 공유 버튼 → 홈 화면에 추가</div>
+          </div>
+          <button
+            onClick={() => { setShowInstallBanner(false); localStorage.setItem('pwa_install_dismissed', '1'); }}
+            style={{ border: 'none', background: 'rgba(255,255,255,0.2)', borderRadius: 20, color: '#fff', cursor: 'pointer', padding: '4px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12 }}
+          >닫기</button>
+        </div>
+      )}
+
       {/* Header clouds - pointer-events none so they don't block taps */}
       <div style={{ position: 'absolute', top: 58, left: -20, animation: 'floatCloud 8s ease-in-out infinite', opacity: 0.5, pointerEvents: 'none', zIndex: 0 }}>
         <CloudDeco size={100} opacity={1} />
@@ -552,7 +581,7 @@ export default function HomePage() {
               })()}
             </div>
           )}
-          <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
+          <button onClick={() => { setMoodTarget('duck'); setMoodEmoji(duckMood?.emoji ?? '😊'); setMoodDraft(duckMood?.text ?? ''); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
             <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* 몸통 */}
               <ellipse cx="55" cy="78" rx="28" ry="25" fill="#FDE68A"/>
@@ -609,7 +638,7 @@ export default function HomePage() {
               })()}
             </div>
           )}
-          <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+          <button onClick={() => { setMoodTarget('dolphin'); setMoodEmoji(dolphinMood?.emoji ?? '😊'); setMoodDraft(dolphinMood?.text ?? ''); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
             <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* 꼬리 */}
               <path d="M55 95 Q40 105 30 100 Q45 90 55 95Z" fill="#60A5FA"/>
