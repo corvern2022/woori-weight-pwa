@@ -46,14 +46,26 @@ export function TaskList({ tasks, itemsByTask, eventsByTask, uiSettings, actor, 
   return (
     <div>
       {/* 필터 탭 */}
-      <div className="flex gap-1 overflow-x-auto pb-1 mb-2">
+      <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
         {TABS.map((tab) => (
           <button
             key={tab.value}
-            className={`px-3 py-1.5 rounded-full text-sm flex-shrink-0 font-medium transition-colors ${
-              filter === tab.value ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
             onClick={() => onFilterChange(tab.value)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 999,
+              fontSize: 14,
+              flexShrink: 0,
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              background: filter === tab.value
+                ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))'
+                : 'var(--card)',
+              color: filter === tab.value ? '#fff' : 'var(--ink-soft)',
+              boxShadow: filter === tab.value ? 'var(--shadow-soft)' : 'none',
+            }}
           >
             {tab.label}
           </button>
@@ -61,9 +73,9 @@ export function TaskList({ tasks, itemsByTask, eventsByTask, uiSettings, actor, 
       </div>
 
       {/* 카테고리 필터 */}
-      <div className="mb-3">
+      <div style={{ marginBottom: 12 }}>
         <select
-          className="border rounded-lg px-2 py-1.5 text-sm text-gray-600"
+          style={{ border: '1.5px solid var(--accent-soft)', borderRadius: 8, padding: '6px 8px', fontSize: 14, color: 'var(--ink-soft)', background: 'var(--card)' }}
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
         >
@@ -74,7 +86,7 @@ export function TaskList({ tasks, itemsByTask, eventsByTask, uiSettings, actor, 
 
       {/* 목록 */}
       {filtered.length === 0 ? (
-        <div className="text-center text-gray-400 py-16 text-sm">할일이 없어요 🎉</div>
+        <div style={{ textAlign: 'center', color: 'var(--ink-mute)', padding: '64px 0', fontSize: 14 }}>할일이 없어요 🎉</div>
       ) : (
         filtered.map((task) => (
           <TaskCard

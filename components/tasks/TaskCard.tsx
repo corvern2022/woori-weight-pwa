@@ -20,7 +20,8 @@ function dueLabel(dateStr: string | null): string {
   if (diff === 0) return "오늘";
   if (diff === 1) return "내일";
   if (diff === -1) return "어제";
-  return dateStr;
+  if (diff < 0) return `${Math.abs(diff)}일 지남`;
+  return `${diff}일 후`;
 }
 
 export function TaskCard({ t, events, onOpen, onToggle }: Props) {
@@ -76,7 +77,16 @@ export function TaskCard({ t, events, onOpen, onToggle }: Props) {
         </button>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{
+            fontFamily: 'Jua, sans-serif',
+            fontSize: 17,
+            color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
+            textDecoration: t.completed ? 'line-through' : 'none',
+            marginBottom: 4,
+          }}>
+            {t.title}
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <WhoBadge who={t.assignee} size="sm" />
             {t.category && (
               <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: 'var(--accent-soft)', color: 'var(--accent-deep)', fontFamily: 'Jua, sans-serif' }}>
@@ -84,24 +94,20 @@ export function TaskCard({ t, events, onOpen, onToggle }: Props) {
               </span>
             )}
             {label && (
-              <span style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive' }}>
+              <span style={{
+                fontSize: 11,
+                color: label.includes('지남') ? 'var(--peach-deep)' : label === '오늘' ? 'var(--mint-deep)' : 'var(--ink-mute)',
+                fontFamily: 'Gaegu, cursive'
+              }}>
                 · {label}
               </span>
             )}
+            {commentCount > 0 && (
+              <span style={{ fontSize: 11, fontFamily: 'Gaegu, cursive', color: 'var(--accent)' }}>
+                💬 {commentCount}
+              </span>
+            )}
           </div>
-          <div style={{
-            fontFamily: 'Jua, sans-serif',
-            fontSize: 17,
-            color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
-            textDecoration: t.completed ? 'line-through' : 'none',
-          }}>
-            {t.title}
-          </div>
-          {commentCount > 0 && (
-            <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--accent)' }}>
-              💬 댓글 {commentCount}개
-            </div>
-          )}
         </div>
       </div>
     </div>
