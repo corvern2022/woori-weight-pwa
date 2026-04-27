@@ -254,6 +254,7 @@ export function TaskDetail({ taskId }: Props) {
   const [editingDesc, setEditingDesc] = useState(false);
   const [editDesc, setEditDesc] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -389,6 +390,8 @@ export function TaskDetail({ taskId }: Props) {
       setComments(prev => prev.map(c => c.id === tempComment.id ? data as TaskEvent : c));
     }
     setSending(false);
+    // Keep focus after send for continuous commenting
+    setTimeout(() => commentInputRef.current?.focus(), 50);
   }
 
   async function handleSend() {
@@ -628,6 +631,7 @@ export function TaskDetail({ taskId }: Props) {
               />
             ) : (
               <textarea
+                ref={commentInputRef}
                 value={commentInput}
                 onChange={e => setCommentInput(e.target.value)}
                 onKeyDown={e => {

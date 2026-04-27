@@ -102,6 +102,12 @@ export function WeightClient() {
           {series.length > 0 && (
             <CombinedChart series={series} W={W} H={H} P={P} />
           )}
+          {series.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 18, color: 'var(--ink-soft)', marginBottom: 8 }}>아직 기록이 없어요</div>
+              <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 14, color: 'var(--ink-mute)', marginBottom: 16 }}>오늘 첫 체중을 기록해봐요! 💪</div>
+            </div>
+          )}
 
           {/* Weekly summary */}
           <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
@@ -149,7 +155,7 @@ export function WeightClient() {
       </button>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, whiteSpace: 'nowrap' }}>
           {toast}
         </div>
       )}
@@ -198,6 +204,7 @@ function TodayCard({ who, weights }: { who: 'duck' | 'dolphin'; weights: number[
       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, color: col, letterSpacing: -0.5 }}>
         {last}<span style={{ fontSize: 13, color: 'var(--ink-mute)' }}>kg</span>
       </div>
+      <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>전 기록 대비</div>
       <div style={{ fontSize: 12, color: +delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)', fontFamily: 'Gaegu, cursive' }}>
         {+delta < 0 ? '↓' : '↑'} {Math.abs(+delta)}
       </div>

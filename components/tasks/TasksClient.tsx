@@ -113,6 +113,17 @@ export function TasksClient() {
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive', fontSize: 18 }}>
               <Dolphin size={70} variant="happy" palette="blue" />
               <div>여기엔 아무것도 없어!</div>
+              {filter === '전체' && (
+                <button
+                  onClick={() => { setEditingTask(null); setFormOpen(true); }}
+                  style={{
+                    marginTop: 12, border: 'none', borderRadius: 100, cursor: 'pointer',
+                    background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
+                    color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 14,
+                    padding: '10px 22px', boxShadow: 'var(--shadow-soft)',
+                  }}
+                >+ 첫 할 일 추가하기</button>
+              )}
             </div>
           )}
         </div>
