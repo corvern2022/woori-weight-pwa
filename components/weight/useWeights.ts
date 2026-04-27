@@ -127,7 +127,7 @@ export function useWeights() {
     const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '';
     const partnerUid = who === 'duck' ? partnerId : myUserId;
     if (supabase && partnerUid) {
-      sendPushToPartner(partnerUid, `${actor}이(가) 체중을 기록했어요 ⚖️`, `오늘 몸무게: ${kg}kg`);
+      sendPushToPartner(partnerUid, `${actor}이(가) 체중을 기록했어요 ⚖️`, `오늘 몸무게: ${kg}kg`, '/weight');
     }
 
     // Reload from DB so chart reflects actual saved data (including past-date entries)

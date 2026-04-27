@@ -55,13 +55,14 @@ export function usePush(userId: string | null) {
 export async function sendPushToPartner(
   partnerUserId: string,
   title: string,
-  body: string
+  body: string,
+  url?: string
 ) {
   try {
     await fetch("/api/push-send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetUserId: partnerUserId, title, body }),
+      body: JSON.stringify({ targetUserId: partnerUserId, title, body, url }),
     });
   } catch {
     // silently fail

@@ -47,6 +47,15 @@ export function TasksClient() {
   const doneCount = tasks.filter(t => t.completed).length;
   const openCount = tasks.filter(t => !t.completed).length;
 
+  // Count badges per filter tab
+  const filterCounts: Record<Filter, number> = {
+    '전체': openCount,
+    '창희': tasks.filter(t => !t.completed && (t.assignee === '창희' || t.assignee === '둘다')).length,
+    '하경': tasks.filter(t => !t.completed && (t.assignee === '하경' || t.assignee === '둘다')).length,
+    '같이': tasks.filter(t => !t.completed && t.assignee === '둘다').length,
+    '완료': doneCount,
+  };
+
   return (
     <div style={{ width: '100%', height: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
       <CloudDeco style={{ position: 'absolute', top: 40, right: -40 }} size={100} opacity={0.5} />
@@ -87,6 +96,16 @@ export function TasksClient() {
             }}
           >
             {f === '창희' && '🦆 '}{f === '하경' && '🐬 '}{f === '같이' && '💞 '}{f}
+            {filterCounts[f] > 0 && (
+              <span style={{
+                marginLeft: 5,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minWidth: 18, height: 18, borderRadius: 9, padding: '0 4px',
+                background: filter === f ? 'rgba(255,255,255,0.28)' : 'var(--accent-soft)',
+                color: filter === f ? '#fff' : 'var(--accent-deep)',
+                fontSize: 11, fontFamily: 'Jua, sans-serif', lineHeight: 1,
+              }}>{filterCounts[f]}</span>
+            )}
           </button>
         ))}
       </div>

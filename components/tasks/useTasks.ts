@@ -199,7 +199,7 @@ export function useTasks() {
       else {
         const partnerUid = await getPartnerUserId(supabase);
         if (partnerUid && task) {
-          sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 완료했어요 ✅`, task.title);
+          sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 완료했어요 ✅`, task.title, `/tasks/${task.id}`);
         }
       }
     }
@@ -219,7 +219,7 @@ export function useTasks() {
     const task = tasks.find(t => t.id === taskId);
     const partnerUid = await getPartnerUserId(supabase);
     if (partnerUid && task) {
-      sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`);
+      sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`, `/tasks/${taskId}`);
     }
     await reload();
   }

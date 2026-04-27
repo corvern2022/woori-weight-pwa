@@ -184,9 +184,9 @@ export function DrinkPageClient() {
       <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px calc(80px + env(safe-area-inset-bottom))' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, paddingTop: 40 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite' }} />
-            <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite', animationDelay: '150ms' }} />
-            <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite', animationDelay: '300ms' }} />
+            {[0, 150, 300].map(delay => (
+              <span key={delay} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--duck)', display: 'inline-block', animation: 'bounce 0.6s infinite', animationDelay: `${delay}ms` }} />
+            ))}
           </div>
         ) : (
           <>
@@ -208,17 +208,28 @@ export function DrinkPageClient() {
                   return (
                     <div
                       key={i}
+                      role={isFuture ? undefined : 'button'}
+                      aria-label={isFuture ? undefined : `${d.getDate()}일 ${duckDrank ? '창희 음주 ' : ''}${dolphinDrank ? '하경 음주' : ''}`}
+                      tabIndex={isFuture ? undefined : 0}
                       style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: duckDrank || dolphinDrank ? 'var(--duck-soft)' : 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isFuture ? 'default' : 'pointer', opacity: isFuture ? 0.4 : 1 }}
                       onClick={() => {
                         if (isFuture) return;
                         const myMember = actor === '창희' ? duckMember : dolphinMember;
                         void toggleDrink(myMember?.user_id, d);
                       }}
+                      onKeyDown={(e) => {
+                        if (isFuture) return;
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          const myMember = actor === '창희' ? duckMember : dolphinMember;
+                          void toggleDrink(myMember?.user_id, d);
+                        }
+                      }}
                     >
                       <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
                       <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
-                        {duckDrank && <div style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--duck-deep)' }} />}
-                        {dolphinDrank && <div style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--accent-deep)' }} />}
+                        {duckDrank && <div style={{ width: 7, height: 7, borderRadius: 4, background: 'var(--duck-deep)' }} />}
+                        {dolphinDrank && <div style={{ width: 7, height: 7, borderRadius: 4, background: 'var(--accent-deep)' }} />}
                       </div>
                     </div>
                   );
