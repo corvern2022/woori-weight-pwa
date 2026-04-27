@@ -191,66 +191,6 @@ function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; to
   )
 }
 
-// ── DockBtn ──────────────────────────────────────────────────────────────────
-function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' | 'drink' | 'gear' | 'mission'; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        background: 'var(--card)',
-        border: 'none',
-        borderRadius: 16,
-        padding: '10px 6px',
-        cursor: 'pointer',
-        boxShadow: 'var(--shadow-soft)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-        color: 'var(--ink)',
-      }}
-    >
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 10,
-          background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {icon === 'chat' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 2h12v9H9l-3 3v-3H2z" />
-          </svg>
-        )}
-        {icon === 'drink' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 2l1 8h4l1-8H5z" />
-            <path d="M6 10v4M10 10v4M5 14h6" />
-          </svg>
-        )}
-        {icon === 'gear' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="8" cy="8" r="2.5" />
-            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42" />
-          </svg>
-        )}
-        {icon === 'mission' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="8" cy="8" r="6" />
-            <path d="M8 4v4l2.5 2.5" />
-          </svg>
-        )}
-      </div>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>{label}</div>
-    </button>
-  )
-}
-
 // ── OnboardingScreen ─────────────────────────────────────────────────────────
 function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') => void }) {
   const [hovered, setHovered] = useState<'duck' | 'dolphin' | null>(null)
@@ -751,13 +691,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Bottom dock */}
-      <div style={{ padding: '14px 18px 0', display: 'flex', gap: 10 }}>
-        <DockBtn onClick={() => router.push('/chat')} icon="chat" label="AI 코치" />
-        <DockBtn onClick={() => router.push('/missions')} icon="mission" label="커플 미션" />
-        <DockBtn onClick={() => router.push('/drink')} icon="drink" label="음주 캘린더" />
-        <DockBtn onClick={() => router.push('/settings')} icon="gear" label="설정" />
-      </div>
     </div>
   )
 }

@@ -158,9 +158,9 @@ export function DrinkPageClient() {
           <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, letterSpacing: -0.5 }}>음주 캘린더 🍺</div>
           {/* Month navigation */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button onClick={goPrev} aria-label="이전 달" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--ink-soft)', padding: '4px 6px', lineHeight: 1 }}>‹</button>
+            <button onClick={goPrev} aria-label="이전 달" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--ink-soft)', padding: '10px 12px', lineHeight: 1, minWidth: 44, minHeight: 44 }}>‹</button>
             <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)', minWidth: 72, textAlign: 'center' }}>{monthLabel}</div>
-            <button onClick={goNext} aria-label="다음 달" disabled={isCurrentMonth} style={{ border: 'none', background: 'none', cursor: isCurrentMonth ? 'default' : 'pointer', fontSize: 22, color: isCurrentMonth ? 'var(--ink-mute)' : 'var(--ink-soft)', padding: '4px 6px', lineHeight: 1 }}>›</button>
+            <button onClick={goNext} aria-label="다음 달" disabled={isCurrentMonth} style={{ border: 'none', background: 'none', cursor: isCurrentMonth ? 'default' : 'pointer', fontSize: 22, color: isCurrentMonth ? 'var(--ink-mute)' : 'var(--ink-soft)', padding: '10px 12px', lineHeight: 1, minWidth: 44, minHeight: 44 }}>›</button>
           </div>
         </div>
       </div>

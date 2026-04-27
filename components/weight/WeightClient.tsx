@@ -133,7 +133,7 @@ export function WeightClient() {
       <button
         onClick={() => setView('entry')}
         style={{
-          position: 'fixed', bottom: 28, right: 22,
+          position: 'fixed', bottom: 'calc(76px + env(safe-area-inset-bottom))', right: 22,
           padding: '14px 18px', borderRadius: 28, border: 'none',
           background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
           color: '#fff', cursor: 'pointer',
@@ -149,7 +149,7 @@ export function WeightClient() {
       </button>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, whiteSpace: 'nowrap' }}>
           {toast}
         </div>
       )}
@@ -428,6 +428,7 @@ function WeightEntry({
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
             <input
               type="number"
+              inputMode="decimal"
               value={val}
               onChange={e => {
                 const v = parseFloat(e.target.value)

@@ -566,10 +566,11 @@ export function TaskDetail({ taskId }: Props) {
         <div style={{ display: 'flex', gap: 6, marginBottom: 8, alignItems: 'center' }}>
           {([['sub', '📋 하위'], ['comment', '💬 댓글']] as [InputMode, string][]).map(([m, l]) => (
             <button key={m} onClick={() => setMode(m as InputMode)} style={{
-              padding: '4px 12px', border: 'none', borderRadius: 100, cursor: 'pointer',
+              padding: '10px 14px', border: 'none', borderRadius: 100, cursor: 'pointer',
               fontFamily: 'Jua, sans-serif', fontSize: 12,
               background: mode === m ? 'var(--accent)' : 'var(--bg-deep)',
               color: mode === m ? '#fff' : 'var(--ink-soft)',
+              minHeight: 44,
             }}>{l}</button>
           ))}
           <div style={{ flex: 1 }} />
