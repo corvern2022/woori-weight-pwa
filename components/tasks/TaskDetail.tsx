@@ -7,6 +7,7 @@ import { BackBtn, WhoBadge } from "@/components/ui";
 import { getSupabaseClient } from "@/lib/supabase";
 import { Duck } from "@/components/characters/Duck";
 import { Dolphin } from "@/components/characters/Dolphin";
+import { toSeoulISODate } from "@/lib/date";
 
 function dueLabel(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -47,7 +48,7 @@ function SubItem({
   const [editContent, setEditContent] = useState(item.content);
   const [editDue, setEditDue] = useState(item.due_date ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toSeoulISODate();
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -252,7 +253,7 @@ export function TaskDetail({ taskId }: Props) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setActor(localStorage.getItem("ori_ranger_actor") || "하경");
+      setActor(localStorage.getItem("ori_ranger_actor") || "");
     }
   }, []);
 

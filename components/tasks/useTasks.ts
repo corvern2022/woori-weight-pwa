@@ -188,16 +188,19 @@ export function useTasks() {
       showToast("상태 변경 실패.");
       return;
     }
-    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경';
+    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '';
     const task = tasks.find(t => t.id === id);
     await addTaskEvent(id, "status_changed", {
       scope: "task", action: !current ? "completed" : "reopened",
     });
     if (!current) {
       // 할 일 완료 시 파트너에게 푸시 알림
-      const partnerUid = await getPartnerUserId(supabase);
-      if (partnerUid && task) {
-        sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 완료했어요 ✅`, task.title);
+      if (!actor) { /* skip push: actor unknown */ }
+      else {
+        const partnerUid = await getPartnerUserId(supabase);
+        if (partnerUid && task) {
+          sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 완료했어요 ✅`, task.title);
+        }
       }
     }
     // 백그라운드 reload (UI는 이미 업데이트됨)
@@ -205,7 +208,7 @@ export function useTasks() {
   }
 
   async function addTaskEvent(taskId: string, eventType: TaskEvent["event_type"], payload: Record<string, unknown>, actor?: string) {
-    const resolvedActor = actor ?? (typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경');
+    const resolvedActor = actor ?? (typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '');
     await supabase.from("task_events").insert([{ task_id: taskId, event_type: eventType, actor: resolvedActor, payload }]);
   }
 

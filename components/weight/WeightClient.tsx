@@ -5,6 +5,7 @@ import { Duck } from "@/components/characters/Duck";
 import { Dolphin } from "@/components/characters/Dolphin";
 import { BackBtn } from "@/components/ui";
 import { useWeights, WeightEntry as WeightData } from "./useWeights";
+import { toSeoulISODate } from "@/lib/date";
 
 type View = 'list' | 'entry';
 type WhoFilter = 'duck' | 'both' | 'dolphin';
@@ -356,16 +357,12 @@ function WeightEntry({
   onSave: (who: 'duck' | 'dolphin', kg: number, date: string) => Promise<void>;
 }) {
   const actorName = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '';
-  const isChang = actorName === '창희';
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toSeoulISODate();
   const [who, setWho] = useState<'duck' | 'dolphin'>(actorName === '창희' ? 'duck' : 'dolphin');
   const current = (who === 'duck' ? duckWeights[duckWeights.length - 1] : dolphinWeights[dolphinWeights.length - 1]) ?? 60;
   const [val, setVal] = useState(current);
   const [date, setDate] = useState(todayStr);
   const [saving, setSaving] = useState(false);
-
-  // suppress unused warning
-  void isChang; void setWho;
 
   const step = (d: number) => setVal(v => Math.max(20, Math.min(200, +(v + d).toFixed(1))));
 
@@ -396,12 +393,25 @@ function WeightEntry({
         </div>
       </div>
 
-      {/* 본인 것만 수정 가능 */}
-      <div style={{ padding: '0 18px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-        {actorName === '창희'
-          ? <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16, color: 'var(--duck-deep)' }}>🦆 창희의 체중</div>
-          : <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16, color: 'var(--accent-deep)' }}>🐬 하경의 체중</div>
-        }
+      {/* 누구의 체중인지 선택 */}
+      <div style={{ padding: '0 18px', marginBottom: 18 }}>
+        <div style={{ background: 'var(--card)', borderRadius: 100, padding: 4, display: 'flex', boxShadow: 'var(--shadow-soft)' }}>
+          {([['duck', '🦆 창희'], ['dolphin', '🐬 하경']] as ['duck' | 'dolphin', string][]).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setWho(v)}
+              style={{
+                flex: 1, border: 'none', borderRadius: 100, padding: '8px 0', cursor: 'pointer',
+                fontFamily: 'Jua, sans-serif', fontSize: 14,
+                background: who === v
+                  ? (v === 'duck' ? 'var(--duck)' : 'linear-gradient(135deg, var(--accent), var(--accent-deep))')
+                  : 'transparent',
+                color: who === v ? (v === 'duck' ? 'var(--ink)' : '#fff') : 'var(--ink-mute)',
+              }}
+            >{label}</button>
+          ))}
+        </div>
       </div>
 
       {/* Character + number picker */}
