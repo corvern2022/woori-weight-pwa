@@ -270,6 +270,8 @@ export default function HomePage() {
   const [moodTarget, setMoodTarget] = useState<'duck' | 'dolphin'>('duck')
   const [moodDraft, setMoodDraft] = useState('')
   const [moodEmoji, setMoodEmoji] = useState('😊')
+  const [anniversaryDate, setAnniversaryDate] = useState('2023-07-08')
+  const [editingAnniversary, setEditingAnniversary] = useState(false)
   const [pushUserId, setPushUserId] = useState<string | null>(null)
   usePush(pushUserId)
   const weather = useWeather()
@@ -311,6 +313,15 @@ export default function HomePage() {
       if (row.key === 'mood_duck') setDuckMood(row.value)
       if (row.key === 'mood_dolphin') setDolphinMood(row.value)
     })
+    const { data: dDayRow } = await supabase
+      .from('app_config')
+      .select('value')
+      .eq('key', 'anniversary_date')
+      .maybeSingle()
+    if (dDayRow?.value) {
+      const v = dDayRow.value as { date?: string }
+      if (v.date) setAnniversaryDate(v.date)
+    }
   }, [])
 
   useEffect(() => {
@@ -448,18 +459,49 @@ export default function HomePage() {
             <span>{weather.emoji}</span>
             {weather.temp !== null && <span style={{ color: 'var(--accent-deep)', fontWeight: 700 }}>{weather.temp}°C</span>}
           </div>
-          <div style={{
-            background: 'linear-gradient(135deg, var(--peach), var(--pink))',
-            borderRadius: 100,
-            padding: '3px 12px',
-            fontFamily: 'Jua, sans-serif',
-            fontSize: 13,
-            color: '#fff',
-            boxShadow: 'var(--shadow-soft)',
-            whiteSpace: 'nowrap',
-          }}>
-            💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date('2023-07-08').setHours(0,0,0,0)) / 86400000)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{
+              background: 'linear-gradient(135deg, var(--peach), var(--pink))',
+              borderRadius: 100,
+              padding: '3px 12px',
+              fontFamily: 'Jua, sans-serif',
+              fontSize: 13,
+              color: '#fff',
+              boxShadow: 'var(--shadow-soft)',
+              whiteSpace: 'nowrap',
+            }}>
+              💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date(anniversaryDate).setHours(0,0,0,0)) / 86400000)}
+            </div>
+            <button
+              onClick={() => setEditingAnniversary(true)}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--ink-mute)', padding: '2px 4px' }}
+              aria-label="기념일 수정"
+            >✏️</button>
           </div>
+          {editingAnniversary && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}
+              onClick={() => setEditingAnniversary(false)}>
+              <div style={{ background: 'var(--card)', borderRadius: 20, padding: 24, margin: 20 }} onClick={e => e.stopPropagation()}>
+                <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 18, marginBottom: 16 }}>💑 기념일 설정</div>
+                <input
+                  type="date"
+                  defaultValue={anniversaryDate}
+                  onChange={async (e) => {
+                    const newDate = e.target.value;
+                    setAnniversaryDate(newDate);
+                    try {
+                      await getSupabaseClient().from('app_config').upsert(
+                        { key: 'anniversary_date', value: { date: newDate }, updated_at: new Date().toISOString() },
+                        { onConflict: 'key' }
+                      );
+                    } catch { /* ignore */ }
+                    setEditingAnniversary(false);
+                  }}
+                  style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--accent-soft)', borderRadius: 12, fontFamily: 'Jua, sans-serif', fontSize: 16, background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }}
+                />
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
           <span style={{ color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -499,6 +541,15 @@ export default function HomePage() {
               maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
             }}>
               {duckMood.emoji} {duckMood.text || ''}
+              {(() => {
+                const updatedAt = duckMood.updated_at ? new Date(duckMood.updated_at) : null;
+                if (!updatedAt) return null;
+                const diffMs = Date.now() - updatedAt.getTime();
+                const diffH = Math.floor(diffMs / 3600000);
+                const diffD = Math.floor(diffMs / 86400000);
+                const label = diffD >= 1 ? `${diffD}일 전` : diffH >= 1 ? `${diffH}시간 전` : '방금';
+                return <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 10, color: 'var(--ink-mute)', marginTop: 2, textAlign: 'right' }}>{label}</div>;
+              })()}
             </div>
           )}
           <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
@@ -547,6 +598,15 @@ export default function HomePage() {
               maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
             }}>
               {dolphinMood.emoji} {dolphinMood.text || ''}
+              {(() => {
+                const updatedAt = dolphinMood.updated_at ? new Date(dolphinMood.updated_at) : null;
+                if (!updatedAt) return null;
+                const diffMs = Date.now() - updatedAt.getTime();
+                const diffH = Math.floor(diffMs / 3600000);
+                const diffD = Math.floor(diffMs / 86400000);
+                const label = diffD >= 1 ? `${diffD}일 전` : diffH >= 1 ? `${diffH}시간 전` : '방금';
+                return <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 10, color: 'var(--ink-mute)', marginTop: 2, textAlign: 'right' }}>{label}</div>;
+              })()}
             </div>
           )}
           <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
