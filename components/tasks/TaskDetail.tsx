@@ -197,7 +197,7 @@ function CommentBubble({ c, onReact }: { c: TaskEvent; onReact: (eventId: string
               <div style={{
                 position: 'absolute', [isDuck ? 'left' : 'right']: 0, bottom: 30,
                 background: 'var(--card)', borderRadius: 16, padding: '8px 10px',
-                boxShadow: 'var(--shadow)', display: 'flex', gap: 6, zIndex: 10, whiteSpace: 'nowrap',
+                boxShadow: 'var(--shadow)', display: 'flex', gap: 6, zIndex: 100, whiteSpace: 'nowrap',
               }}>
                 {REACTION_EMOJIS.map(e => (
                   <button key={e} onClick={() => { onReact(c.id, e); setShowPicker(false); }} style={{
@@ -224,11 +224,14 @@ export function TaskDetail({ taskId }: Props) {
   const [items, setItems] = useState<TaskItem[]>([]);
   const [comments, setComments] = useState<TaskEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [input, setInput] = useState("");
+  const [subInput, setSubInput] = useState("");
+  const [commentInput, setCommentInput] = useState("");
   const [inputDue, setInputDue] = useState("");
   const [sending, setSending] = useState(false);
   const [actor, setActor] = useState("");
   const [mode, setMode] = useState<InputMode>('sub');
+  const [deletedItem, setDeletedItem] = useState<TaskItem | null>(null);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editingDesc, setEditingDesc] = useState(false);
@@ -288,23 +291,41 @@ export function TaskDetail({ taskId }: Props) {
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, content, due_date: due } : i));
   }
 
-  async function deleteItem(itemId: string) {
-    await getSupabaseClient().from("task_items").delete().eq("id", itemId);
-    setItems(prev => prev.filter(i => i.id !== itemId));
+  function deleteItem(item: TaskItem) {
+    // 낙관적으로 즉시 UI에서 제거
+    setItems(prev => prev.filter(i => i.id !== item.id));
+    setDeletedItem(item);
+    // 이전 타이머 취소
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    // 3초 후 실제 DB 삭제
+    deleteTimerRef.current = setTimeout(async () => {
+      await getSupabaseClient().from("task_items").delete().eq("id", item.id);
+      setDeletedItem(null);
+    }, 3000);
+  }
+
+  function undoDelete() {
+    if (!deletedItem) return;
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    setItems(prev => {
+      const arr = [...prev, deletedItem];
+      return arr.sort((a, b) => a.position - b.position);
+    });
+    setDeletedItem(null);
   }
 
   async function addSubTask() {
-    if (!input.trim()) return;
+    if (!subInput.trim()) return;
     setSending(true);
     const position = items.length ? Math.max(...items.map(i => i.position)) + 1 : 0;
     const { data } = await getSupabaseClient().from("task_items").insert([{
       task_id: taskId,
-      content: input.trim(),
+      content: subInput.trim(),
       due_date: inputDue || null,
       position,
     }]).select().single();
     if (data) setItems(prev => [...prev, data as TaskItem]);
-    setInput("");
+    setSubInput("");
     setInputDue("");
     setSending(false);
   }
@@ -326,13 +347,13 @@ export function TaskDetail({ taskId }: Props) {
   }
 
   async function addComment() {
-    if (!input.trim()) return;
+    if (!commentInput.trim()) return;
     setSending(true);
     await getSupabaseClient().from("task_events").insert([{
       task_id: taskId, event_type: "comment_added", actor,
-      payload: { text: input.trim() },
+      payload: { text: commentInput.trim() },
     }]);
-    setInput("");
+    setCommentInput("");
     await loadData();
     setSending(false);
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -402,9 +423,15 @@ export function TaskDetail({ taskId }: Props) {
             <button onClick={() => setEditingTitle(false)} style={{ border: 'none', borderRadius: 10, background: 'var(--bg-deep)', color: 'var(--ink-soft)', padding: '6px 10px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>✕</button>
           </div>
         ) : (
-          <div onClick={() => { setEditTitle(task.title); setEditingTitle(true); }}
-            style={{ fontFamily: 'Jua, sans-serif', fontSize: 24, letterSpacing: -0.4, marginTop: 8, color: task.completed ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: task.completed ? 'line-through' : 'none', lineHeight: 1.3, cursor: 'text' }}>
-            {task.title} <span style={{ fontSize: 13, color: 'var(--ink-mute)' }}>✏️</span>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8 }}>
+            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 24, letterSpacing: -0.4, color: task.completed ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: task.completed ? 'line-through' : 'none', lineHeight: 1.3, flex: 1 }}>
+              {task.title}
+            </div>
+            <button
+              onClick={() => { setEditTitle(task.title); setEditingTitle(true); }}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--ink-mute)', padding: '4px', flexShrink: 0, marginTop: 2 }}
+              aria-label="제목 편집"
+            >✏️</button>
           </div>
         )}
 
@@ -463,7 +490,7 @@ export function TaskDetail({ taskId }: Props) {
                   item={item}
                   onToggle={() => toggleItem(item)}
                   onUpdate={(content, dueDate) => updateItem(item, content, dueDate)}
-                  onDelete={() => deleteItem(item.id)}
+                  onDelete={() => deleteItem(item)}
                 />
               ))
             )}
@@ -476,24 +503,6 @@ export function TaskDetail({ taskId }: Props) {
             💬 댓글 {comments.length > 0 ? `(${comments.length})` : ''}
           </div>
 
-          {/* Actor selector */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {(['창희', '하경'] as const).map(a => (
-              <button key={a} onClick={() => {
-                setActor(a);
-                if (typeof window !== 'undefined') localStorage.setItem('ori_ranger_actor', a);
-              }} style={{
-                padding: '5px 12px', borderRadius: 100, border: 'none', cursor: 'pointer',
-                fontFamily: 'Jua, sans-serif', fontSize: 12,
-                background: actor === a ? (a === '창희' ? 'var(--duck)' : 'var(--dolphin)') : 'var(--card)',
-                color: actor === a && a === '하경' ? '#fff' : 'var(--ink)',
-                boxShadow: 'var(--shadow-soft)',
-              }}>
-                {a === '창희' ? '🦆 ' : '🐬 '}{a}
-              </button>
-            ))}
-          </div>
-
           {comments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive', fontSize: 14 }}>
               첫 댓글을 남겨봐 💬
@@ -504,6 +513,22 @@ export function TaskDetail({ taskId }: Props) {
           <div ref={bottomRef} />
         </div>
       </div>
+
+      {/* ── Delete undo toast ── */}
+      {deletedItem && (
+        <div style={{
+          position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+          left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--ink)', color: '#fff',
+          borderRadius: 100, padding: '8px 16px',
+          display: 'flex', gap: 12, alignItems: 'center',
+          fontFamily: 'Jua, sans-serif', fontSize: 14,
+          zIndex: 60, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+        }}>
+          <span>삭제됨</span>
+          <button onClick={undoDelete} style={{ border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 20, padding: '4px 12px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>실행 취소</button>
+        </div>
+      )}
 
       {/* ── Fixed input bar ── */}
       <div style={{
@@ -548,15 +573,18 @@ export function TaskDetail({ taskId }: Props) {
           )}
           <div style={{ flex: 1, background: 'var(--bg)', borderRadius: 18, padding: '8px 14px', display: 'flex', gap: 8, alignItems: 'center', border: '1.5px solid var(--accent-soft)' }}>
             <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              value={mode === 'sub' ? subInput : commentInput}
+              onChange={e => mode === 'sub' ? setSubInput(e.target.value) : setCommentInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === 'Enter' && !e.shiftKey) handleSend();
+              }}
               placeholder={mode === 'sub' ? '하위 아젠다 입력...' : '댓글 달기...'}
               style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: mode === 'sub' ? 'Jua, sans-serif' : 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)' }}
             />
-            <button onClick={handleSend} disabled={sending || !input.trim()} style={{
+            <button onClick={handleSend} disabled={sending || !(mode === 'sub' ? subInput : commentInput).trim()} style={{
               border: 'none', borderRadius: 12, padding: '5px 12px',
-              background: input.trim() ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--ink-mute)',
+              background: (mode === 'sub' ? subInput : commentInput).trim() ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--ink-mute)',
               color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer',
               opacity: sending ? 0.6 : 1,
             }}>
