@@ -125,7 +125,7 @@ export function WeightClient() {
                     <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14 }}>{s.name}</div>
                     <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>평균 {avg}kg</div>
                   </div>
-                  <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16, color: +delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)' }}>
+                  <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16, color: +delta < 0 ? 'var(--mint-deep)' : 'var(--duck-deep)' }}>
                     {+delta < 0 ? '↓' : '↑'} {Math.abs(+delta)}
                   </div>
                 </div>
@@ -205,7 +205,7 @@ function TodayCard({ who, weights }: { who: 'duck' | 'dolphin'; weights: number[
         {last}<span style={{ fontSize: 13, color: 'var(--ink-mute)' }}>kg</span>
       </div>
       <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)', marginTop: 2 }}>전 기록 대비</div>
-      <div style={{ fontSize: 12, color: +delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)', fontFamily: 'Gaegu, cursive' }}>
+      <div style={{ fontSize: 12, color: +delta < 0 ? 'var(--mint-deep)' : 'var(--duck-deep)', fontFamily: 'Gaegu, cursive' }}>
         {+delta < 0 ? '↓' : '↑'} {Math.abs(+delta)}
       </div>
     </div>
@@ -254,7 +254,7 @@ function CombinedChart({ series, W, H, P }: { series: Series[]; W: number; H: nu
             <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.color }} />
               <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: s.color }}>{s.name}</span>
-              <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, color: delta < 0 ? 'var(--mint-deep)' : 'var(--peach-deep)' }}>
+              <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, color: delta < 0 ? 'var(--mint-deep)' : 'var(--duck-deep)' }}>
                 {delta < 0 ? '↓' : '↑'}{Math.abs(delta)}
               </span>
             </div>

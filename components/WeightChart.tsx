@@ -51,9 +51,9 @@ function renderDot(dataKey: "me" | "partner") {
         cx={cx}
         cy={cy}
         r={4}
-        stroke={dataKey === "me" ? "#1677ff" : "#14b8a6"}
+        stroke={dataKey === "me" ? "var(--accent-deep)" : "var(--duck-deep)"}
         strokeWidth={2}
-        fill={drank ? "#ef4444" : "#ffffff"}
+        fill={drank ? "var(--peach-deep)" : "var(--card)"}
       />
     );
   };
@@ -64,7 +64,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
     <div className="h-64 w-full">
       <ResponsiveContainer>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#d8e2f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="date" tickFormatter={labelDate} tick={{ fontSize: 12 }} />
           <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 12 }} />
           <Tooltip
@@ -85,7 +85,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
             type="monotone"
             dataKey="me"
             name={meLabel}
-            stroke="#1677ff"
+            stroke="var(--accent-deep)"
             strokeWidth={3}
             dot={renderDot("me")}
             activeDot={{ r: 5 }}
@@ -96,7 +96,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
               type="monotone"
               dataKey="partner"
               name={partnerLabel}
-              stroke="#14b8a6"
+              stroke="var(--duck-deep)"
               strokeWidth={3}
               dot={renderDot("partner")}
               activeDot={{ r: 5 }}
