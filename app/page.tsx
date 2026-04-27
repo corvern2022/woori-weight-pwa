@@ -403,16 +403,12 @@ export default function HomePage() {
   if (actor === null) return null  // hydration 대기
   if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
-  // 오늘 마감 / 기한 지남 / 최근 할 일 구분
-  const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
+  // 오늘 마감 / 최근 할 일 구분 (기한 지난 할일은 홈에서 제외)
   const dueTodayTasks = allTasks.filter(t => t.due_date && t.due_date === todayStr)
-  const todayTasks = [...dueTodayTasks, ...overdueTasks].slice(0, 3)
-  const tasks = todayTasks.length > 0 ? todayTasks : allTasks.slice(0, 3)
+  const tasks = dueTodayTasks.length > 0 ? dueTodayTasks.slice(0, 3) : allTasks.slice(0, 3)
 
   function sectionTitle() {
-    if (dueTodayTasks.length > 0 && overdueTasks.length === 0) return '오늘 마감 할 일'
-    if (overdueTasks.length > 0 && dueTodayTasks.length === 0) return '기한 지난 할 일 ⚠️'
-    if (dueTodayTasks.length > 0 && overdueTasks.length > 0) return '오늘 + 기한 지난 할 일'
+    if (dueTodayTasks.length > 0) return '오늘 마감 할 일'
     return '최근 할 일'
   }
 
@@ -647,8 +643,8 @@ export default function HomePage() {
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
         <BigCard
           title="할 일"
-          count={dueTodayTasks.length + overdueTasks.length > 0 ? dueTodayTasks.length + overdueTasks.length : openCount}
-          subtitle={dueTodayTasks.length > 0 && overdueTasks.length === 0 ? '오늘 마감' : overdueTasks.length > 0 && dueTodayTasks.length === 0 ? '기한 지남' : dueTodayTasks.length + overdueTasks.length > 0 ? '오늘+기한지남' : '미완료 전체'}
+          count={dueTodayTasks.length > 0 ? dueTodayTasks.length : openCount}
+          subtitle={dueTodayTasks.length > 0 ? '오늘 마감' : '미완료 전체'}
           color="var(--peach)"
           colorDeep="var(--peach-deep)"
           icon="task"
