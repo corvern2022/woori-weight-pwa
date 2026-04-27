@@ -10,7 +10,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 import { useWeather } from '@/lib/useWeather'
 import { usePush } from '@/lib/usePush'
 import { toSeoulISODate } from '@/lib/date'
-import type { Task } from '@/components/tasks/types'
+import type { Task, TaskItem } from '@/components/tasks/types'
 
 const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
   { emoji: '😊', label: '행복해',    color: '#D97706', bg: '#FEF3C7' },
@@ -191,6 +191,40 @@ function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; to
   )
 }
 
+// ── TinySubTask ──────────────────────────────────────────────────────────────
+function TinySubTask({ item, parentTitle, todayStr }: { item: TaskItem; parentTitle: string; todayStr: string }) {
+  const chip = dueDateChip(item.due_date, todayStr)
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px dashed var(--accent-soft)' }}>
+      {/* 체크 아이콘 (읽기 전용, 완료 안 된 항목만 표시) */}
+      <div style={{
+        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+        border: '2px solid var(--ink-mute)', background: 'var(--card)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginLeft: 12,
+      }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: 'Jua, sans-serif', fontSize: 14, color: 'var(--ink)',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {item.content}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+          <span style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)' }}>
+            📁 {parentTitle}
+          </span>
+          {chip && (
+            <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 6, fontFamily: 'Gaegu, sans-serif', background: chip.bg, color: chip.color }}>
+              {chip.label}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── OnboardingScreen ─────────────────────────────────────────────────────────
 function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') => void }) {
   const [hovered, setHovered] = useState<'duck' | 'dolphin' | null>(null)
@@ -261,6 +295,7 @@ export default function HomePage() {
   const router = useRouter()
   const [actor, setActor] = useState<string | null>(null)
   const [allTasks, setAllTasks] = useState<Task[]>([])
+  const [overdueItems, setOverdueItems] = useState<TaskItem[]>([])
   const [openCount, setOpenCount] = useState(0)
   const [duckKg, setDuckKg] = useState<number | null>(null)
   const [dolphinKg, setDolphinKg] = useState<number | null>(null)
@@ -343,7 +378,26 @@ export default function HomePage() {
       .eq('completed', false)
       .order('due_date', { ascending: true, nullsFirst: false })
       .then(({ data }) => {
-        if (data) { setAllTasks(data as Task[]); setOpenCount(data.length) }
+        if (data) {
+          setAllTasks(data as Task[])
+          setOpenCount(data.length)
+          // 기한 지난 하위 아젠다 패치
+          const taskIds = (data as Task[]).map(t => t.id)
+          if (taskIds.length > 0) {
+            supabase
+              .from('task_items')
+              .select('*')
+              .in('task_id', taskIds)
+              .eq('done', false)
+              .not('due_date', 'is', null)
+              .then(({ data: items }) => {
+                if (items) {
+                  const today = toSeoulISODate()
+                  setOverdueItems((items as TaskItem[]).filter(i => i.due_date! < today))
+                }
+              })
+          }
+        }
       })
 
     // 최근 체중
@@ -404,14 +458,32 @@ export default function HomePage() {
   if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
   // 기한 지난 / 오늘 마감 / 최근 할 일 구분
-  const overdueTasks = allTasks.filter(t => !t.completed && t.due_date && t.due_date < todayStr)
+  // 하위 아젠다가 있는 상위 태스크는 하위로 대체 (옵션A)
+  const taskMap = Object.fromEntries(allTasks.map(t => [t.id, t]))
+  const overdueItemTaskIds = new Set(overdueItems.map(i => i.task_id))
+
+  // 기한 지난 상위: 하위 아젠다로 커버되지 않는 것만
+  const overdueTasks = allTasks.filter(t =>
+    !t.completed && t.due_date && t.due_date < todayStr && !overdueItemTaskIds.has(t.id)
+  )
   const dueTodayTasks = allTasks.filter(t => !t.completed && t.due_date && t.due_date === todayStr)
-  const urgentTasks = [...overdueTasks, ...dueTodayTasks]
-  const tasks = urgentTasks.length > 0 ? urgentTasks.slice(0, 3) : allTasks.filter(t => !t.completed).slice(0, 3)
+
+  // 표시용 아이템: 하위 아젠다(최대3) + 상위 폴백
+  const overdueSubItems = overdueItems.slice(0, 3)
+  const urgentTasksFallback = overdueTasks.slice(0, Math.max(0, 3 - overdueSubItems.length))
+  const dueTodayFallback = overdueSubItems.length === 0 && urgentTasksFallback.length === 0
+    ? dueTodayTasks.slice(0, 3)
+    : []
+
+  const hasUrgent = overdueSubItems.length > 0 || overdueTasks.length > 0
+  const recentTasks = allTasks.filter(t => !t.completed).slice(0, 3)
 
   function sectionTitle() {
-    if (overdueTasks.length > 0 && dueTodayTasks.length > 0) return `⚠️ 기한 지남 ${overdueTasks.length}개 · 오늘 마감 ${dueTodayTasks.length}개`
-    if (overdueTasks.length > 0) return `⚠️ 기한 지난 할 일 ${overdueTasks.length}개`
+    const subCount = overdueItems.length
+    const taskCount = overdueTasks.length
+    const total = subCount + taskCount
+    if (total > 0 && dueTodayTasks.length > 0) return `⚠️ 기한 지남 ${total}개 · 오늘 마감 ${dueTodayTasks.length}개`
+    if (total > 0) return `⚠️ 기한 지난 할 일 ${total}개`
     if (dueTodayTasks.length > 0) return '오늘 마감 할 일'
     return '최근 할 일'
   }
@@ -737,8 +809,8 @@ export default function HomePage() {
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
         <BigCard
           title="할 일"
-          count={urgentTasks.length > 0 ? urgentTasks.length : openCount}
-          subtitle={overdueTasks.length > 0 ? '긴급 처리 필요' : dueTodayTasks.length > 0 ? '오늘 마감' : '미완료 전체'}
+          count={hasUrgent ? (overdueItems.length + overdueTasks.length) : openCount}
+          subtitle={hasUrgent ? '긴급 처리 필요' : dueTodayTasks.length > 0 ? '오늘 마감' : '미완료 전체'}
           color="var(--peach)"
           colorDeep="var(--peach-deep)"
           icon="task"
@@ -769,12 +841,24 @@ export default function HomePage() {
               전체 보기 →
             </button>
           </div>
-          {tasks.length === 0 && (
+          {!hasUrgent && dueTodayFallback.length === 0 && recentTasks.length === 0 && (
             <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 14, color: 'var(--ink-mute)', textAlign: 'center', padding: '12px 0' }}>
               할 일이 없어요 🎉
             </div>
           )}
-          {tasks.map(t => (
+          {/* 기한 지난 하위 아젠다 (옵션A) */}
+          {overdueSubItems.map(item => (
+            <TinySubTask key={item.id} item={item} parentTitle={taskMap[item.task_id]?.title ?? ''} todayStr={todayStr} />
+          ))}
+          {/* 하위 아젠다로 커버 안 된 상위 태스크 폴백 */}
+          {urgentTasksFallback.map(t => (
+            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
+          ))}
+          {/* 기한 지난 것 없을 때: 오늘 마감 or 최근 */}
+          {!hasUrgent && dueTodayFallback.map(t => (
+            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
+          ))}
+          {!hasUrgent && dueTodayFallback.length === 0 && recentTasks.map(t => (
             <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
           ))}
         </div>
