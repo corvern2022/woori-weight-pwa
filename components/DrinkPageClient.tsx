@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
+import { toSeoulISODate } from '@/lib/date';
 import type { HouseholdMember, WeighInRow } from '@/lib/types';
 
 const LOCAL_KEY = 'woori_weight_user_id';
@@ -81,14 +82,14 @@ export function DrinkPageClient() {
   }, [viewYear, viewMonth]);
 
   const grid = buildMonthGrid(viewYear, viewMonth);
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = toSeoulISODate(now);
 
   const duckMember = members.find((m) => m.display_name.includes('창희')) ?? members[0];
   const dolphinMember = members.find((m) => m.display_name.includes('하경')) ?? members[1];
 
   function drankOnDate(userId: string | undefined, date: Date): boolean {
     if (!userId) return false;
-    const ds = date.toISOString().slice(0, 10);
+    const ds = toSeoulISODate(date);
     return rows.some((r) => r.user_id === userId && r.date === ds && r.drank);
   }
 
@@ -118,20 +119,35 @@ export function DrinkPageClient() {
 
   async function toggleDrink(userId: string | undefined, date: Date) {
     if (!userId) return;
-    const ds = date.toISOString().slice(0, 10);
+    const ds = toSeoulISODate(date);
     const existing = rows.find((r) => r.user_id === userId && r.date === ds);
-    const supabase = getSupabaseClient();
     const newVal = !(existing?.drank ?? false);
-    if (existing) {
-      await supabase.from('weigh_ins').update({ drank: newVal }).eq('user_id', userId).eq('date', ds);
-    } else {
-      await supabase.from('weigh_ins').upsert([{ user_id: userId, date: ds, weight_kg: 0, drank: true }], { onConflict: 'user_id,date' });
-    }
+
+    // Optimistic update
     setRows((prev) => {
       const next = prev.filter((r) => !(r.user_id === userId && r.date === ds));
       if (newVal) next.push({ date: ds, user_id: userId, weight_kg: existing?.weight_kg ?? 0, drank: true });
       return next;
     });
+
+    const supabase = getSupabaseClient();
+    let error: unknown = null;
+    if (existing) {
+      const res = await supabase.from('weigh_ins').update({ drank: newVal }).eq('user_id', userId).eq('date', ds);
+      error = res.error;
+    } else {
+      const res = await supabase.from('weigh_ins').upsert([{ user_id: userId, date: ds, weight_kg: 0, drank: true }], { onConflict: 'user_id,date' });
+      error = res.error;
+    }
+
+    if (error) {
+      // Rollback
+      setRows((prev) => {
+        const next = prev.filter((r) => !(r.user_id === userId && r.date === ds));
+        if (existing?.drank) next.push({ date: ds, user_id: userId, weight_kg: existing.weight_kg ?? 0, drank: true });
+        return next;
+      });
+    }
   }
 
   return (
@@ -184,7 +200,7 @@ export function DrinkPageClient() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
                 {grid.map((d, i) => {
                   if (!d) return <div key={i} style={{ aspectRatio: '1' }} />;
-                  const ds = d.toISOString().slice(0, 10);
+                  const ds = toSeoulISODate(d);
                   const duckDrank = drankOnDate(duckMember?.user_id, d);
                   const dolphinDrank = drankOnDate(dolphinMember?.user_id, d);
                   const isToday = ds === todayStr;

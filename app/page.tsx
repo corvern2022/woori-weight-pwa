@@ -9,6 +9,7 @@ import { CloudDeco } from '@/components/ui/CloudDeco'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useWeather } from '@/lib/useWeather'
 import { usePush } from '@/lib/usePush'
+import { toSeoulISODate } from '@/lib/date'
 import type { Task } from '@/components/tasks/types'
 
 const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
@@ -333,7 +334,7 @@ export default function HomePage() {
   usePush(pushUserId)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = toSeoulISODate()
 
   // 앱 초기화: Supabase 우선, localStorage 폴백
   useEffect(() => {
@@ -442,13 +443,25 @@ export default function HomePage() {
   }
 
   const handleToggle = async (task: Task) => {
-    const supabase = getSupabaseClient()
-    await supabase.from('tasks').update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq('id', task.id)
+    // Optimistic update
     setAllTasks(prev => {
       const next = prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t)
       setOpenCount(next.filter(t => !t.completed).length)
       return next
     })
+    const supabase = getSupabaseClient()
+    const { error } = await supabase.from('tasks').update({
+      completed: !task.completed,
+      completed_at: !task.completed ? new Date().toISOString() : null
+    }).eq('id', task.id)
+    if (error) {
+      // Rollback
+      setAllTasks(prev => {
+        const next = prev.map(t => t.id === task.id ? { ...t, completed: task.completed } : t)
+        setOpenCount(next.filter(t => !t.completed).length)
+        return next
+      })
+    }
   }
 
   return (
