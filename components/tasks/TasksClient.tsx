@@ -45,6 +45,7 @@ export function TasksClient() {
 
   const visible = filterTasks(tasks, filter);
   const doneCount = tasks.filter(t => t.completed).length;
+  const openCount = tasks.filter(t => !t.completed).length;
 
   return (
     <div style={{ width: '100%', height: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
@@ -56,7 +57,7 @@ export function TasksClient() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div>
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5 }}>할 일</div>
-            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink-soft)' }}>{doneCount}/{tasks.length} 완료 · 화이팅 🌊</div>
+            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${doneCount}/${tasks.length} 완료 · 화이팅 🌊`}</div>
           </div>
           <div style={{ display: 'flex' }}>
             <div style={{ transform: 'rotate(-10deg)' }}><Duck size={50} variant="strong" palette="yellow" /></div>
@@ -150,7 +151,17 @@ export function TasksClient() {
       />
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--ink)', color: '#fff', fontSize: 14, borderRadius: 100, padding: '8px 16px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, whiteSpace: 'nowrap' }}>
+        <div style={{
+          position: 'fixed',
+          top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--ink)', color: '#fff',
+          fontSize: 14, borderRadius: 100,
+          padding: '8px 16px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+          zIndex: 100, whiteSpace: 'nowrap',
+          fontFamily: 'Jua, sans-serif',
+        }}>
           {toast}
         </div>
       )}

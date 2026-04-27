@@ -7,7 +7,6 @@ type FormData = {
   title: string;
   description: string;
   due_date: string;
-  noDue: boolean;
   assignee: "하경" | "창희" | "둘다";
   category: string;
 };
@@ -21,7 +20,7 @@ type Props = {
 };
 
 const EMPTY: FormData = {
-  title: "", description: "", due_date: "", noDue: false,
+  title: "", description: "", due_date: "",
   assignee: "둘다", category: "",
 };
 
@@ -34,12 +33,15 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
         title: editing.title,
         description: editing.description || "",
         due_date: editing.due_date || "",
-        noDue: !editing.due_date,
         assignee: editing.assignee,
         category: editing.category || "",
       });
     } else {
-      setForm(EMPTY);
+      const actor = typeof window !== 'undefined' ? localStorage.getItem('ori_ranger_actor') : null;
+      setForm({
+        ...EMPTY,
+        assignee: actor === '창희' ? '창희' : actor === '하경' ? '하경' : '둘다',
+      });
     }
   }, [editing, open]);
 
@@ -49,7 +51,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
     const payload = {
       title: form.title.trim(),
       description: form.description.trim() || null,
-      due_date: form.noDue ? null : form.due_date || null,
+      due_date: form.due_date || null,
       assignee: form.assignee,
       category: form.category.trim() || null,
     };
@@ -85,22 +87,17 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           />
 
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <input
               type="date"
-              className="flex-1 border border-ink/15 bg-card-alt text-ink rounded-xl px-3 py-2 text-sm disabled:opacity-40"
               value={form.due_date}
-              disabled={form.noDue}
               onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
+              style={{ flex: 1, border: '1.5px solid var(--accent-soft)', borderRadius: 12, padding: '8px 12px', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'Jua, sans-serif', fontSize: 14, outline: 'none' }}
             />
-            <label className="font-gaegu flex items-center gap-1 text-sm text-ink-soft flex-shrink-0">
-              <input
-                type="checkbox"
-                checked={form.noDue}
-                onChange={(e) => setForm((f) => ({ ...f, noDue: e.target.checked, due_date: e.target.checked ? "" : f.due_date }))}
-              />
-              기한없음
-            </label>
+            {form.due_date && (
+              <button type="button" onClick={() => setForm(f => ({ ...f, due_date: '' }))}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--ink-mute)', padding: '4px' }}>✕</button>
+            )}
           </div>
 
           {/* Assignee chips */}
@@ -124,7 +121,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
           </div>
 
           {/* Category chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
             {(['', ...CATEGORIES] as const).map((c) => (
               <button
                 key={c}
