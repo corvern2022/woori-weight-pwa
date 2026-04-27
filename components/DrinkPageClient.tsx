@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { HouseholdMember, WeighInRow } from '@/lib/types';
-import { BackBtn } from '@/components/ui';
 
 const LOCAL_KEY = 'woori_weight_user_id';
 
@@ -21,7 +19,6 @@ function buildMonthGrid(year: number, month: number): (Date | null)[] {
 }
 
 export function DrinkPageClient() {
-  const router = useRouter();
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [actor, setActor] = useState<string>('');
   const [members, setMembers] = useState<HouseholdMember[]>([]);
@@ -136,7 +133,6 @@ export function DrinkPageClient() {
     <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ padding: '54px 22px 10px' }}>
-        <BackBtn label="홈" onClick={() => router.push('/')} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, letterSpacing: -0.5 }}>음주 캘린더 🍺</div>
           <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)' }}>{monthLabel}</div>
@@ -159,7 +155,7 @@ export function DrinkPageClient() {
         </div>
       </div>
 
-      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px 50px' }}>
+      <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px calc(80px + env(safe-area-inset-bottom))' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, paddingTop: 40 }}>
             <span style={{ width: 10, height: 10, borderRadius: 5, background: 'var(--peach)', display: 'inline-block', animation: 'bounce 1s infinite' }} />

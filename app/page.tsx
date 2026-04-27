@@ -429,7 +429,7 @@ export default function HomePage() {
         background: 'linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 60%, var(--bg) 100%)',
         color: 'var(--ink)',
         position: 'relative',
-        paddingBottom: 40,
+        paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
       }}
     >
       {/* Header clouds - pointer-events none so they don't block taps */}

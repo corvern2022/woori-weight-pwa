@@ -2,42 +2,79 @@
 
 import React from 'react';
 import Link from 'next/link';
-
-interface BottomNavProps {
-  active: 'home' | 'tasks' | 'weight' | 'chat';
-}
+import { usePathname } from 'next/navigation';
 
 const tabs = [
   { id: 'home', label: '홈', emoji: '🏠', href: '/' },
   { id: 'tasks', label: '할일', emoji: '✅', href: '/tasks' },
-  { id: 'weight', label: '체중', emoji: '⚖️', href: '/weight' },
-  { id: 'chat', label: '코치', emoji: '💬', href: '/chat' },
+  { id: 'weight', label: '몸무게', emoji: '⚖️', href: '/weight' },
+  { id: 'drink', label: '음주', emoji: '🍺', href: '/drink' },
 ];
 
-export const BottomNav: React.FC<BottomNavProps> = ({ active }) => {
-  const activeTab = active;
+function getActive(pathname: string): string {
+  if (pathname.startsWith('/tasks')) return 'tasks';
+  if (pathname.startsWith('/weight')) return 'weight';
+  if (pathname.startsWith('/drink')) return 'drink';
+  return 'home';
+}
+
+export const BottomNav: React.FC = () => {
+  const pathname = usePathname();
+  const active = getActive(pathname);
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-card border-t border-ink/8"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      role="navigation"
+      aria-label="메인 메뉴"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'var(--card)',
+        borderTop: '1px solid rgba(42,61,84,0.08)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        zIndex: 50,
+      }}
     >
-      <div className="flex justify-around items-center h-16">
+      <div style={{ display: 'flex', height: 60 }}>
         {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
+          const isActive = active === tab.id;
           return (
             <Link
               key={tab.id}
               href={tab.href}
-              className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-                isActive ? 'text-accent' : 'text-ink-mute'
-              }`}
               aria-current={isActive ? 'page' : undefined}
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+                color: isActive ? 'var(--accent-deep)' : 'var(--ink-mute)',
+                textDecoration: 'none',
+                position: 'relative',
+                transition: 'color 0.15s',
+              }}
             >
-              <span className="text-lg">{tab.emoji}</span>
-              <span className="text-xs font-gaegu">{tab.label}</span>
+              <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.emoji}</span>
+              <span style={{
+                fontFamily: 'Jua, sans-serif',
+                fontSize: 10,
+                letterSpacing: -0.3,
+              }}>{tab.label}</span>
               {isActive && (
-                <div className="absolute bottom-1 w-1.5 h-1.5 bg-accent rounded-full" />
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 32,
+                  height: 2,
+                  borderRadius: '0 0 2px 2px',
+                  background: 'var(--accent)',
+                }} />
               )}
             </Link>
           );

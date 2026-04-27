@@ -53,7 +53,6 @@ export function TasksClient() {
 
       {/* Header */}
       <div style={{ padding: '54px 22px 12px', position: 'relative' }}>
-        <BackBtn label="홈" onClick={() => router.push('/')} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div>
             <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5 }}>할 일</div>
@@ -100,7 +99,7 @@ export function TasksClient() {
           ))}
         </div>
       ) : (
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px 100px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px calc(80px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {visible.map(t => (
             <TaskCard
               key={t.id}

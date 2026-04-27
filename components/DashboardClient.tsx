@@ -473,7 +473,7 @@ export function DashboardClient() {
         </div>
       ) : null}
 
-      <BottomNav active="weight" />
+      <BottomNav />
     </main>
   );
 }

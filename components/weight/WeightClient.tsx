@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Duck } from "@/components/characters/Duck";
 import { Dolphin } from "@/components/characters/Dolphin";
 import { BackBtn } from "@/components/ui";
@@ -11,8 +10,7 @@ type View = 'list' | 'entry';
 type WhoFilter = 'duck' | 'both' | 'dolphin';
 
 export function WeightClient() {
-  const router = useRouter();
-  const { duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
+  const {duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
   const [view, setView] = useState<View>('list');
   const [who, setWho] = useState<WhoFilter>('both');
   const [period, setPeriod] = useState<14 | 30>(30);
@@ -43,8 +41,7 @@ export function WeightClient() {
     <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       {/* Header */}
       <div style={{ padding: '54px 22px 10px' }}>
-        <BackBtn label="홈" onClick={() => router.push('/')} />
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5, marginTop: 4 }}>체중</div>
+        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5, marginTop: 4 }}>몸무게</div>
       </div>
 
       {/* Segmented control */}
@@ -74,7 +71,7 @@ export function WeightClient() {
           ))}
         </div>
       ) : (
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px calc(80px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Today cards */}
           <div style={{ display: 'flex', gap: 10 }}>
             <TodayCard who="duck" weights={duckWeights} />
