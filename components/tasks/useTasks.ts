@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"; // useRef kept for isLoadingRef
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendPushToPartner } from "@/lib/usePush";
 import {
@@ -13,7 +13,6 @@ import {
   UiSettings,
 } from "./types";
 
-const POLL_INTERVAL = 10000;
 
 function subjectMarker(name: string): string {
   const last = name[name.length - 1];
@@ -37,7 +36,6 @@ export function useTasks() {
   const [uiSettings, setUiSettings] = useState<UiSettings>({ ...DEFAULT_UI_SETTINGS });
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoadingRef = useRef(false);
 
   const showToast = useCallback((msg: string) => {
@@ -126,17 +124,16 @@ export function useTasks() {
     })();
   }, [loadAll, loadUiSettings]);
 
-  // 폴링
+  // Supabase Realtime 구독
   useEffect(() => {
-    const tick = () => {
-      loadAll();
-      pollRef.current = setTimeout(tick, POLL_INTERVAL);
-    };
-    pollRef.current = setTimeout(tick, POLL_INTERVAL);
-    return () => {
-      if (pollRef.current) clearTimeout(pollRef.current);
-    };
-  }, [loadAll]);
+    const channel = supabase
+      .channel('tasks-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => { reload(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_items' }, () => { reload(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_events' }, () => { reload(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [supabase, reload]);
 
   // CRUD actions
   async function addTask(payload: Omit<Task, "id" | "created_at" | "completed_at" | "completed">) {

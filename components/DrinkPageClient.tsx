@@ -7,10 +7,8 @@ import type { HouseholdMember, WeighInRow } from '@/lib/types';
 const LOCAL_KEY = 'woori_weight_user_id';
 
 function buildMonthGrid(year: number, month: number): (Date | null)[] {
-  // month is 0-indexed
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  // Monday start: (getDay() + 6) % 7  => Mon=0, Sun=6
   const startOffset = (firstDay.getDay() + 6) % 7;
   const grid: (Date | null)[] = [];
   for (let i = 0; i < startOffset; i++) grid.push(null);
@@ -26,8 +24,8 @@ export function DrinkPageClient() {
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth()); // 0-indexed
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -53,8 +51,8 @@ export function DrinkPageClient() {
         const hid = safeMembers[0]?.household_id ?? null;
         if (!hid) { setRows([]); return; }
 
-        const monthStart = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        const monthEnd = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+        const monthStart = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-01`;
+        const monthEnd = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-31`;
 
         const { data: weighRows, error: weighError } = await supabase
           .from('weigh_ins')
@@ -80,13 +78,11 @@ export function DrinkPageClient() {
       }
     }
     void loadData();
-  }, [year, month]);
+  }, [viewYear, viewMonth]);
 
-  const grid = buildMonthGrid(year, month);
+  const grid = buildMonthGrid(viewYear, viewMonth);
   const todayStr = now.toISOString().slice(0, 10);
 
-  // Identify duck (창희) and dolphin (하경) members
-  // duck = first member, dolphin = second member (or by display_name)
   const duckMember = members.find((m) => m.display_name.includes('창희')) ?? members[0];
   const dolphinMember = members.find((m) => m.display_name.includes('하경')) ?? members[1];
 
@@ -96,7 +92,6 @@ export function DrinkPageClient() {
     return rows.some((r) => r.user_id === userId && r.date === ds && r.drank);
   }
 
-  // Count stats for current month
   let duckCount = 0, dolphinCount = 0, bothCount = 0;
   grid.forEach((d) => {
     if (!d) return;
@@ -108,7 +103,18 @@ export function DrinkPageClient() {
   });
 
   void myUserId;
-  const monthLabel = `${year}년 ${month + 1}월`;
+  const monthLabel = `${viewYear}년 ${viewMonth + 1}월`;
+  const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
+
+  function goPrev() {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  }
+  function goNext() {
+    if (isCurrentMonth) return;
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  }
 
   async function toggleDrink(userId: string | undefined, date: Date) {
     if (!userId) return;
@@ -119,7 +125,6 @@ export function DrinkPageClient() {
     if (existing) {
       await supabase.from('weigh_ins').update({ drank: newVal }).eq('user_id', userId).eq('date', ds);
     } else {
-      // Insert a placeholder row with drank=true (weight_kg 0 is a sentinel; user should log weight separately)
       await supabase.from('weigh_ins').upsert([{ user_id: userId, date: ds, weight_kg: 0, drank: true }], { onConflict: 'user_id,date' });
     }
     setRows((prev) => {
@@ -135,7 +140,12 @@ export function DrinkPageClient() {
       <div style={{ padding: '54px 22px 10px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, letterSpacing: -0.5 }}>음주 캘린더 🍺</div>
-          <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)' }}>{monthLabel}</div>
+          {/* Month navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={goPrev} aria-label="이전 달" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--ink-soft)', padding: '4px 6px', lineHeight: 1 }}>‹</button>
+            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)', minWidth: 72, textAlign: 'center' }}>{monthLabel}</div>
+            <button onClick={goNext} aria-label="다음 달" disabled={isCurrentMonth} style={{ border: 'none', background: 'none', cursor: isCurrentMonth ? 'default' : 'pointer', fontSize: 22, color: isCurrentMonth ? 'var(--ink-mute)' : 'var(--ink-soft)', padding: '4px 6px', lineHeight: 1 }}>›</button>
+          </div>
         </div>
       </div>
 
@@ -166,13 +176,11 @@ export function DrinkPageClient() {
           <>
             {/* Calendar card */}
             <div style={{ background: 'var(--card)', borderRadius: 22, padding: 14, boxShadow: 'var(--shadow-soft)' }}>
-              {/* Day headers */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 6 }}>
                 {['월', '화', '수', '목', '금', '토', '일'].map((d, i) => (
                   <div key={d} style={{ textAlign: 'center', fontFamily: 'Jua, sans-serif', fontSize: 11, color: i >= 5 ? 'var(--peach-deep)' : 'var(--ink-mute)', padding: '2px 0' }}>{d}</div>
                 ))}
               </div>
-              {/* Calendar grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
                 {grid.map((d, i) => {
                   if (!d) return <div key={i} style={{ aspectRatio: '1' }} />;
@@ -187,7 +195,6 @@ export function DrinkPageClient() {
                       style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: duckDrank || dolphinDrank ? 'var(--duck-soft)' : 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isFuture ? 'default' : 'pointer', opacity: isFuture ? 0.4 : 1 }}
                       onClick={() => {
                         if (isFuture) return;
-                        // Only toggle current actor's drink status
                         const myMember = actor === '창희' ? duckMember : dolphinMember;
                         void toggleDrink(myMember?.user_id, d);
                       }}
@@ -201,7 +208,6 @@ export function DrinkPageClient() {
                   );
                 })}
               </div>
-              {/* Legend */}
               <div style={{ display: 'flex', gap: 12, padding: '10px 4px 0', fontFamily: 'Gaegu, sans-serif', fontSize: 12, color: 'var(--ink-soft)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--duck-deep)' }} /> 창희

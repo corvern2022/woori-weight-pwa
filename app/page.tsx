@@ -335,11 +335,31 @@ export default function HomePage() {
   const today = DAYS[new Date().getDay()]
   const todayStr = new Date().toISOString().slice(0, 10)
 
-  // 앱 초기화: localStorage에서 actor 읽기 (null=미로드, ''=미설정, '창희'/'하경'=설정됨)
+  // 앱 초기화: Supabase 우선, localStorage 폴백
   useEffect(() => {
-    const saved = localStorage.getItem('ori_ranger_actor')
-    setActor(saved ?? '')  // 없으면 '' → 온보딩 표시
-    setPushUserId(localStorage.getItem('woori_weight_user_id'))
+    async function initActor() {
+      const userId = localStorage.getItem('woori_weight_user_id')
+      setPushUserId(userId)
+      // Supabase에서 actor 복원 시도
+      if (userId) {
+        try {
+          const { data } = await getSupabaseClient()
+            .from('app_config')
+            .select('value')
+            .eq('key', `actor_${userId}`)
+            .single()
+          const name = (data?.value as { name?: string } | null)?.name
+          if (name === '창희' || name === '하경') {
+            localStorage.setItem('ori_ranger_actor', name)
+            setActor(name)
+            return
+          }
+        } catch { /* 폴백 */ }
+      }
+      const saved = localStorage.getItem('ori_ranger_actor')
+      setActor(saved ?? '')
+    }
+    void initActor()
   }, [])
 
   const loadMoods = useCallback(async () => {
@@ -394,9 +414,18 @@ export default function HomePage() {
     setMoodDraft('')
   }
 
-  function handleOnboardingSelect(who: '창희' | '하경') {
+  async function handleOnboardingSelect(who: '창희' | '하경') {
     localStorage.setItem('ori_ranger_actor', who)
     setActor(who)
+    try {
+      const userId = localStorage.getItem('woori_weight_user_id')
+      if (userId) {
+        await getSupabaseClient().from('app_config').upsert(
+          { key: `actor_${userId}`, value: { name: who }, updated_at: new Date().toISOString() },
+          { onConflict: 'key' }
+        )
+      }
+    } catch { /* localStorage 폴백 */ }
   }
 
   // 온보딩: actor 미설정 시 선택 화면 (null = 아직 로드 전, '' = 미설정)

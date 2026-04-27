@@ -39,6 +39,18 @@ export function useWeights() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, myUserId]);
 
+  // Supabase Realtime 구독
+  useEffect(() => {
+    if (!supabase) return;
+    const channel = supabase
+      .channel('weights-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'weigh_ins' }, () => { loadData(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, () => { loadData(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]);
+
   async function loadData() {
     if (!supabase) return;
     setLoading(true);
