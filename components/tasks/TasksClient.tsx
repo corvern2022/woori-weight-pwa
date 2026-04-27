@@ -120,10 +120,11 @@ export function TasksClient() {
 
       {/* FAB */}
       <button
+        aria-label="새 할 일 추가"
         onClick={() => { setEditingTask(null); setFormOpen(true); }}
         style={{
-          position: 'absolute',
-          bottom: 28,
+          position: 'fixed',
+          bottom: 'calc(68px + env(safe-area-inset-bottom))',
           right: 22,
           width: 52,
           height: 52,

@@ -45,7 +45,7 @@ function SettingGroup({ title, children }: { title: string; children: React.Reac
 
 function SettingRow({ label, value, onToggle, hint }: { label: string; value: boolean; onToggle: () => void; hint?: string }) {
   return (
-    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid rgba(42,61,84,0.08)' }}>
+    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border)' }}>
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 15 }}>{label}</div>
         {hint && <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)' }}>{hint}</div>}
@@ -75,7 +75,7 @@ function EditableRow({ label, value, unit, onSave }: { label: string; value: str
   }
 
   return (
-    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(42,61,84,0.08)' }}>
+    <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
       <div style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 15 }}>{label}</div>
       {editing ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -136,7 +136,7 @@ export function ChatPageClient() {
 
       {/* Input bar */}
       <div style={{ padding: '0 16px 46px' }}>
-        <div style={{ background: 'var(--card)', borderRadius: 22, padding: 6, display: 'flex', gap: 4, boxShadow: 'var(--shadow-soft)', border: '1px solid rgba(42,61,84,0.08)' }}>
+        <div style={{ background: 'var(--card)', borderRadius: 22, padding: 6, display: 'flex', gap: 4, boxShadow: 'var(--shadow-soft)', border: '1px solid var(--border)' }}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

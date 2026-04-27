@@ -29,6 +29,9 @@
   --pink: #FFB3C8;
   --shadow: 0 2px 0 rgba(42,61,84,0.04), 0 10px 26px -8px rgba(47,149,196,0.22);
   --shadow-soft: 0 1px 0 rgba(42,61,84,0.03), 0 6px 16px -6px rgba(47,149,196,0.15);
+  --border: rgba(42,61,84,0.08);
+  --border-soft: rgba(42,61,84,0.05);
+  --peach-soft: #FFE5D8;
 }
 
 .dark {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, Task } from "./types";
 
 type FormData = {
@@ -24,8 +24,38 @@ const EMPTY: FormData = {
   assignee: "둘다", category: "",
 };
 
+const CUSTOM_CATEGORIES_KEY = 'ori_ranger_custom_categories';
+
+function loadCustomCategories(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY) ?? '[]'); } catch { return []; }
+}
+
 export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) {
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [newCatInput, setNewCatInput] = useState('');
+  const [showNewCat, setShowNewCat] = useState(false);
+  const newCatRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setCustomCategories(loadCustomCategories());
+  }, [open]);
+
+  useEffect(() => {
+    if (showNewCat) setTimeout(() => newCatRef.current?.focus(), 50);
+  }, [showNewCat]);
+
+  function addCustomCategory() {
+    const cat = newCatInput.trim();
+    if (!cat) return;
+    const next = [...customCategories, cat];
+    setCustomCategories(next);
+    localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(next));
+    setForm(f => ({ ...f, category: cat }));
+    setNewCatInput('');
+    setShowNewCat(false);
+  }
 
   useEffect(() => {
     if (editing) {
@@ -121,19 +151,38 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
 
           {/* Category chips */}
           <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
-            {(['', ...CATEGORIES] as const).map((c) => (
+            {(['', ...CATEGORIES, ...customCategories] as string[]).map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, category: c }))}
                 style={{
                   padding: '5px 12px', border: 'none', borderRadius: 100, cursor: 'pointer',
-                  fontFamily: 'Jua, sans-serif', fontSize: 12,
+                  fontFamily: 'Jua, sans-serif', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0,
                   background: form.category === c ? 'var(--accent)' : 'var(--card-alt)',
                   color: form.category === c ? '#fff' : 'var(--ink-soft)',
                 }}
               >{c === '' ? '없음' : c}</button>
             ))}
+            {/* 커스텀 카테고리 추가 버튼 */}
+            {showNewCat ? (
+              <input
+                ref={newCatRef}
+                value={newCatInput}
+                onChange={e => setNewCatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomCategory(); } if (e.key === 'Escape') setShowNewCat(false); }}
+                onBlur={() => { if (!newCatInput.trim()) setShowNewCat(false); }}
+                placeholder="카테고리명"
+                style={{ width: 90, padding: '5px 10px', border: '1.5px solid var(--accent)', borderRadius: 100, fontFamily: 'Jua, sans-serif', fontSize: 12, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', flexShrink: 0 }}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowNewCat(true)}
+                aria-label="카테고리 추가"
+                style={{ padding: '5px 10px', border: '1.5px dashed var(--ink-mute)', borderRadius: 100, cursor: 'pointer', fontFamily: 'Jua, sans-serif', fontSize: 12, background: 'none', color: 'var(--ink-mute)', whiteSpace: 'nowrap', flexShrink: 0 }}
+              >+ 추가</button>
+            )}
           </div>
 
           <div className="flex gap-2 pt-2">

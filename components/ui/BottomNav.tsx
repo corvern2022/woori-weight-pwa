@@ -32,7 +32,7 @@ export const BottomNav: React.FC = () => {
         left: 0,
         right: 0,
         background: 'var(--card)',
-        borderTop: '1px solid rgba(42,61,84,0.08)',
+        borderTop: '1px solid var(--border)',
         paddingBottom: 'env(safe-area-inset-bottom)',
         zIndex: 50,
       }}

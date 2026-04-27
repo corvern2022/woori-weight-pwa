@@ -554,7 +554,7 @@ export function TaskDetail({ taskId }: Props) {
         padding: '8px 16px',
         paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
         background: 'var(--card)',
-        borderTop: '1px solid rgba(42,61,84,0.08)',
+        borderTop: '1px solid var(--border)',
         boxShadow: '0 -4px 20px rgba(47,149,196,0.08)',
       }}>
         {/* Mode toggle + 완료 버튼 */}
