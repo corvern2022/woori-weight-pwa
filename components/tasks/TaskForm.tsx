@@ -76,7 +76,6 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
             placeholder="제목 *"
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            autoFocus
           />
 
           <textarea
