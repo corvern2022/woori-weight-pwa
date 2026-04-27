@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Task, TaskEvent, TaskItem } from "./types";
 import { BackBtn, WhoBadge } from "@/components/ui";
@@ -46,7 +46,16 @@ function SubItem({
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(item.content);
   const [editDue, setEditDue] = useState(item.due_date ?? "");
+  const inputRef = useRef<HTMLInputElement>(null);
   const todayStr = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+    }
+  }, [editing]);
 
   function save() {
     if (!editContent.trim()) return;
@@ -61,6 +70,7 @@ function SubItem({
     return (
       <div style={{ padding: '8px 0 10px', borderBottom: '1px dashed var(--accent-soft)' }}>
         <input
+          ref={inputRef}
           value={editContent}
           onChange={e => setEditContent(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }}
@@ -220,6 +230,7 @@ type InputMode = 'sub' | 'comment';
 
 export function TaskDetail({ taskId }: Props) {
   const router = useRouter();
+  const supabase = useMemo(() => getSupabaseClient(), []);
   const [task, setTask] = useState<Task | null>(null);
   const [items, setItems] = useState<TaskItem[]>([]);
   const [comments, setComments] = useState<TaskEvent[]>([]);
@@ -230,6 +241,7 @@ export function TaskDetail({ taskId }: Props) {
   const [sending, setSending] = useState(false);
   const [actor, setActor] = useState("");
   const [mode, setMode] = useState<InputMode>('sub');
+  const [showSubDate, setShowSubDate] = useState(false);
   const [deletedItem, setDeletedItem] = useState<TaskItem | null>(null);
   const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -245,7 +257,6 @@ export function TaskDetail({ taskId }: Props) {
   }, []);
 
   const loadData = useCallback(async () => {
-    const supabase = getSupabaseClient();
     const [{ data: taskData }, { data: itemData }, { data: evData }] = await Promise.all([
       supabase.from("tasks").select("*").eq("id", taskId).single(),
       supabase.from("task_items").select("*").eq("task_id", taskId).order("position", { ascending: true }).order("created_at", { ascending: true }),
@@ -261,33 +272,33 @@ export function TaskDetail({ taskId }: Props) {
 
   async function saveTitle() {
     if (!task || !editTitle.trim()) return;
-    await getSupabaseClient().from("tasks").update({ title: editTitle.trim() }).eq("id", taskId);
+    await supabase.from("tasks").update({ title: editTitle.trim() }).eq("id", taskId);
     setTask(t => t ? { ...t, title: editTitle.trim() } : t);
     setEditingTitle(false);
   }
 
   async function saveDesc() {
     if (!task) return;
-    await getSupabaseClient().from("tasks").update({ description: editDesc.trim() || null }).eq("id", taskId);
+    await supabase.from("tasks").update({ description: editDesc.trim() || null }).eq("id", taskId);
     setTask(t => t ? { ...t, description: editDesc.trim() || null } : t);
     setEditingDesc(false);
   }
 
   async function toggleDone() {
     if (!task) return;
-    await getSupabaseClient().from("tasks").update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq("id", taskId);
+    await supabase.from("tasks").update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq("id", taskId);
     setTask(t => t ? { ...t, completed: !t.completed } : t);
   }
 
   async function toggleItem(item: TaskItem) {
     const now = new Date().toISOString();
-    await getSupabaseClient().from("task_items").update({ done: !item.done, done_at: !item.done ? now : null }).eq("id", item.id);
+    await supabase.from("task_items").update({ done: !item.done, done_at: !item.done ? now : null }).eq("id", item.id);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, done: !i.done } : i));
   }
 
   async function updateItem(item: TaskItem, content: string, dueDate: string) {
     const due = dueDate || null;
-    await getSupabaseClient().from("task_items").update({ content, due_date: due }).eq("id", item.id);
+    await supabase.from("task_items").update({ content, due_date: due }).eq("id", item.id);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, content, due_date: due } : i));
   }
 
@@ -299,7 +310,7 @@ export function TaskDetail({ taskId }: Props) {
     if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
     // 3초 후 실제 DB 삭제
     deleteTimerRef.current = setTimeout(async () => {
-      await getSupabaseClient().from("task_items").delete().eq("id", item.id);
+      await supabase.from("task_items").delete().eq("id", item.id);
       setDeletedItem(null);
     }, 3000);
   }
@@ -318,7 +329,7 @@ export function TaskDetail({ taskId }: Props) {
     if (!subInput.trim()) return;
     setSending(true);
     const position = items.length ? Math.max(...items.map(i => i.position)) + 1 : 0;
-    const { data } = await getSupabaseClient().from("task_items").insert([{
+    const { data } = await supabase.from("task_items").insert([{
       task_id: taskId,
       content: subInput.trim(),
       due_date: inputDue || null,
@@ -331,7 +342,6 @@ export function TaskDetail({ taskId }: Props) {
   }
 
   async function addReaction(eventId: string, emoji: string) {
-    const supabase = getSupabaseClient();
     const target = comments.find(c => c.id === eventId);
     if (!target) return;
     const reactions = ((target.payload?.reactions ?? {}) as Record<string, string[]>);
@@ -349,14 +359,31 @@ export function TaskDetail({ taskId }: Props) {
   async function addComment() {
     if (!commentInput.trim()) return;
     setSending(true);
-    await getSupabaseClient().from("task_events").insert([{
-      task_id: taskId, event_type: "comment_added", actor,
-      payload: { text: commentInput.trim() },
-    }]);
+    const text = commentInput.trim();
     setCommentInput("");
-    await loadData();
+
+    // 낙관적 업데이트
+    const tempComment: TaskEvent = {
+      id: `temp-${Date.now()}`,
+      task_id: taskId,
+      event_type: "comment_added",
+      actor,
+      payload: { text },
+      created_at: new Date().toISOString(),
+    };
+    setComments(prev => [...prev, tempComment]);
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+
+    const { data } = await supabase.from("task_events").insert([{
+      task_id: taskId, event_type: "comment_added", actor,
+      payload: { text },
+    }]).select().single();
+
+    // 실제 데이터로 교체
+    if (data) {
+      setComments(prev => prev.map(c => c.id === tempComment.id ? data as TaskEvent : c));
+    }
     setSending(false);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }
 
   async function handleSend() {
@@ -452,15 +479,6 @@ export function TaskDetail({ taskId }: Props) {
           </div>
         )}
 
-        <button onClick={toggleDone} style={{
-          marginTop: 12,
-          background: task.completed ? 'var(--bg-deep)' : 'linear-gradient(135deg, var(--mint), var(--mint-deep))',
-          color: task.completed ? 'var(--ink-soft)' : '#fff',
-          border: 'none', borderRadius: 14, padding: '8px 18px',
-          fontFamily: 'Jua, sans-serif', fontSize: 14, cursor: 'pointer', boxShadow: 'var(--shadow-soft)',
-        }}>
-          {task.completed ? '↺ 다시 열기' : '✓ 완료 표시'}
-        </button>
       </div>
 
       {/* ── Scrollable body ── */}
@@ -539,25 +557,44 @@ export function TaskDetail({ taskId }: Props) {
         borderTop: '1px solid rgba(42,61,84,0.08)',
         boxShadow: '0 -4px 20px rgba(47,149,196,0.08)',
       }}>
-        {/* Mode toggle */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-          {([['sub', '📋 하위 아젠다'], ['comment', '💬 댓글']] as [InputMode, string][]).map(([m, l]) => (
-            <button key={m} onClick={() => setMode(m)} style={{
+        {/* Mode toggle + 완료 버튼 */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8, alignItems: 'center' }}>
+          {([['sub', '📋 하위'], ['comment', '💬 댓글']] as [InputMode, string][]).map(([m, l]) => (
+            <button key={m} onClick={() => setMode(m as InputMode)} style={{
               padding: '4px 12px', border: 'none', borderRadius: 100, cursor: 'pointer',
               fontFamily: 'Jua, sans-serif', fontSize: 12,
               background: mode === m ? 'var(--accent)' : 'var(--bg-deep)',
               color: mode === m ? '#fff' : 'var(--ink-soft)',
             }}>{l}</button>
           ))}
+          <div style={{ flex: 1 }} />
+          <button onClick={toggleDone} style={{
+            padding: '4px 14px', border: 'none', borderRadius: 100, cursor: 'pointer',
+            fontFamily: 'Jua, sans-serif', fontSize: 12,
+            background: task.completed ? 'var(--bg-deep)' : 'linear-gradient(135deg, var(--mint), var(--mint-deep))',
+            color: task.completed ? 'var(--ink-soft)' : '#fff',
+            boxShadow: 'var(--shadow-soft)',
+          }}>
+            {task.completed ? '↺ 열기' : '✓ 완료'}
+          </button>
         </div>
 
         {/* Date picker for sub mode */}
         {mode === 'sub' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{ fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>📅 마감일</span>
-            <input type="date" value={inputDue} onChange={e => setInputDue(e.target.value)}
-              style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 13, border: '1.5px solid var(--accent-soft)', borderRadius: 8, padding: '4px 8px', background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }} />
-            {inputDue && <button onClick={() => setInputDue('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--ink-mute)' }}>✕</button>}
+            {showSubDate ? (
+              <>
+                <input type="date" value={inputDue} onChange={e => setInputDue(e.target.value)}
+                  style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 13, border: '1.5px solid var(--accent-soft)', borderRadius: 8, padding: '4px 8px', background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }} />
+                <button onClick={() => { setInputDue(''); setShowSubDate(false); }}
+                  style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--ink-mute)' }}>✕</button>
+              </>
+            ) : (
+              <button onClick={() => setShowSubDate(true)}
+                style={{ border: 'none', background: 'var(--bg-deep)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)' }}>
+                📅 날짜 추가
+              </button>
+            )}
           </div>
         )}
 
@@ -572,23 +609,56 @@ export function TaskDetail({ taskId }: Props) {
             </div>
           )}
           <div style={{ flex: 1, background: 'var(--bg)', borderRadius: 18, padding: '8px 14px', display: 'flex', gap: 8, alignItems: 'center', border: '1.5px solid var(--accent-soft)' }}>
-            <input
-              value={mode === 'sub' ? subInput : commentInput}
-              onChange={e => mode === 'sub' ? setSubInput(e.target.value) : setCommentInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.nativeEvent.isComposing) return;
-                if (e.key === 'Enter' && !e.shiftKey) handleSend();
-              }}
-              placeholder={mode === 'sub' ? '하위 아젠다 입력...' : '댓글 달기...'}
-              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: mode === 'sub' ? 'Jua, sans-serif' : 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)' }}
-            />
+            {mode === 'sub' ? (
+              <input
+                value={subInput}
+                onChange={e => setSubInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.nativeEvent.isComposing) return;
+                  if (e.key === 'Enter' && !e.shiftKey) handleSend();
+                }}
+                placeholder="하위 아젠다 입력..."
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'Jua, sans-serif', fontSize: 15, color: 'var(--ink)' }}
+              />
+            ) : (
+              <textarea
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.nativeEvent.isComposing) return;
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+                }}
+                placeholder="댓글 달기..."
+                rows={1}
+                style={{
+                  flex: 1, border: 'none', outline: 'none',
+                  background: 'transparent',
+                  fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)',
+                  resize: 'none', overflow: 'hidden', lineHeight: 1.4,
+                  maxHeight: 80,
+                }}
+                onInput={e => {
+                  const el = e.currentTarget;
+                  el.style.height = 'auto';
+                  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+                }}
+              />
+            )}
             <button onClick={handleSend} disabled={sending || !(mode === 'sub' ? subInput : commentInput).trim()} style={{
               border: 'none', borderRadius: 12, padding: '5px 12px',
               background: (mode === 'sub' ? subInput : commentInput).trim() ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--ink-mute)',
               color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer',
-              opacity: sending ? 0.6 : 1,
+              opacity: sending ? 0.7 : 1,
+              display: 'flex', alignItems: 'center', gap: 4,
             }}>
-              {sending ? '...' : mode === 'sub' ? '추가' : '전송'}
+              {sending ? (
+                <span style={{
+                  display: 'inline-block', width: 12, height: 12, borderRadius: '50%',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTopColor: '#fff',
+                  animation: 'spin 0.6s linear infinite',
+                }} />
+              ) : (mode === 'sub' ? '추가' : '전송')}
             </button>
           </div>
         </div>
