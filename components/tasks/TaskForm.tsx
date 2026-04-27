@@ -75,6 +75,14 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
     }
   }, [editing, open]);
 
+  function handleClose() {
+    const hasContent = form.title.trim() || form.description.trim() || form.due_date;
+    if (hasContent && !editing) {
+      if (!window.confirm('작성 중인 내용이 있어요. 닫을까요?')) return;
+    }
+    onClose();
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) return;
@@ -96,7 +104,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-ink/40 flex items-end sm:items-center justify-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-ink/40 flex items-end sm:items-center justify-center z-50" onClick={handleClose}>
       <div className="bg-card rounded-t-3xl sm:rounded-3xl shadow-card w-full sm:max-w-md p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-jua text-ink">{editing ? "아젠다 수정" : "새 아젠다"}</h2>
 
@@ -186,7 +194,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button type="button" className="flex-1 border border-ink/15 rounded-pill py-2 text-sm text-ink-soft" onClick={onClose}>취소</button>
+            <button type="button" className="flex-1 border border-ink/15 rounded-pill py-2 text-sm text-ink-soft" onClick={handleClose}>취소</button>
             <button type="submit" className="flex-1 bg-duck text-ink font-jua rounded-pill py-2 text-sm hover:bg-duck-deep transition-colors">
               {editing ? "수정" : "추가"}
             </button>

@@ -74,7 +74,11 @@ function SubItem({
           ref={inputRef}
           value={editContent}
           onChange={e => setEditContent(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }}
+          onKeyDown={e => {
+            if (e.nativeEvent.isComposing) return;
+            if (e.key === 'Enter') { e.preventDefault(); save(); }
+            if (e.key === 'Escape') setEditing(false);
+          }}
           autoFocus
           style={{
             width: '100%', fontFamily: 'Gaegu, cursive', fontSize: 15, border: '2px solid var(--accent)',
@@ -536,7 +540,7 @@ export function TaskDetail({ taskId }: Props) {
       {/* ── Delete undo toast ── */}
       {deletedItem && (
         <div style={{
-          position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+          position: 'fixed', bottom: 'calc(120px + env(safe-area-inset-bottom, 0px))',
           left: '50%', transform: 'translateX(-50%)',
           background: 'var(--ink)', color: '#fff',
           borderRadius: 100, padding: '8px 16px',
