@@ -71,7 +71,7 @@ export function useWeights() {
         .from("weigh_ins")
         .select("date, user_id, weight_kg")
         .order("date", { ascending: true })
-        .limit(200);
+        .limit(500);
 
       const rows = (weighRows ?? []) as Array<{ date: string; user_id: string; weight_kg: number }>;
       // dolphin = '하경', duck = whoever is not '하경'

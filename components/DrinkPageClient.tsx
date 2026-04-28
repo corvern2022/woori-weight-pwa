@@ -84,8 +84,8 @@ export function DrinkPageClient() {
   const grid = buildMonthGrid(viewYear, viewMonth);
   const todayStr = toSeoulISODate(now);
 
-  const duckMember = members.find((m) => m.display_name.includes('창희')) ?? members[0];
-  const dolphinMember = members.find((m) => m.display_name.includes('하경')) ?? members[1];
+  const duckMember = members.find((m) => m.display_name.includes('창희')) ?? members[0] ?? null;
+  const dolphinMember = members.find((m) => m.display_name.includes('하경')) ?? members.find(m => m !== duckMember) ?? null;
 
   function drankOnDate(userId: string | undefined, date: Date): boolean {
     if (!userId) return false;

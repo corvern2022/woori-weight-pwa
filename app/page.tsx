@@ -110,7 +110,7 @@ function dueDateChip(dateStr: string | null, todayStr: string): { label: string;
   if (dateStr === todayStr) return { label: '오늘', color: 'var(--mint-deep)', bg: 'var(--mint)' }
   if (dateStr < todayStr) {
     const diff = Math.round((new Date(todayStr).getTime() - new Date(dateStr).getTime()) / 86400000)
-    return { label: `${diff}일 지남`, color: 'var(--peach-deep)', bg: '#FFE8E0' }
+    return { label: `${diff}일 지남`, color: 'var(--peach-deep)', bg: 'var(--peach-soft)' }
   }
   const diff = Math.round((new Date(dateStr).getTime() - new Date(todayStr).getTime()) / 86400000)
   return { label: `${diff}일 후`, color: 'var(--ink-soft)', bg: 'var(--bg-deep)' }

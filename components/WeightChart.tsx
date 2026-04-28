@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -60,26 +61,90 @@ function renderDot(dataKey: "me" | "partner") {
 }
 
 export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props) {
+  const [dismissed, setDismissed] = useState(false);
+
+  function handleMouseMove() {
+    // Reset dismiss state when hovering a new point
+    if (dismissed) setDismissed(false);
+  }
+
+  function handleMouseLeave() {
+    setDismissed(false);
+  }
+
+  function CustomTooltipContent(props: {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number | null; color: string }>;
+    label?: string;
+  }) {
+    const { active, payload, label } = props;
+    if (!active || !payload?.length || dismissed) return null;
+
+    const row = data.find(d => d.date === label);
+    const drankNotes: string[] = [];
+    if (row?.meDrank) drankNotes.push("나 음주");
+    if (row?.partnerDrank) drankNotes.push("상대 음주");
+    const titleLabel = drankNotes.length > 0 ? `${label} (${drankNotes.join(", ")})` : label;
+
+    return (
+      <div style={{
+        background: 'var(--ink)',
+        color: '#fff',
+        borderRadius: 12,
+        padding: '10px 14px 10px 12px',
+        fontSize: 13,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+        minWidth: 120,
+        position: 'relative',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+          <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, opacity: 0.75 }}>{titleLabel}</span>
+          <button
+            onTouchEnd={(e) => { e.stopPropagation(); setDismissed(true); }}
+            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              borderRadius: 6,
+              color: '#fff',
+              width: 20,
+              height: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: 11,
+              flexShrink: 0,
+              padding: 0,
+            }}
+          >✕</button>
+        </div>
+        {payload.map((entry, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: entry.color, display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'Gaegu, cursive', fontSize: 14 }}>
+              {entry.name}: {entry.value == null ? '기록 없음' : `${Number(entry.value).toFixed(1)}kg`}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer>
-        <LineChart data={data}>
+        <LineChart
+          data={data}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="date" tickFormatter={labelDate} tick={{ fontSize: 12 }} />
           <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 12 }} />
           <Tooltip
-            formatter={(value) =>
-              value == null ? "기록 없음" : `${Number(value).toFixed(1)}kg`
-            }
-            labelFormatter={(label, payload) => {
-              const row = (payload?.[0]?.payload as ChartPoint | undefined) ?? null;
-              const drankNotes: string[] = [];
-              if (row?.meDrank) drankNotes.push("나 음주");
-              if (row?.partnerDrank) drankNotes.push("상대 음주");
-              return drankNotes.length > 0
-                ? `${String(label)} (${drankNotes.join(", ")})`
-                : String(label);
-            }}
+            content={<CustomTooltipContent />}
+            wrapperStyle={{ pointerEvents: 'auto', zIndex: 10 }}
           />
           <Line
             type="monotone"

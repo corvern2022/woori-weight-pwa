@@ -438,7 +438,7 @@ export function TaskDetail({ taskId }: Props) {
           {label && (
             <span style={{
               fontSize: 11, padding: '2px 8px', borderRadius: 8, fontFamily: 'Gaegu, cursive',
-              background: label.includes('지남') ? '#FFE8E0' : label === '오늘' ? 'var(--mint)' : 'var(--bg-deep)',
+              background: label.includes('지남') ? 'var(--peach-soft)' : label === '오늘' ? 'var(--mint)' : 'var(--bg-deep)',
               color: label.includes('지남') ? 'var(--peach-deep)' : label === '오늘' ? 'var(--mint-deep)' : 'var(--ink-soft)',
             }}>
               📅 {label}
