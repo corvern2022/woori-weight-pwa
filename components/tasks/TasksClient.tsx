@@ -12,7 +12,7 @@ import { Dolphin } from "@/components/characters/Dolphin";
 
 type Filter = '전체' | '창희' | '하경' | '같이' | '완료';
 
-const FILTERS: Filter[] = ['전체', '창희', '하경', '같이', '완료'];
+const FILTERS: Filter[] = ['전체', '완료'];
 
 function filterTasks(tasks: Task[], filter: Filter): Task[] {
   if (filter === '전체') return tasks.filter(t => !t.completed);
