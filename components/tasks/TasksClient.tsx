@@ -10,15 +10,13 @@ import { BackBtn, CloudDeco, Confetti } from "@/components/ui";
 import { Duck } from "@/components/characters/Duck";
 import { Dolphin } from "@/components/characters/Dolphin";
 
-type Filter = '전체' | '창희' | '하경' | '같이' | '완료';
+type Filter = '전체' | '미완료' | '완료';
 
-const FILTERS: Filter[] = ['전체', '완료'];
+const FILTERS: Filter[] = ['전체', '미완료', '완료'];
 
 function filterTasks(tasks: Task[], filter: Filter): Task[] {
-  if (filter === '전체') return tasks.filter(t => !t.completed);
-  if (filter === '창희') return tasks.filter(t => !t.completed && (t.assignee === '창희' || t.assignee === '둘다'));
-  if (filter === '하경') return tasks.filter(t => !t.completed && (t.assignee === '하경' || t.assignee === '둘다'));
-  if (filter === '같이') return tasks.filter(t => !t.completed && t.assignee === '둘다');
+  if (filter === '전체') return tasks;
+  if (filter === '미완료') return tasks.filter(t => !t.completed);
   if (filter === '완료') return tasks.filter(t => t.completed);
   return tasks;
 }
@@ -30,7 +28,7 @@ export function TasksClient() {
   } = useTasks();
 
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>('전체');
+  const [filter, setFilter] = useState<Filter>('미완료');
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -49,10 +47,8 @@ export function TasksClient() {
 
   // Count badges per filter tab
   const filterCounts: Record<Filter, number> = {
-    '전체': openCount,
-    '창희': tasks.filter(t => !t.completed && (t.assignee === '창희' || t.assignee === '둘다')).length,
-    '하경': tasks.filter(t => !t.completed && (t.assignee === '하경' || t.assignee === '둘다')).length,
-    '같이': tasks.filter(t => !t.completed && t.assignee === '둘다').length,
+    '전체': tasks.length,
+    '미완료': openCount,
     '완료': doneCount,
   };
 
@@ -98,7 +94,7 @@ export function TasksClient() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {f === '창희' && '🦆'}{f === '하경' && '🐬'}{f === '같이' && '💞'} {f}
+              {f === '미완료' && '⬜'}{f === '완료' && '✅'} {f}
               {filterCounts[f] > 0 && (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -141,7 +137,7 @@ export function TasksClient() {
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive', fontSize: 18 }}>
               <Dolphin size={70} variant="happy" palette="blue" />
               <div>여기엔 아무것도 없어!</div>
-              {filter === '전체' && (
+              {filter === '미완료' && (
                 <button
                   onClick={() => { setEditingTask(null); setFormOpen(true); }}
                   style={{
