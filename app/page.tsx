@@ -9,8 +9,7 @@ import { CloudDeco } from '@/components/ui/CloudDeco'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useWeather } from '@/lib/useWeather'
 import { usePush } from '@/lib/usePush'
-import { toSeoulISODate } from '@/lib/date'
-import type { Task, TaskItem } from '@/components/tasks/types'
+import type { Task } from '@/components/tasks/types'
 
 const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
   { emoji: '😊', label: '행복해',    color: '#D97706', bg: '#FEF3C7' },
@@ -191,37 +190,63 @@ function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; to
   )
 }
 
-// ── TinySubTask ──────────────────────────────────────────────────────────────
-function TinySubTask({ item, parentTitle, todayStr }: { item: TaskItem; parentTitle: string; todayStr: string }) {
-  const chip = dueDateChip(item.due_date, todayStr)
+// ── DockBtn ──────────────────────────────────────────────────────────────────
+function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' | 'drink' | 'gear' | 'mission'; label: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px dashed var(--accent-soft)' }}>
-      {/* 체크 아이콘 (읽기 전용, 완료 안 된 항목만 표시) */}
-      <div style={{
-        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-        border: '2px solid var(--ink-mute)', background: 'var(--card)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginLeft: 12,
-      }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontFamily: 'Jua, sans-serif', fontSize: 14, color: 'var(--ink)',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>
-          {item.content}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-          <span style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)' }}>
-            📁 {parentTitle}
-          </span>
-          {chip && (
-            <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 6, fontFamily: 'Gaegu, sans-serif', background: chip.bg, color: chip.color }}>
-              {chip.label}
-            </span>
-          )}
-        </div>
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        background: 'var(--card)',
+        border: 'none',
+        borderRadius: 16,
+        padding: '10px 6px',
+        cursor: 'pointer',
+        boxShadow: 'var(--shadow-soft)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 3,
+        color: 'var(--ink)',
+      }}
+    >
+      <div
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 10,
+          background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {icon === 'chat' && (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 2h12v9H9l-3 3v-3H2z" />
+          </svg>
+        )}
+        {icon === 'drink' && (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 2l1 8h4l1-8H5z" />
+            <path d="M6 10v4M10 10v4M5 14h6" />
+          </svg>
+        )}
+        {icon === 'gear' && (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="8" cy="8" r="2.5" />
+            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42" />
+          </svg>
+        )}
+        {icon === 'mission' && (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="8" cy="8" r="6" />
+            <path d="M8 4v4l2.5 2.5" />
+          </svg>
+        )}
       </div>
-    </div>
+      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>{label}</div>
+    </button>
   )
 }
 
@@ -295,7 +320,6 @@ export default function HomePage() {
   const router = useRouter()
   const [actor, setActor] = useState<string | null>(null)
   const [allTasks, setAllTasks] = useState<Task[]>([])
-  const [overdueItems, setOverdueItems] = useState<TaskItem[]>([])
   const [openCount, setOpenCount] = useState(0)
   const [duckKg, setDuckKg] = useState<number | null>(null)
   const [dolphinKg, setDolphinKg] = useState<number | null>(null)
@@ -305,49 +329,17 @@ export default function HomePage() {
   const [moodTarget, setMoodTarget] = useState<'duck' | 'dolphin'>('duck')
   const [moodDraft, setMoodDraft] = useState('')
   const [moodEmoji, setMoodEmoji] = useState('😊')
-  const [anniversaryDate, setAnniversaryDate] = useState('2023-07-08')
-  const [editingAnniversary, setEditingAnniversary] = useState(false)
   const [pushUserId, setPushUserId] = useState<string | null>(null)
-  const [showInstallBanner, setShowInstallBanner] = useState(false)
   usePush(pushUserId)
   const weather = useWeather()
   const today = DAYS[new Date().getDay()]
-  const todayStr = toSeoulISODate()
+  const todayStr = new Date().toISOString().slice(0, 10)
 
-  // 앱 초기화: Supabase 우선, localStorage 폴백
+  // 앱 초기화: localStorage에서 actor 읽기 (null=미로드, ''=미설정, '창희'/'하경'=설정됨)
   useEffect(() => {
-    async function initActor() {
-      const userId = localStorage.getItem('woori_weight_user_id')
-      setPushUserId(userId)
-      // Supabase에서 actor 복원 시도
-      if (userId) {
-        try {
-          const { data } = await getSupabaseClient()
-            .from('app_config')
-            .select('value')
-            .eq('key', `actor_${userId}`)
-            .single()
-          const name = (data?.value as { name?: string } | null)?.name
-          if (name === '창희' || name === '하경') {
-            localStorage.setItem('ori_ranger_actor', name)
-            setActor(name)
-            return
-          }
-        } catch { /* 폴백 */ }
-      }
-      const saved = localStorage.getItem('ori_ranger_actor')
-      setActor(saved ?? '')
-    }
-    void initActor()
-  }, [])
-
-  useEffect(() => {
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
-    const isStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
-    const dismissed = localStorage.getItem('pwa_install_dismissed')
-    if (isIOS && !isStandalone && !dismissed) {
-      setShowInstallBanner(true)
-    }
+    const saved = localStorage.getItem('ori_ranger_actor')
+    setActor(saved ?? '')  // 없으면 '' → 온보딩 표시
+    setPushUserId(localStorage.getItem('woori_weight_user_id'))
   }, [])
 
   const loadMoods = useCallback(async () => {
@@ -358,15 +350,6 @@ export default function HomePage() {
       if (row.key === 'mood_duck') setDuckMood(row.value)
       if (row.key === 'mood_dolphin') setDolphinMood(row.value)
     })
-    const { data: dDayRow } = await supabase
-      .from('app_config')
-      .select('value')
-      .eq('key', 'anniversary_date')
-      .maybeSingle()
-    if (dDayRow?.value) {
-      const v = dDayRow.value as { date?: string }
-      if (v.date) setAnniversaryDate(v.date)
-    }
   }, [])
 
   useEffect(() => {
@@ -378,26 +361,7 @@ export default function HomePage() {
       .eq('completed', false)
       .order('due_date', { ascending: true, nullsFirst: false })
       .then(({ data }) => {
-        if (data) {
-          setAllTasks(data as Task[])
-          setOpenCount(data.length)
-          // 기한 지난 하위 아젠다 패치
-          const taskIds = (data as Task[]).map(t => t.id)
-          if (taskIds.length > 0) {
-            supabase
-              .from('task_items')
-              .select('*')
-              .in('task_id', taskIds)
-              .eq('done', false)
-              .not('due_date', 'is', null)
-              .then(({ data: items }) => {
-                if (items) {
-                  const today = toSeoulISODate()
-                  setOverdueItems((items as TaskItem[]).filter(i => i.due_date! < today))
-                }
-              })
-          }
-        }
+        if (data) { setAllTasks(data as Task[]); setOpenCount(data.length) }
       })
 
     // 최근 체중
@@ -430,84 +394,36 @@ export default function HomePage() {
     setMoodDraft('')
   }
 
-  async function handleOnboardingSelect(who: '창희' | '하경') {
+  function handleOnboardingSelect(who: '창희' | '하경') {
     localStorage.setItem('ori_ranger_actor', who)
     setActor(who)
-    try {
-      const userId = localStorage.getItem('woori_weight_user_id')
-      if (userId) {
-        await getSupabaseClient().from('app_config').upsert(
-          { key: `actor_${userId}`, value: { name: who }, updated_at: new Date().toISOString() },
-          { onConflict: 'key' }
-        )
-      }
-    } catch { /* localStorage 폴백 */ }
   }
 
   // 온보딩: actor 미설정 시 선택 화면 (null = 아직 로드 전, '' = 미설정)
-  if (actor === null) return (
-    <div style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, color: 'var(--accent-deep)' }}>오리 레인저 🦆</div>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {[0,1,2].map(i => (
-          <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', animation: 'bounce 0.8s infinite', animationDelay: `${i*0.15}s` }} />
-        ))}
-      </div>
-    </div>
-  )  // hydration 대기
+  if (actor === null) return null  // hydration 대기
   if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
-  // 기한 지난 / 오늘 마감 / 최근 할 일 구분
-  // 하위 아젠다가 있는 상위 태스크는 하위로 대체 (옵션A)
-  const taskMap = Object.fromEntries(allTasks.map(t => [t.id, t]))
-  const overdueItemTaskIds = new Set(overdueItems.map(i => i.task_id))
-
-  // 기한 지난 상위: 하위 아젠다로 커버되지 않는 것만
-  const overdueTasks = allTasks.filter(t =>
-    !t.completed && t.due_date && t.due_date < todayStr && !overdueItemTaskIds.has(t.id)
-  )
-  const dueTodayTasks = allTasks.filter(t => !t.completed && t.due_date && t.due_date === todayStr)
-
-  // 표시용 아이템: 하위 아젠다(최대3) + 상위 폴백
-  const overdueSubItems = overdueItems.slice(0, 3)
-  const urgentTasksFallback = overdueTasks.slice(0, Math.max(0, 3 - overdueSubItems.length))
-  const dueTodayFallback = overdueSubItems.length === 0 && urgentTasksFallback.length === 0
-    ? dueTodayTasks.slice(0, 3)
-    : []
-
-  const hasUrgent = overdueSubItems.length > 0 || overdueTasks.length > 0
-  const recentTasks = allTasks.filter(t => !t.completed).slice(0, 3)
+  // 오늘 마감 / 기한 지남 / 최근 할 일 구분
+  const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
+  const dueTodayTasks = allTasks.filter(t => t.due_date && t.due_date === todayStr)
+  const todayTasks = [...dueTodayTasks, ...overdueTasks].slice(0, 3)
+  const tasks = todayTasks.length > 0 ? todayTasks : allTasks.slice(0, 3)
 
   function sectionTitle() {
-    const subCount = overdueItems.length
-    const taskCount = overdueTasks.length
-    const total = subCount + taskCount
-    if (total > 0 && dueTodayTasks.length > 0) return `⚠️ 기한 지남 ${total}개 · 오늘 마감 ${dueTodayTasks.length}개`
-    if (total > 0) return `⚠️ 기한 지난 할 일 ${total}개`
-    if (dueTodayTasks.length > 0) return '오늘 마감 할 일'
+    if (dueTodayTasks.length > 0 && overdueTasks.length === 0) return '오늘 마감 할 일'
+    if (overdueTasks.length > 0 && dueTodayTasks.length === 0) return '기한 지난 할 일 ⚠️'
+    if (dueTodayTasks.length > 0 && overdueTasks.length > 0) return '오늘 + 기한 지난 할 일'
     return '최근 할 일'
   }
 
   const handleToggle = async (task: Task) => {
-    // Optimistic update
+    const supabase = getSupabaseClient()
+    await supabase.from('tasks').update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq('id', task.id)
     setAllTasks(prev => {
       const next = prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t)
       setOpenCount(next.filter(t => !t.completed).length)
       return next
     })
-    const supabase = getSupabaseClient()
-    const { error } = await supabase.from('tasks').update({
-      completed: !task.completed,
-      completed_at: !task.completed ? new Date().toISOString() : null
-    }).eq('id', task.id)
-    if (error) {
-      // Rollback
-      setAllTasks(prev => {
-        const next = prev.map(t => t.id === task.id ? { ...t, completed: task.completed } : t)
-        setOpenCount(next.filter(t => !t.completed).length)
-        return next
-      })
-    }
   }
 
   return (
@@ -517,28 +433,9 @@ export default function HomePage() {
         background: 'linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 60%, var(--bg) 100%)',
         color: 'var(--ink)',
         position: 'relative',
-        paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
+        paddingBottom: 40,
       }}
     >
-      {/* iOS PWA install banner */}
-      {showInstallBanner && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-          background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
-          color: '#fff', padding: 'calc(env(safe-area-inset-top) + 10px) 16px 12px',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14 }}>알림을 받으려면 홈 화면에 추가하세요 📲</div>
-            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 12, opacity: 0.85, marginTop: 2 }}>Safari → 공유 버튼 → 홈 화면에 추가</div>
-          </div>
-          <button
-            onClick={() => { setShowInstallBanner(false); localStorage.setItem('pwa_install_dismissed', '1'); }}
-            style={{ border: 'none', background: 'rgba(255,255,255,0.2)', borderRadius: 20, color: '#fff', cursor: 'pointer', padding: '4px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12 }}
-          >닫기</button>
-        </div>
-      )}
-
       {/* Header clouds - pointer-events none so they don't block taps */}
       <div style={{ position: 'absolute', top: 58, left: -20, animation: 'floatCloud 8s ease-in-out infinite', opacity: 0.5, pointerEvents: 'none', zIndex: 0 }}>
         <CloudDeco size={100} opacity={1} />
@@ -560,49 +457,18 @@ export default function HomePage() {
             <span>{weather.emoji}</span>
             {weather.temp !== null && <span style={{ color: 'var(--accent-deep)', fontWeight: 700 }}>{weather.temp}°C</span>}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{
-              background: 'linear-gradient(135deg, var(--peach), var(--pink))',
-              borderRadius: 100,
-              padding: '3px 12px',
-              fontFamily: 'Jua, sans-serif',
-              fontSize: 13,
-              color: '#fff',
-              boxShadow: 'var(--shadow-soft)',
-              whiteSpace: 'nowrap',
-            }}>
-              💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date(anniversaryDate).setHours(0,0,0,0)) / 86400000)}
-            </div>
-            <button
-              onClick={() => setEditingAnniversary(true)}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--ink-mute)', padding: '2px 4px' }}
-              aria-label="기념일 수정"
-            >✏️</button>
+          <div style={{
+            background: 'linear-gradient(135deg, var(--peach), var(--pink))',
+            borderRadius: 100,
+            padding: '3px 12px',
+            fontFamily: 'Jua, sans-serif',
+            fontSize: 13,
+            color: '#fff',
+            boxShadow: 'var(--shadow-soft)',
+            whiteSpace: 'nowrap',
+          }}>
+            💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date('2023-07-08').setHours(0,0,0,0)) / 86400000)}
           </div>
-          {editingAnniversary && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}
-              onClick={() => setEditingAnniversary(false)}>
-              <div style={{ background: 'var(--card)', borderRadius: 20, padding: 24, margin: 20 }} onClick={e => e.stopPropagation()}>
-                <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 18, marginBottom: 16 }}>💑 기념일 설정</div>
-                <input
-                  type="date"
-                  defaultValue={anniversaryDate}
-                  onChange={async (e) => {
-                    const newDate = e.target.value;
-                    setAnniversaryDate(newDate);
-                    try {
-                      await getSupabaseClient().from('app_config').upsert(
-                        { key: 'anniversary_date', value: { date: newDate }, updated_at: new Date().toISOString() },
-                        { onConflict: 'key' }
-                      );
-                    } catch { /* ignore */ }
-                    setEditingAnniversary(false);
-                  }}
-                  style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--accent-soft)', borderRadius: 12, fontFamily: 'Jua, sans-serif', fontSize: 16, background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }}
-                />
-              </div>
-            </div>
-          )}
         </div>
         <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
           <span style={{ color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -642,52 +508,11 @@ export default function HomePage() {
               maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
             }}>
               {duckMood.emoji} {duckMood.text || ''}
-              {(() => {
-                const updatedAt = duckMood.updated_at ? new Date(duckMood.updated_at) : null;
-                if (!updatedAt) return null;
-                const diffMs = Date.now() - updatedAt.getTime();
-                const diffH = Math.floor(diffMs / 3600000);
-                const diffD = Math.floor(diffMs / 86400000);
-                const label = diffD >= 1 ? `${diffD}일 전` : diffH >= 1 ? `${diffH}시간 전` : '방금';
-                return <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 10, color: 'var(--ink-mute)', marginTop: 2, textAlign: 'right' }}>{label}</div>;
-              })()}
             </div>
           )}
-          <button onClick={() => { setMoodTarget('duck'); setMoodEmoji(duckMood?.emoji ?? '😊'); setMoodDraft(duckMood?.text ?? ''); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
-            <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* 몸통 */}
-              <ellipse cx="55" cy="78" rx="28" ry="25" fill="#FDE68A"/>
-              {/* 날개 L */}
-              <ellipse cx="28" cy="82" rx="12" ry="7" fill="#FBBF24" transform="rotate(-20 28 82)"/>
-              {/* 날개 R */}
-              <ellipse cx="82" cy="82" rx="12" ry="7" fill="#FBBF24" transform="rotate(20 82 82)"/>
-              {/* 헬멧 */}
-              <ellipse cx="55" cy="44" rx="27" ry="30" fill="#EF4444"/>
-              {/* 헬멧 광택 */}
-              <ellipse cx="45" cy="30" rx="9" ry="6" fill="#FCA5A5" opacity="0.5"/>
-              {/* 헬멧 핀 */}
-              <rect x="50" y="12" width="10" height="16" rx="5" fill="#DC2626"/>
-              {/* 바이저 */}
-              <path d="M30 43 Q55 56 80 43 Q55 36 30 43Z" fill="#1E293B"/>
-              {/* 바이저 반짝임 */}
-              <path d="M34 41 Q55 52 76 41" stroke="#475569" strokeWidth="2" fill="none" opacity="0.4"/>
-              {/* 부리 */}
-              <path d="M46 70 Q55 76 64 70 Q55 82 46 70Z" fill="#FB923C"/>
-              {/* 볼터치 */}
-              <ellipse cx="36" cy="60" rx="6" ry="3.5" fill="#FCA5A5" opacity="0.4"/>
-              <ellipse cx="74" cy="60" rx="6" ry="3.5" fill="#FCA5A5" opacity="0.4"/>
-              {/* 발 */}
-              <ellipse cx="43" cy="104" rx="11" ry="5" fill="#FB923C"/>
-              <ellipse cx="67" cy="104" rx="11" ry="5" fill="#FB923C"/>
-              {/* 별 */}
-              <text x="76" y="22" fontSize="18" textAnchor="middle">⭐</text>
-            </svg>
+          <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
+            <Duck size={110} variant="strong" palette="yellow" />
           </button>
-          {!duckMood && (
-            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)', marginTop: -4, textAlign: 'center' }}>
-              탭 👆
-            </div>
-          )}
         </div>
 
         {/* Dolphin (하경) + 말풍선 */}
@@ -699,52 +524,11 @@ export default function HomePage() {
               maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
             }}>
               {dolphinMood.emoji} {dolphinMood.text || ''}
-              {(() => {
-                const updatedAt = dolphinMood.updated_at ? new Date(dolphinMood.updated_at) : null;
-                if (!updatedAt) return null;
-                const diffMs = Date.now() - updatedAt.getTime();
-                const diffH = Math.floor(diffMs / 3600000);
-                const diffD = Math.floor(diffMs / 86400000);
-                const label = diffD >= 1 ? `${diffD}일 전` : diffH >= 1 ? `${diffH}시간 전` : '방금';
-                return <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 10, color: 'var(--ink-mute)', marginTop: 2, textAlign: 'right' }}>{label}</div>;
-              })()}
             </div>
           )}
-          <button onClick={() => { setMoodTarget('dolphin'); setMoodEmoji(dolphinMood?.emoji ?? '😊'); setMoodDraft(dolphinMood?.text ?? ''); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
-            <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* 꼬리 */}
-              <path d="M55 95 Q40 105 30 100 Q45 90 55 95Z" fill="#60A5FA"/>
-              <path d="M55 95 Q70 105 80 100 Q65 90 55 95Z" fill="#60A5FA"/>
-              {/* 몸통 */}
-              <ellipse cx="55" cy="76" rx="24" ry="22" fill="#93C5FD"/>
-              {/* 지느러미 L */}
-              <path d="M32 72 Q20 80 22 90 Q30 80 36 78Z" fill="#60A5FA"/>
-              {/* 지느러미 R */}
-              <path d="M78 72 Q90 80 88 90 Q80 80 74 78Z" fill="#60A5FA"/>
-              {/* 헬멧 */}
-              <ellipse cx="55" cy="44" rx="26" ry="28" fill="#A78BFA"/>
-              {/* 헬멧 광택 */}
-              <ellipse cx="45" cy="30" rx="8" ry="5.5" fill="#C4B5FD" opacity="0.55"/>
-              {/* 등지느러미/핀 */}
-              <path d="M49 14 Q55 6 61 14 Q57 12 55 14 Q53 12 49 14Z" fill="#7C3AED"/>
-              {/* 바이저 */}
-              <path d="M31 43 Q55 55 79 43 Q55 36 31 43Z" fill="#1E293B"/>
-              {/* 바이저 반짝임 */}
-              <path d="M35 41 Q55 51 75 41" stroke="#6366F1" strokeWidth="2" fill="none" opacity="0.5"/>
-              {/* 입 */}
-              <path d="M45 68 Q55 74 65 68" stroke="#7C3AED" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-              {/* 볼터치 */}
-              <ellipse cx="37" cy="58" rx="6" ry="3.5" fill="#C4B5FD" opacity="0.5"/>
-              <ellipse cx="73" cy="58" rx="6" ry="3.5" fill="#C4B5FD" opacity="0.5"/>
-              {/* 반짝임 */}
-              <text x="78" y="22" fontSize="18" textAnchor="middle">✨</text>
-            </svg>
+          <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+            <Dolphin size={110} variant="happy" palette="blue" />
           </button>
-          {!dolphinMood && (
-            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-mute)', marginTop: -4, textAlign: 'center' }}>
-              탭 👆
-            </div>
-          )}
         </div>
 
         <svg style={{ position: 'absolute', bottom: 24, right: '22%', pointerEvents: 'none' }} width="24" height="40" viewBox="0 0 24 40">
@@ -809,8 +593,8 @@ export default function HomePage() {
       <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
         <BigCard
           title="할 일"
-          count={hasUrgent ? (overdueItems.length + overdueTasks.length) : openCount}
-          subtitle={hasUrgent ? '긴급 처리 필요' : dueTodayTasks.length > 0 ? '오늘 마감' : '미완료 전체'}
+          count={dueTodayTasks.length + overdueTasks.length > 0 ? dueTodayTasks.length + overdueTasks.length : openCount}
+          subtitle={dueTodayTasks.length > 0 && overdueTasks.length === 0 ? '오늘 마감' : overdueTasks.length > 0 && dueTodayTasks.length === 0 ? '기한 지남' : dueTodayTasks.length + overdueTasks.length > 0 ? '오늘+기한지남' : '미완료 전체'}
           color="var(--peach)"
           colorDeep="var(--peach-deep)"
           icon="task"
@@ -841,29 +625,24 @@ export default function HomePage() {
               전체 보기 →
             </button>
           </div>
-          {!hasUrgent && dueTodayFallback.length === 0 && recentTasks.length === 0 && (
+          {tasks.length === 0 && (
             <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 14, color: 'var(--ink-mute)', textAlign: 'center', padding: '12px 0' }}>
               할 일이 없어요 🎉
             </div>
           )}
-          {/* 기한 지난 하위 아젠다 (옵션A) */}
-          {overdueSubItems.map(item => (
-            <TinySubTask key={item.id} item={item} parentTitle={taskMap[item.task_id]?.title ?? ''} todayStr={todayStr} />
-          ))}
-          {/* 하위 아젠다로 커버 안 된 상위 태스크 폴백 */}
-          {urgentTasksFallback.map(t => (
-            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
-          ))}
-          {/* 기한 지난 것 없을 때: 오늘 마감 or 최근 */}
-          {!hasUrgent && dueTodayFallback.map(t => (
-            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
-          ))}
-          {!hasUrgent && dueTodayFallback.length === 0 && recentTasks.map(t => (
+          {tasks.map(t => (
             <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
           ))}
         </div>
       </div>
 
+      {/* Bottom dock */}
+      <div style={{ padding: '14px 18px 0', display: 'flex', gap: 10 }}>
+        <DockBtn onClick={() => router.push('/chat')} icon="chat" label="AI 코치" />
+        <DockBtn onClick={() => router.push('/missions')} icon="mission" label="커플 미션" />
+        <DockBtn onClick={() => router.push('/drink')} icon="drink" label="음주 캘린더" />
+        <DockBtn onClick={() => router.push('/settings')} icon="gear" label="설정" />
+      </div>
     </div>
   )
 }

@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Task, TaskEvent, TaskItem } from "./types";
 import { BackBtn, WhoBadge } from "@/components/ui";
 import { getSupabaseClient } from "@/lib/supabase";
 import { Duck } from "@/components/characters/Duck";
 import { Dolphin } from "@/components/characters/Dolphin";
-import { toSeoulISODate } from "@/lib/date";
 
 function dueLabel(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -47,16 +46,7 @@ function SubItem({
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(item.content);
   const [editDue, setEditDue] = useState(item.due_date ?? "");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const todayStr = toSeoulISODate();
-
-  useEffect(() => {
-    if (editing && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200);
-    }
-  }, [editing]);
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   function save() {
     if (!editContent.trim()) return;
@@ -71,14 +61,9 @@ function SubItem({
     return (
       <div style={{ padding: '8px 0 10px', borderBottom: '1px dashed var(--accent-soft)' }}>
         <input
-          ref={inputRef}
           value={editContent}
           onChange={e => setEditContent(e.target.value)}
-          onKeyDown={e => {
-            if (e.nativeEvent.isComposing) return;
-            if (e.key === 'Enter') { e.preventDefault(); save(); }
-            if (e.key === 'Escape') setEditing(false);
-          }}
+          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }}
           autoFocus
           style={{
             width: '100%', fontFamily: 'Gaegu, cursive', fontSize: 15, border: '2px solid var(--accent)',
@@ -212,7 +197,7 @@ function CommentBubble({ c, onReact }: { c: TaskEvent; onReact: (eventId: string
               <div style={{
                 position: 'absolute', [isDuck ? 'left' : 'right']: 0, bottom: 30,
                 background: 'var(--card)', borderRadius: 16, padding: '8px 10px',
-                boxShadow: 'var(--shadow)', display: 'flex', gap: 6, zIndex: 100, whiteSpace: 'nowrap',
+                boxShadow: 'var(--shadow)', display: 'flex', gap: 6, zIndex: 10, whiteSpace: 'nowrap',
               }}>
                 {REACTION_EMOJIS.map(e => (
                   <button key={e} onClick={() => { onReact(c.id, e); setShowPicker(false); }} style={{
@@ -235,34 +220,29 @@ type InputMode = 'sub' | 'comment';
 
 export function TaskDetail({ taskId }: Props) {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseClient(), []);
   const [task, setTask] = useState<Task | null>(null);
   const [items, setItems] = useState<TaskItem[]>([]);
   const [comments, setComments] = useState<TaskEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [subInput, setSubInput] = useState("");
-  const [commentInput, setCommentInput] = useState("");
+  const [input, setInput] = useState("");
   const [inputDue, setInputDue] = useState("");
   const [sending, setSending] = useState(false);
   const [actor, setActor] = useState("");
   const [mode, setMode] = useState<InputMode>('sub');
-  const [showSubDate, setShowSubDate] = useState(false);
-  const [deletedItem, setDeletedItem] = useState<TaskItem | null>(null);
-  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editingDesc, setEditingDesc] = useState(false);
   const [editDesc, setEditDesc] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setActor(localStorage.getItem("ori_ranger_actor") || "");
+      setActor(localStorage.getItem("ori_ranger_actor") || "하경");
     }
   }, []);
 
   const loadData = useCallback(async () => {
+    const supabase = getSupabaseClient();
     const [{ data: taskData }, { data: itemData }, { data: evData }] = await Promise.all([
       supabase.from("tasks").select("*").eq("id", taskId).single(),
       supabase.from("task_items").select("*").eq("task_id", taskId).order("position", { ascending: true }).order("created_at", { ascending: true }),
@@ -278,76 +258,59 @@ export function TaskDetail({ taskId }: Props) {
 
   async function saveTitle() {
     if (!task || !editTitle.trim()) return;
-    await supabase.from("tasks").update({ title: editTitle.trim() }).eq("id", taskId);
+    await getSupabaseClient().from("tasks").update({ title: editTitle.trim() }).eq("id", taskId);
     setTask(t => t ? { ...t, title: editTitle.trim() } : t);
     setEditingTitle(false);
   }
 
   async function saveDesc() {
     if (!task) return;
-    await supabase.from("tasks").update({ description: editDesc.trim() || null }).eq("id", taskId);
+    await getSupabaseClient().from("tasks").update({ description: editDesc.trim() || null }).eq("id", taskId);
     setTask(t => t ? { ...t, description: editDesc.trim() || null } : t);
     setEditingDesc(false);
   }
 
   async function toggleDone() {
     if (!task) return;
-    await supabase.from("tasks").update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq("id", taskId);
+    await getSupabaseClient().from("tasks").update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq("id", taskId);
     setTask(t => t ? { ...t, completed: !t.completed } : t);
   }
 
   async function toggleItem(item: TaskItem) {
     const now = new Date().toISOString();
-    await supabase.from("task_items").update({ done: !item.done, done_at: !item.done ? now : null }).eq("id", item.id);
+    await getSupabaseClient().from("task_items").update({ done: !item.done, done_at: !item.done ? now : null }).eq("id", item.id);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, done: !i.done } : i));
   }
 
   async function updateItem(item: TaskItem, content: string, dueDate: string) {
     const due = dueDate || null;
-    await supabase.from("task_items").update({ content, due_date: due }).eq("id", item.id);
+    await getSupabaseClient().from("task_items").update({ content, due_date: due }).eq("id", item.id);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, content, due_date: due } : i));
   }
 
-  function deleteItem(item: TaskItem) {
-    // 낙관적으로 즉시 UI에서 제거
-    setItems(prev => prev.filter(i => i.id !== item.id));
-    setDeletedItem(item);
-    // 이전 타이머 취소
-    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
-    // 3초 후 실제 DB 삭제
-    deleteTimerRef.current = setTimeout(async () => {
-      await supabase.from("task_items").delete().eq("id", item.id);
-      setDeletedItem(null);
-    }, 3000);
-  }
-
-  function undoDelete() {
-    if (!deletedItem) return;
-    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
-    setItems(prev => {
-      const arr = [...prev, deletedItem];
-      return arr.sort((a, b) => a.position - b.position);
-    });
-    setDeletedItem(null);
+  async function deleteItem(itemId: string) {
+    await getSupabaseClient().from("task_items").delete().eq("id", itemId);
+    setItems(prev => prev.filter(i => i.id !== itemId));
   }
 
   async function addSubTask() {
-    if (!subInput.trim()) return;
+    if (!input.trim()) return;
     setSending(true);
     const position = items.length ? Math.max(...items.map(i => i.position)) + 1 : 0;
-    const { data } = await supabase.from("task_items").insert([{
+    const { data } = await getSupabaseClient().from("task_items").insert([{
       task_id: taskId,
-      content: subInput.trim(),
+      content: input.trim(),
       due_date: inputDue || null,
       position,
     }]).select().single();
     if (data) setItems(prev => [...prev, data as TaskItem]);
-    setSubInput("");
+    setInput("");
     setInputDue("");
     setSending(false);
   }
 
   async function addReaction(eventId: string, emoji: string) {
+    const supabase = getSupabaseClient();
     const target = comments.find(c => c.id === eventId);
     if (!target) return;
     const reactions = ((target.payload?.reactions ?? {}) as Record<string, string[]>);
@@ -363,35 +326,16 @@ export function TaskDetail({ taskId }: Props) {
   }
 
   async function addComment() {
-    if (!commentInput.trim()) return;
+    if (!input.trim()) return;
     setSending(true);
-    const text = commentInput.trim();
-    setCommentInput("");
-
-    // 낙관적 업데이트
-    const tempComment: TaskEvent = {
-      id: `temp-${Date.now()}`,
-      task_id: taskId,
-      event_type: "comment_added",
-      actor,
-      payload: { text },
-      created_at: new Date().toISOString(),
-    };
-    setComments(prev => [...prev, tempComment]);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-
-    const { data } = await supabase.from("task_events").insert([{
+    await getSupabaseClient().from("task_events").insert([{
       task_id: taskId, event_type: "comment_added", actor,
-      payload: { text },
-    }]).select().single();
-
-    // 실제 데이터로 교체
-    if (data) {
-      setComments(prev => prev.map(c => c.id === tempComment.id ? data as TaskEvent : c));
-    }
+      payload: { text: input.trim() },
+    }]);
+    setInput("");
+    await loadData();
     setSending(false);
-    // Keep focus after send for continuous commenting
-    setTimeout(() => commentInputRef.current?.focus(), 50);
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }
 
   async function handleSend() {
@@ -458,15 +402,9 @@ export function TaskDetail({ taskId }: Props) {
             <button onClick={() => setEditingTitle(false)} style={{ border: 'none', borderRadius: 10, background: 'var(--bg-deep)', color: 'var(--ink-soft)', padding: '6px 10px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>✕</button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 24, letterSpacing: -0.4, color: task.completed ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: task.completed ? 'line-through' : 'none', lineHeight: 1.3, flex: 1 }}>
-              {task.title}
-            </div>
-            <button
-              onClick={() => { setEditTitle(task.title); setEditingTitle(true); }}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--ink-mute)', padding: '4px', flexShrink: 0, marginTop: 2 }}
-              aria-label="제목 편집"
-            >✏️</button>
+          <div onClick={() => { setEditTitle(task.title); setEditingTitle(true); }}
+            style={{ fontFamily: 'Jua, sans-serif', fontSize: 24, letterSpacing: -0.4, marginTop: 8, color: task.completed ? 'var(--ink-mute)' : 'var(--ink)', textDecoration: task.completed ? 'line-through' : 'none', lineHeight: 1.3, cursor: 'text' }}>
+            {task.title} <span style={{ fontSize: 13, color: 'var(--ink-mute)' }}>✏️</span>
           </div>
         )}
 
@@ -487,6 +425,15 @@ export function TaskDetail({ taskId }: Props) {
           </div>
         )}
 
+        <button onClick={toggleDone} style={{
+          marginTop: 12,
+          background: task.completed ? 'var(--bg-deep)' : 'linear-gradient(135deg, var(--mint), var(--mint-deep))',
+          color: task.completed ? 'var(--ink-soft)' : '#fff',
+          border: 'none', borderRadius: 14, padding: '8px 18px',
+          fontFamily: 'Jua, sans-serif', fontSize: 14, cursor: 'pointer', boxShadow: 'var(--shadow-soft)',
+        }}>
+          {task.completed ? '↺ 다시 열기' : '✓ 완료 표시'}
+        </button>
       </div>
 
       {/* ── Scrollable body ── */}
@@ -516,7 +463,7 @@ export function TaskDetail({ taskId }: Props) {
                   item={item}
                   onToggle={() => toggleItem(item)}
                   onUpdate={(content, dueDate) => updateItem(item, content, dueDate)}
-                  onDelete={() => deleteItem(item)}
+                  onDelete={() => deleteItem(item.id)}
                 />
               ))
             )}
@@ -527,6 +474,24 @@ export function TaskDetail({ taskId }: Props) {
         <div style={{ marginTop: 20 }}>
           <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 15, color: 'var(--ink)', marginBottom: 10 }}>
             💬 댓글 {comments.length > 0 ? `(${comments.length})` : ''}
+          </div>
+
+          {/* Actor selector */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {(['창희', '하경'] as const).map(a => (
+              <button key={a} onClick={() => {
+                setActor(a);
+                if (typeof window !== 'undefined') localStorage.setItem('ori_ranger_actor', a);
+              }} style={{
+                padding: '5px 12px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                fontFamily: 'Jua, sans-serif', fontSize: 12,
+                background: actor === a ? (a === '창희' ? 'var(--duck)' : 'var(--dolphin)') : 'var(--card)',
+                color: actor === a && a === '하경' ? '#fff' : 'var(--ink)',
+                boxShadow: 'var(--shadow-soft)',
+              }}>
+                {a === '창희' ? '🦆 ' : '🐬 '}{a}
+              </button>
+            ))}
           </div>
 
           {comments.length === 0 ? (
@@ -540,70 +505,34 @@ export function TaskDetail({ taskId }: Props) {
         </div>
       </div>
 
-      {/* ── Delete undo toast ── */}
-      {deletedItem && (
-        <div style={{
-          position: 'fixed', bottom: 'calc(120px + env(safe-area-inset-bottom, 0px))',
-          left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--ink)', color: '#fff',
-          borderRadius: 100, padding: '8px 16px',
-          display: 'flex', gap: 12, alignItems: 'center',
-          fontFamily: 'Jua, sans-serif', fontSize: 14,
-          zIndex: 60, whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-        }}>
-          <span>삭제됨</span>
-          <button onClick={undoDelete} style={{ border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 20, padding: '4px 12px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>실행 취소</button>
-        </div>
-      )}
-
       {/* ── Fixed input bar ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         padding: '8px 16px',
         paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
         background: 'var(--card)',
-        borderTop: '1px solid var(--border)',
+        borderTop: '1px solid rgba(42,61,84,0.08)',
         boxShadow: '0 -4px 20px rgba(47,149,196,0.08)',
       }}>
-        {/* Mode toggle + 완료 버튼 */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8, alignItems: 'center' }}>
-          {([['sub', '📋 하위'], ['comment', '💬 댓글']] as [InputMode, string][]).map(([m, l]) => (
-            <button key={m} onClick={() => setMode(m as InputMode)} style={{
-              padding: '10px 14px', border: 'none', borderRadius: 100, cursor: 'pointer',
+        {/* Mode toggle */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {([['sub', '📋 하위 아젠다'], ['comment', '💬 댓글']] as [InputMode, string][]).map(([m, l]) => (
+            <button key={m} onClick={() => setMode(m)} style={{
+              padding: '4px 12px', border: 'none', borderRadius: 100, cursor: 'pointer',
               fontFamily: 'Jua, sans-serif', fontSize: 12,
               background: mode === m ? 'var(--accent)' : 'var(--bg-deep)',
               color: mode === m ? '#fff' : 'var(--ink-soft)',
-              minHeight: 44,
             }}>{l}</button>
           ))}
-          <div style={{ flex: 1 }} />
-          <button onClick={toggleDone} style={{
-            padding: '4px 14px', border: 'none', borderRadius: 100, cursor: 'pointer',
-            fontFamily: 'Jua, sans-serif', fontSize: 12,
-            background: task.completed ? 'var(--bg-deep)' : 'linear-gradient(135deg, var(--mint), var(--mint-deep))',
-            color: task.completed ? 'var(--ink-soft)' : '#fff',
-            boxShadow: 'var(--shadow-soft)',
-          }}>
-            {task.completed ? '↺ 열기' : '✓ 완료'}
-          </button>
         </div>
 
         {/* Date picker for sub mode */}
         {mode === 'sub' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            {showSubDate ? (
-              <>
-                <input type="date" value={inputDue} onChange={e => setInputDue(e.target.value)}
-                  style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 13, border: '1.5px solid var(--accent-soft)', borderRadius: 8, padding: '4px 8px', background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }} />
-                <button onClick={() => { setInputDue(''); setShowSubDate(false); }}
-                  style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--ink-mute)' }}>✕</button>
-              </>
-            ) : (
-              <button onClick={() => setShowSubDate(true)}
-                style={{ border: 'none', background: 'var(--bg-deep)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)' }}>
-                📅 날짜 추가
-              </button>
-            )}
+            <span style={{ fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0 }}>📅 마감일</span>
+            <input type="date" value={inputDue} onChange={e => setInputDue(e.target.value)}
+              style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 13, border: '1.5px solid var(--accent-soft)', borderRadius: 8, padding: '4px 8px', background: 'var(--bg)', color: 'var(--ink)', outline: 'none' }} />
+            {inputDue && <button onClick={() => setInputDue('')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--ink-mute)' }}>✕</button>}
           </div>
         )}
 
@@ -618,57 +547,20 @@ export function TaskDetail({ taskId }: Props) {
             </div>
           )}
           <div style={{ flex: 1, background: 'var(--bg)', borderRadius: 18, padding: '8px 14px', display: 'flex', gap: 8, alignItems: 'center', border: '1.5px solid var(--accent-soft)' }}>
-            {mode === 'sub' ? (
-              <input
-                value={subInput}
-                onChange={e => setSubInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.nativeEvent.isComposing) return;
-                  if (e.key === 'Enter' && !e.shiftKey) handleSend();
-                }}
-                placeholder="하위 아젠다 입력..."
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'Jua, sans-serif', fontSize: 15, color: 'var(--ink)' }}
-              />
-            ) : (
-              <textarea
-                ref={commentInputRef}
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.nativeEvent.isComposing) return;
-                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-                }}
-                placeholder="댓글 달기..."
-                rows={1}
-                style={{
-                  flex: 1, border: 'none', outline: 'none',
-                  background: 'transparent',
-                  fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)',
-                  resize: 'none', overflow: 'hidden', lineHeight: 1.4,
-                  maxHeight: 80,
-                }}
-                onInput={e => {
-                  const el = e.currentTarget;
-                  el.style.height = 'auto';
-                  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
-                }}
-              />
-            )}
-            <button onClick={handleSend} disabled={sending || !(mode === 'sub' ? subInput : commentInput).trim()} style={{
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              placeholder={mode === 'sub' ? '하위 아젠다 입력...' : '댓글 달기...'}
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: mode === 'sub' ? 'Jua, sans-serif' : 'Gaegu, cursive', fontSize: 15, color: 'var(--ink)' }}
+            />
+            <button onClick={handleSend} disabled={sending || !input.trim()} style={{
               border: 'none', borderRadius: 12, padding: '5px 12px',
-              background: (mode === 'sub' ? subInput : commentInput).trim() ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--ink-mute)',
+              background: input.trim() ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--ink-mute)',
               color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer',
-              opacity: sending ? 0.7 : 1,
-              display: 'flex', alignItems: 'center', gap: 4,
+              opacity: sending ? 0.6 : 1,
             }}>
-              {sending ? (
-                <span style={{
-                  display: 'inline-block', width: 12, height: 12, borderRadius: '50%',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderTopColor: '#fff',
-                  animation: 'spin 0.6s linear infinite',
-                }} />
-              ) : (mode === 'sub' ? '추가' : '전송')}
+              {sending ? '...' : mode === 'sub' ? '추가' : '전송'}
             </button>
           </div>
         </div>

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendPushToPartner } from "@/lib/usePush";
-import { toSeoulISODate } from "@/lib/date";
 
 const LOCAL_KEY = "woori_weight_user_id";
 
@@ -20,8 +19,6 @@ export function useWeights() {
   const [dolphinId, setDolphinId] = useState<string | null>(null);
   const [duckWeights, setDuckWeights] = useState<number[]>([]);
   const [dolphinWeights, setDolphinWeights] = useState<number[]>([]);
-  const [duckEntries, setDuckEntries] = useState<WeightEntry[]>([]);
-  const [dolphinEntries, setDolphinEntries] = useState<WeightEntry[]>([]);
   const [duckGoal, setDuckGoal] = useState<number | null>(null);
   const [dolphinGoal, setDolphinGoal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,18 +36,6 @@ export function useWeights() {
     loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, myUserId]);
-
-  // Supabase Realtime 구독
-  useEffect(() => {
-    if (!supabase) return;
-    const channel = supabase
-      .channel('weights-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'weigh_ins' }, () => { loadData(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, () => { loadData(); })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase]);
 
   async function loadData() {
     if (!supabase) return;
@@ -74,20 +59,17 @@ export function useWeights() {
         .limit(500);
 
       const rows = (weighRows ?? []) as Array<{ date: string; user_id: string; weight_kg: number }>;
-      // dolphin = '하경', duck = whoever is not '하경'
+      // duck = '창희' (first member), dolphin = '하경' (second member)
+      const resolvedDuckId = members.find(m => m.display_name === '창희')?.user_id ?? null;
       const resolvedDolphinId = members.find(m => m.display_name === '하경')?.user_id ?? null;
-      const resolvedDuckId = members.find(m => m.display_name !== '하경')?.user_id ?? null;
       setDuckId(resolvedDuckId);
       setDolphinId(resolvedDolphinId);
 
-      const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => ({ date: r.date, kg: r.weight_kg }));
-      const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => ({ date: r.date, kg: r.weight_kg }));
+      const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => r.weight_kg);
+      const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => r.weight_kg);
 
-      if (duckData.length >= 1) setDuckEntries(duckData.slice(-30));
-      if (dolphinData.length >= 1) setDolphinEntries(dolphinData.slice(-30));
-      // backward compat: weights array
-      if (duckData.length >= 1) setDuckWeights(duckData.slice(-30).map(e => e.kg));
-      if (dolphinData.length >= 1) setDolphinWeights(dolphinData.slice(-30).map(e => e.kg));
+      if (duckData.length >= 2) setDuckWeights(duckData.slice(-14));
+      if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-14));
 
       // Load goals from app_config
       const { data: cfgRows } = await supabase.from("app_config").select("key, value").in("key", ["goal_duck", "goal_dolphin"]);
@@ -106,7 +88,7 @@ export function useWeights() {
   }
 
   async function addWeight(who: 'duck' | 'dolphin', kg: number, date?: string) {
-    const today = date ?? toSeoulISODate();
+    const today = date ?? new Date().toISOString().slice(0, 10);
     const uid = who === 'duck' ? duckId : dolphinId;
 
     if (supabase && uid) {
@@ -124,15 +106,15 @@ export function useWeights() {
     setTimeout(() => setToast(null), 2000);
 
     // 체중 기록 시 파트너에게 푸시
-    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '';
+    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경';
     const partnerUid = who === 'duck' ? partnerId : myUserId;
     if (supabase && partnerUid) {
-      sendPushToPartner(partnerUid, `${actor}이(가) 체중을 기록했어요 ⚖️`, `오늘 몸무게: ${kg}kg`, '/weight');
+      sendPushToPartner(partnerUid, `${actor}이(가) 체중을 기록했어요 ⚖️`, `오늘 몸무게: ${kg}kg`);
     }
 
     // Reload from DB so chart reflects actual saved data (including past-date entries)
     await loadData();
   }
 
-  return { duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight };
+  return { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight };
 }

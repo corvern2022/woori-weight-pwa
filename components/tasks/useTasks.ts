@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"; // useRef kept for isLoadingRef
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import { sendPushToPartner } from "@/lib/usePush";
 import {
@@ -13,14 +13,7 @@ import {
   UiSettings,
 } from "./types";
 
-
-function subjectMarker(name: string): string {
-  const last = name[name.length - 1];
-  const code = last.charCodeAt(0);
-  if (code < 0xAC00 || code > 0xD7A3) return '이(가)'; // 한글 아니면 fallback
-  const jongseong = (code - 0xAC00) % 28;
-  return jongseong === 0 ? '가' : '이';
-}
+const POLL_INTERVAL = 10000;
 
 async function getPartnerUserId(supabase: ReturnType<typeof getSupabaseClient>): Promise<string | null> {
   const myId = typeof window !== 'undefined' ? localStorage.getItem('woori_weight_user_id') : null;
@@ -36,7 +29,7 @@ export function useTasks() {
   const [uiSettings, setUiSettings] = useState<UiSettings>({ ...DEFAULT_UI_SETTINGS });
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
-  const isLoadingRef = useRef(false);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -58,58 +51,51 @@ export function useTasks() {
   }, [supabase]);
 
   const loadAll = useCallback(async () => {
-    if (isLoadingRef.current) return;
-    isLoadingRef.current = true;
-    try {
-      const { data: taskData, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .order("completed", { ascending: true })
-        .order("due_date", { ascending: true, nullsFirst: false });
-      if (error) {
-        showToast("불러오기 실패. 다시 시도해주세요.");
-        return;
-      }
-      const loadedTasks = (taskData || []) as Task[];
-      setTasks(loadedTasks);
-
-      const ids = loadedTasks.map((t) => t.id);
-      if (!ids.length) {
-        setItemsByTask({});
-        setEventsByTask({});
-        return;
-      }
-
-      const [{ data: items }, { data: events }] = await Promise.all([
-        supabase
-          .from("task_items")
-          .select("*")
-          .in("task_id", ids)
-          .order("position", { ascending: true })
-          .order("created_at", { ascending: true }),
-        supabase
-          .from("task_events")
-          .select("*")
-          .in("task_id", ids)
-          .order("created_at", { ascending: true }),
-      ]);
-
-      const grouped: Record<string, TaskItem[]> = {};
-      (items || []).forEach((item: TaskItem) => {
-        if (!grouped[item.task_id]) grouped[item.task_id] = [];
-        grouped[item.task_id].push(item);
-      });
-      setItemsByTask(grouped);
-
-      const evGrouped: Record<string, TaskEvent[]> = {};
-      (events || []).forEach((ev: TaskEvent) => {
-        if (!evGrouped[ev.task_id]) evGrouped[ev.task_id] = [];
-        evGrouped[ev.task_id].push(ev);
-      });
-      setEventsByTask(evGrouped);
-    } finally {
-      isLoadingRef.current = false;
+    const { data: taskData, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .order("due_date", { ascending: true, nullsFirst: false });
+    if (error) {
+      showToast("불러오기 실패. 다시 시도해주세요.");
+      return;
     }
+    const loadedTasks = (taskData || []) as Task[];
+    setTasks(loadedTasks);
+
+    const ids = loadedTasks.map((t) => t.id);
+    if (!ids.length) {
+      setItemsByTask({});
+      setEventsByTask({});
+      return;
+    }
+
+    const [{ data: items }, { data: events }] = await Promise.all([
+      supabase
+        .from("task_items")
+        .select("*")
+        .in("task_id", ids)
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("task_events")
+        .select("*")
+        .in("task_id", ids)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    const grouped: Record<string, TaskItem[]> = {};
+    (items || []).forEach((item: TaskItem) => {
+      if (!grouped[item.task_id]) grouped[item.task_id] = [];
+      grouped[item.task_id].push(item);
+    });
+    setItemsByTask(grouped);
+
+    const evGrouped: Record<string, TaskEvent[]> = {};
+    (events || []).forEach((ev: TaskEvent) => {
+      if (!evGrouped[ev.task_id]) evGrouped[ev.task_id] = [];
+      evGrouped[ev.task_id].push(ev);
+    });
+    setEventsByTask(evGrouped);
   }, [supabase, showToast]);
 
   const reload = useCallback(async () => {
@@ -124,16 +110,17 @@ export function useTasks() {
     })();
   }, [loadAll, loadUiSettings]);
 
-  // Supabase Realtime 구독
+  // 폴링
   useEffect(() => {
-    const channel = supabase
-      .channel('tasks-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => { reload(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_items' }, () => { reload(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_events' }, () => { reload(); })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [supabase, reload]);
+    const tick = () => {
+      loadAll();
+      pollRef.current = setTimeout(tick, POLL_INTERVAL);
+    };
+    pollRef.current = setTimeout(tick, POLL_INTERVAL);
+    return () => {
+      if (pollRef.current) clearTimeout(pollRef.current);
+    };
+  }, [loadAll]);
 
   // CRUD actions
   async function addTask(payload: Omit<Task, "id" | "created_at" | "completed_at" | "completed">) {
@@ -168,47 +155,29 @@ export function useTasks() {
   }
 
   async function toggleDone(id: string, current: boolean) {
-    // 즉시 낙관적 업데이트
-    setTasks(prev => prev.map(t => t.id === id
-      ? { ...t, completed: !current, completed_at: !current ? new Date().toISOString() : null }
-      : t
-    ));
-
     const now = new Date().toISOString();
     const { error } = await supabase.from("tasks").update({
       completed: !current,
       completed_at: !current ? now : null,
     }).eq("id", id);
-    if (error) {
-      // 실패 시 롤백
-      setTasks(prev => prev.map(t => t.id === id
-        ? { ...t, completed: current, completed_at: current ? now : null }
-        : t
-      ));
-      showToast("상태 변경 실패.");
-      return;
-    }
-    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '';
-    const task = tasks.find(t => t.id === id);
+    if (error) { showToast("상태 변경 실패."); return; }
+    const actor = typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경';
     await addTaskEvent(id, "status_changed", {
       scope: "task", action: !current ? "completed" : "reopened",
     });
     if (!current) {
       // 할 일 완료 시 파트너에게 푸시 알림
-      if (!actor) { /* skip push: actor unknown */ }
-      else {
-        const partnerUid = await getPartnerUserId(supabase);
-        if (partnerUid && task) {
-          sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 완료했어요 ✅`, task.title, `/tasks/${task.id}`);
-        }
+      const task = tasks.find(t => t.id === id);
+      const partnerUid = await getPartnerUserId(supabase);
+      if (partnerUid && task) {
+        sendPushToPartner(partnerUid, `${actor}이(가) 완료했어요 ✅`, task.title);
       }
     }
-    // 백그라운드 reload (UI는 이미 업데이트됨)
-    reload();
+    await reload();
   }
 
   async function addTaskEvent(taskId: string, eventType: TaskEvent["event_type"], payload: Record<string, unknown>, actor?: string) {
-    const resolvedActor = actor ?? (typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '') : '');
+    const resolvedActor = actor ?? (typeof window !== 'undefined' ? (localStorage.getItem('ori_ranger_actor') ?? '하경') : '하경');
     await supabase.from("task_events").insert([{ task_id: taskId, event_type: eventType, actor: resolvedActor, payload }]);
   }
 
@@ -219,7 +188,7 @@ export function useTasks() {
     const task = tasks.find(t => t.id === taskId);
     const partnerUid = await getPartnerUserId(supabase);
     if (partnerUid && task) {
-      sendPushToPartner(partnerUid, `${actor}${subjectMarker(actor)} 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`, `/tasks/${taskId}`);
+      sendPushToPartner(partnerUid, `${actor}이(가) 댓글을 남겼어요 💬`, `"${text.slice(0, 40)}" — ${task.title}`);
     }
     await reload();
   }

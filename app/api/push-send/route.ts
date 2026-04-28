@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   );
 
   try {
-    const { targetUserId, title, body, icon, url } = await req.json();
+    const { targetUserId, title, body, icon } = await req.json();
     if (!targetUserId || !title) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
       title,
       body: body ?? "",
       icon: icon ?? "/icons/icon-192.png",
-      url: url ?? "/",
     });
 
     await webpush.sendNotification(sub, payload);
