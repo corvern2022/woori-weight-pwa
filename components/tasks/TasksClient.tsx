@@ -75,39 +75,48 @@ export function TasksClient() {
       </div>
 
       {/* Filter tabs */}
-      <div role="tablist" className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 22px 12px', overflowX: 'auto' }}>
-        {FILTERS.map(f => (
-          <button
-            key={f}
-            role="tab"
-            aria-selected={filter === f}
-            onClick={() => setFilter(f)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 100,
-              border: 'none',
-              cursor: 'pointer',
-              background: filter === f ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--card)',
-              color: filter === f ? '#fff' : 'var(--ink-soft)',
-              fontFamily: 'Jua, sans-serif',
-              fontSize: 15,
-              boxShadow: filter === f ? '0 4px 12px rgba(0,0,0,0.18)' : 'var(--shadow-soft)',
-              flexShrink: 0,
-            }}
-          >
-            {f === '창희' && '🦆 '}{f === '하경' && '🐬 '}{f === '같이' && '💞 '}{f}
-            {filterCounts[f] > 0 && (
-              <span style={{
-                marginLeft: 5,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                minWidth: 18, height: 18, borderRadius: 9, padding: '0 4px',
-                background: filter === f ? 'rgba(255,255,255,0.28)' : 'var(--accent-soft)',
-                color: filter === f ? '#fff' : 'var(--accent-deep)',
-                fontSize: 11, fontFamily: 'Jua, sans-serif', lineHeight: 1,
-              }}>{filterCounts[f]}</span>
-            )}
-          </button>
-        ))}
+      <div style={{ position: 'relative' }}>
+        <div role="tablist" className="no-scrollbar" style={{ display: 'flex', gap: 6, padding: '4px 18px 12px', overflowX: 'auto' }}>
+          {FILTERS.map(f => (
+            <button
+              key={f}
+              role="tab"
+              aria-selected={filter === f}
+              onClick={() => setFilter(f)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 100,
+                border: 'none',
+                cursor: 'pointer',
+                background: filter === f ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--card)',
+                color: filter === f ? '#fff' : 'var(--ink-soft)',
+                fontFamily: 'Jua, sans-serif',
+                fontSize: 13,
+                boxShadow: filter === f ? '0 4px 12px rgba(0,0,0,0.18)' : 'var(--shadow-soft)',
+                flexShrink: 0,
+                display: 'flex', alignItems: 'center', gap: 3,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {f === '창희' && '🦆'}{f === '하경' && '🐬'}{f === '같이' && '💞'} {f}
+              {filterCounts[f] > 0 && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  minWidth: 16, height: 16, borderRadius: 8, padding: '0 3px',
+                  background: filter === f ? 'rgba(255,255,255,0.28)' : 'var(--accent-soft)',
+                  color: filter === f ? '#fff' : 'var(--accent-deep)',
+                  fontSize: 10, fontFamily: 'Jua, sans-serif', lineHeight: 1,
+                }}>{filterCounts[f]}</span>
+              )}
+            </button>
+          ))}
+        </div>
+        {/* 오른쪽 페이드 — 스크롤 가능 힌트 */}
+        <div style={{
+          position: 'absolute', top: 0, right: 0, width: 32, height: '100%',
+          background: 'linear-gradient(to right, transparent, var(--bg))',
+          pointerEvents: 'none',
+        }} />
       </div>
 
       {/* Task list */}
