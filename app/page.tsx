@@ -58,96 +58,203 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
 }
 
 // ── Weather ───────────────────────────────────────────────────────────────────
-type WeatherType = 'sunny' | 'rain' | 'snow' | 'thunder' | 'none'
+type WeatherType = 'sunny' | 'partly_cloudy' | 'cloudy' | 'foggy' | 'rain' | 'snow' | 'thunder'
 
 function getWeatherType(label: string): WeatherType {
   if (label === '맑음') return 'sunny'
-  if (label.includes('눈')) return 'snow'
+  if (label === '구름 조금') return 'partly_cloudy'
+  if (label === '흐림') return 'cloudy'
+  if (label === '안개') return 'foggy'
   if (label === '천둥번개') return 'thunder'
+  if (label.includes('눈')) return 'snow'
   if (label.includes('비') || label === '소나기' || label === '이슬비') return 'rain'
-  return 'none'
+  return 'sunny' // 기본값: 맑음 (날씨 로딩 전 또는 알 수 없는 경우)
 }
 
-const RAIN_DROPS = Array.from({ length: 22 }, (_, i) => ({
-  left: `${(i * 4.6 + 2) % 100}%`,
+// Deterministic configs
+const RAIN_DROPS = Array.from({ length: 26 }, (_, i) => ({
+  left: `${(i * 3.9 + 1.5) % 100}%`,
   delay: `${((i * 137) % 900) / 1000}s`,
-  duration: `${(420 + (i * 71) % 240) / 1000}s`,
-  height: 14 + (i % 5) * 3,
+  duration: `${(380 + (i * 71) % 220) / 1000}s`,
+  height: 16 + (i % 5) * 3,
 }))
 
-const SNOW_FLAKES = Array.from({ length: 28 }, (_, i) => ({
-  left: `${(i * 3.6 + 1.5) % 100}%`,
-  size: 4 + (i % 4),
+const SNOW_FLAKES = Array.from({ length: 30 }, (_, i) => ({
+  left: `${(i * 3.4 + 1) % 100}%`,
+  size: 5 + (i % 4),
   delay: `${((i * 211) % 3200) / 1000}s`,
-  duration: `${(2400 + (i * 137) % 2000) / 1000}s`,
+  duration: `${(2200 + (i * 137) % 2000) / 1000}s`,
 }))
+
+// Deterministic cloud positions for partly_cloudy / cloudy
+const CLOUDS = [
+  { left: '8%',  top: '8%',  w: 88, h: 44, delay: 0,   dur: 8  },
+  { left: '52%', top: '6%',  w: 72, h: 36, delay: 2.5, dur: 10 },
+  { left: '28%', top: '22%', w: 60, h: 30, delay: 1.2, dur: 9  },
+  { left: '68%', top: '18%', w: 96, h: 48, delay: 3.8, dur: 11 },
+]
+
+// Pure-CSS cloud blob
+function CloudBlob({ left, top, w, h, delay, dur, opacity }: {
+  left: string; top: string; w: number; h: number; delay: number; dur: number; opacity: number
+}) {
+  return (
+    <div style={{
+      position: 'absolute', left, top,
+      width: w, height: h,
+      background: 'rgba(255,255,255,0.88)',
+      borderRadius: `${h}px ${h}px ${h * 0.8}px ${h * 0.8}px`,
+      boxShadow: `
+        ${w * 0.28}px -${h * 0.36}px 0 ${h * 0.18}px rgba(255,255,255,0.82),
+        ${w * 0.55}px -${h * 0.18}px 0 ${h * 0.08}px rgba(255,255,255,0.75),
+        -${w * 0.12}px -${h * 0.22}px 0 ${h * 0.12}px rgba(255,255,255,0.78)
+      `,
+      opacity,
+      animation: `floatCloud ${dur}s ease-in-out infinite ${delay}s`,
+      filter: 'drop-shadow(0 4px 8px rgba(100,140,180,0.18))',
+      pointerEvents: 'none',
+    }} />
+  )
+}
 
 function WeatherEffect({ type }: { type: WeatherType }) {
-  if (type === 'none') return null
 
+  /* ── 맑음 ── */
   if (type === 'sunny') return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      {/* warm ambient glow */}
       <div style={{
-        position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,220,0,0.22) 0%, rgba(255,190,0,0.06) 55%, transparent 70%)',
+        position: 'absolute', top: -60, right: -60,
+        width: 260, height: 260, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,215,0,0.32) 0%, rgba(255,190,0,0.10) 50%, transparent 70%)',
         animation: 'sunGlow 4s ease-in-out infinite',
       }} />
-      <div style={{ position: 'absolute', top: 16, right: 18, width: 44, height: 44 }}>
-        <div style={{ position: 'absolute', top: -18, left: -18, right: -18, bottom: -18, animation: 'rayRotate 20s linear infinite' }}>
-          {[0,45,90,135,180,225,270,315].map(deg => (
+      {/* sun */}
+      <div style={{ position: 'absolute', top: 20, right: 22, width: 62, height: 62 }}>
+        {/* rotating rays */}
+        <div style={{ position: 'absolute', top: -24, left: -24, right: -24, bottom: -24, animation: 'rayRotate 18s linear infinite' }}>
+          {[0,40,80,120,160,200,240,280,320].map(deg => (
             <div key={deg} style={{
               position: 'absolute', top: '50%', left: '50%',
-              width: 13, height: 2.5, marginTop: -1.25, borderRadius: 2,
-              background: 'rgba(255,205,0,0.6)',
-              transform: `rotate(${deg}deg) translateX(28px)`, transformOrigin: '0 50%',
+              width: 18, height: 3.5, marginTop: -1.75, borderRadius: 3,
+              background: 'rgba(255,210,0,0.7)',
+              transform: `rotate(${deg}deg) translateX(40px)`,
+              transformOrigin: '0 50%',
             }} />
           ))}
         </div>
+        {/* disc */}
         <div style={{
           position: 'absolute', inset: 0, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #FFFDE7, #FFD740)',
-          boxShadow: '0 0 0 4px rgba(255,220,0,0.16), 0 0 20px rgba(255,200,0,0.38)',
+          background: 'linear-gradient(135deg, #FFFDE0, #FFD600)',
+          boxShadow: '0 0 0 6px rgba(255,220,0,0.20), 0 0 32px rgba(255,200,0,0.50)',
           animation: 'sunGlow 4s ease-in-out infinite',
         }} />
       </div>
+      {/* light streaks */}
+      {[110, 130, 152].map((angle, i) => (
+        <div key={i} style={{
+          position: 'absolute', top: 51, right: 53,
+          width: 2, height: 60 + i * 30,
+          background: 'linear-gradient(to bottom, rgba(255,215,0,0.24), transparent)',
+          transformOrigin: 'top center',
+          transform: `rotate(${angle}deg)`,
+        }} />
+      ))}
     </div>
   )
 
+  /* ── 구름 조금 ── */
+  if (type === 'partly_cloudy') return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      {/* smaller sun peeking */}
+      <div style={{ position: 'absolute', top: 18, right: 20, width: 48, height: 48 }}>
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #FFFDE0, #FFD600)',
+          boxShadow: '0 0 0 4px rgba(255,220,0,0.18), 0 0 20px rgba(255,200,0,0.38)',
+          animation: 'sunGlow 4s ease-in-out infinite',
+        }} />
+      </div>
+      {/* 2 clouds */}
+      <CloudBlob {...CLOUDS[0]} opacity={0.92} />
+      <CloudBlob {...CLOUDS[1]} opacity={0.78} />
+    </div>
+  )
+
+  /* ── 흐림 ── */
+  if (type === 'cloudy') return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      {/* gray sky tint */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(160,175,195,0.18) 0%, transparent 70%)',
+      }} />
+      {CLOUDS.map((c, i) => <CloudBlob key={i} {...c} opacity={0.88 - i * 0.05} />)}
+    </div>
+  )
+
+  /* ── 안개 ── */
+  if (type === 'foggy') return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{
+          position: 'absolute', left: 0, right: 0,
+          top: `${15 + i * 22}%`, height: 28,
+          background: 'rgba(200,215,230,0.35)',
+          borderRadius: 20,
+          animation: `floatCloud ${10 + i * 3}s ease-in-out infinite ${i * 2}s`,
+        }} />
+      ))}
+    </div>
+  )
+
+  /* ── 비 / 천둥번개 ── */
   if (type === 'rain' || type === 'thunder') return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
       <div style={{
         position: 'absolute', inset: 0,
         background: type === 'thunder'
-          ? 'linear-gradient(180deg, rgba(50,60,115,0.18) 0%, transparent 70%)'
-          : 'linear-gradient(180deg, rgba(80,115,155,0.12) 0%, transparent 65%)',
+          ? 'linear-gradient(180deg, rgba(45,55,110,0.22) 0%, transparent 70%)'
+          : 'linear-gradient(180deg, rgba(75,110,150,0.15) 0%, transparent 65%)',
       }} />
+      {/* clouds above rain */}
+      <CloudBlob {...CLOUDS[0]} opacity={type === 'thunder' ? 0.65 : 0.72} />
+      <CloudBlob {...CLOUDS[3]} opacity={type === 'thunder' ? 0.55 : 0.62} />
+      {/* drops */}
       {RAIN_DROPS.map((d, i) => (
         <div key={i} style={{
-          position: 'absolute', left: d.left, top: -20,
-          width: type === 'thunder' ? 2.5 : 1.8, height: d.height, borderRadius: 1,
-          background: type === 'thunder' ? 'rgba(150,190,255,0.76)' : 'rgba(100,175,255,0.62)',
+          position: 'absolute', left: d.left, top: -22,
+          width: type === 'thunder' ? 2.8 : 2, height: d.height, borderRadius: 2,
+          background: type === 'thunder' ? 'rgba(140,185,255,0.82)' : 'rgba(90,165,255,0.68)',
           animationName: 'rainFall', animationDuration: d.duration, animationDelay: d.delay,
           animationTimingFunction: 'linear', animationIterationCount: 'infinite',
         }} />
       ))}
       {type === 'thunder' && (
         <div style={{
-          position: 'absolute', inset: 0, background: 'rgba(210,225,255,0.92)',
+          position: 'absolute', inset: 0, background: 'rgba(210,225,255,0.88)',
           animation: 'lightningFlash 3.8s 1.2s linear infinite',
         }} />
       )}
     </div>
   )
 
-  // snow
+  /* ── 눈 ── */
   return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(195,215,255,0.12) 0%, transparent 55%)',
+      }} />
+      {/* light clouds */}
+      <CloudBlob {...CLOUDS[1]} opacity={0.60} />
+      <CloudBlob {...CLOUDS[2]} opacity={0.50} />
       {SNOW_FLAKES.map((f, i) => (
         <div key={i} style={{
-          position: 'absolute', left: f.left, top: -10,
+          position: 'absolute', left: f.left, top: -12,
           width: f.size, height: f.size, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.93)',
-          boxShadow: `0 0 ${f.size + 2}px rgba(200,230,255,0.75)`,
+          background: 'rgba(255,255,255,0.95)',
+          boxShadow: `0 0 ${f.size + 3}px rgba(200,225,255,0.80)`,
           animationName: 'snowFall', animationDuration: `${f.duration}s`,
           animationDelay: `${f.delay}s`, animationTimingFunction: 'ease-in-out',
           animationIterationCount: 'infinite',
@@ -229,7 +336,7 @@ export default function HomePage() {
   const now = new Date()
   const dateLabel = `${now.getMonth() + 1}월 ${now.getDate()}일 (${['일','월','화','수','목','금','토'][now.getDay()]})`
   const weatherType = getWeatherType(weather.label)
-  const weatherReady = !weather.loading && weather.label !== '날씨 확인 중'
+  const weatherReady = !weather.loading && weather.label !== '날씨 확인 중' && weather.label !== ''
 
   return (
     <div style={{
@@ -379,7 +486,7 @@ export default function HomePage() {
       </div>
 
       {/* ── Stat Row ── */}
-      <div style={{ display: 'flex', gap: 10, padding: '0 14px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 10, padding: '0 14px', marginBottom: 14, flexShrink: 0 }}>
         {/* Task card */}
         <button onClick={() => router.push('/tasks')} style={{
           flex: 1, background: 'var(--card)', borderRadius: 20, padding: '14px 16px',
