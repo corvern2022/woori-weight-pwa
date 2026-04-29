@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --font-main: 'Nanum Gothic', sans-serif;
+  --font-main: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
 
   --bg: #EAF4FB;
   --bg-deep: #D4ECF7;

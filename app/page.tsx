@@ -9,43 +9,41 @@ import { useWeather } from '@/lib/useWeather'
 import { usePush } from '@/lib/usePush'
 
 const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
-  { emoji: '😊', label: '행복해',    color: '#D97706', bg: '#FEF3C7' },
-  { emoji: '🥰', label: '설레',      color: '#DB2777', bg: '#FCE7F3' },
-  { emoji: '🔥', label: '의욕넘쳐',  color: '#EA580C', bg: '#FFEDD5' },
-  { emoji: '😎', label: '여유로워',  color: '#0369A1', bg: '#E0F2FE' },
-  { emoji: '😌', label: '평온해',    color: '#059669', bg: '#D1FAE5' },
-  { emoji: '🥱', label: '피곤해',    color: '#6B7280', bg: '#F3F4F6' },
-  { emoji: '😤', label: '스트레스',  color: '#DC2626', bg: '#FEE2E2' },
-  { emoji: '🥺', label: '우울해',    color: '#7C3AED', bg: '#EDE9FE' },
-  { emoji: '💪', label: '힘차',      color: '#D97706', bg: '#FEF9C3' },
-  { emoji: '🫶', label: '사랑해',    color: '#BE185D', bg: '#FDF2F8' },
+  { emoji: '😊', label: '행복해',   color: '#D97706', bg: '#FEF3C7' },
+  { emoji: '🥰', label: '설레',     color: '#DB2777', bg: '#FCE7F3' },
+  { emoji: '🔥', label: '의욕넘쳐', color: '#EA580C', bg: '#FFEDD5' },
+  { emoji: '😎', label: '여유로워', color: '#0369A1', bg: '#E0F2FE' },
+  { emoji: '😌', label: '평온해',   color: '#059669', bg: '#D1FAE5' },
+  { emoji: '🥱', label: '피곤해',   color: '#6B7280', bg: '#F3F4F6' },
+  { emoji: '😤', label: '스트레스', color: '#DC2626', bg: '#FEE2E2' },
+  { emoji: '🥺', label: '우울해',   color: '#7C3AED', bg: '#EDE9FE' },
+  { emoji: '💪', label: '힘차',     color: '#D97706', bg: '#FEF9C3' },
+  { emoji: '🫶', label: '사랑해',   color: '#BE185D', bg: '#FDF2F8' },
 ]
 
 type MoodState = { emoji: string; text: string; updated_at: string } | null
 
-// ── OnboardingScreen ─────────────────────────────────────────────────────────
+// ── Onboarding ────────────────────────────────────────────────────────────────
 function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') => void }) {
   return (
     <div style={{
-      minHeight: '100svh', background: 'var(--bg)', display: 'flex', flexDirection: 'column',
+      minHeight: '100svh', background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center', padding: '0 24px',
     }}>
       <div style={{ fontSize: 40, marginBottom: 10 }}>👋</div>
-      <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
-        오리 레인저
-      </div>
-      <div style={{ fontFamily: 'var(--font-main)', fontSize: 16, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>
-        나는 누구인가요?
-      </div>
+      <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>오리 레인저</div>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 16, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>나는 누구인가요?</div>
       <div style={{ display: 'flex', gap: 20, width: '100%', maxWidth: 340 }}>
         {([
           { who: '창희', char: <Duck size={90} variant="strong" palette="yellow" />, color: 'var(--duck-deep)' },
-          { who: '하경', char: <Dolphin size={90} variant="happy" palette="blue" />, color: 'var(--accent-deep)' },
+          { who: '하경', char: <Dolphin size={90} variant="happy" palette="blue" />,  color: 'var(--accent-deep)' },
         ] as const).map(({ who, char, color }) => (
           <button key={who} onClick={() => onSelect(who)} style={{
-            flex: 1, background: 'var(--card)', border: '2.5px solid transparent', borderRadius: 28,
-            padding: '28px 16px', cursor: 'pointer', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 10, boxShadow: 'var(--shadow)',
+            flex: 1, background: 'var(--card)', border: '2.5px solid transparent',
+            borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            boxShadow: 'var(--shadow)',
           }}>
             {char}
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color }}>{who}</div>
@@ -59,7 +57,7 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
   )
 }
 
-// ── Weather effect ────────────────────────────────────────────────────────────
+// ── Weather ───────────────────────────────────────────────────────────────────
 type WeatherType = 'sunny' | 'rain' | 'snow' | 'thunder' | 'none'
 
 function getWeatherType(label: string): WeatherType {
@@ -87,74 +85,63 @@ const SNOW_FLAKES = Array.from({ length: 28 }, (_, i) => ({
 function WeatherEffect({ type }: { type: WeatherType }) {
   if (type === 'none') return null
 
-  if (type === 'sunny') {
-    return (
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+  if (type === 'sunny') return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      <div style={{
+        position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,220,0,0.22) 0%, rgba(255,190,0,0.06) 55%, transparent 70%)',
+        animation: 'sunGlow 4s ease-in-out infinite',
+      }} />
+      <div style={{ position: 'absolute', top: 16, right: 18, width: 44, height: 44 }}>
+        <div style={{ position: 'absolute', top: -18, left: -18, right: -18, bottom: -18, animation: 'rayRotate 20s linear infinite' }}>
+          {[0,45,90,135,180,225,270,315].map(deg => (
+            <div key={deg} style={{
+              position: 'absolute', top: '50%', left: '50%',
+              width: 13, height: 2.5, marginTop: -1.25, borderRadius: 2,
+              background: 'rgba(255,205,0,0.6)',
+              transform: `rotate(${deg}deg) translateX(28px)`, transformOrigin: '0 50%',
+            }} />
+          ))}
+        </div>
         <div style={{
-          position: 'absolute', top: -40, right: -40,
-          width: 200, height: 200, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,220,0,0.22) 0%, rgba(255,190,0,0.06) 55%, transparent 70%)',
+          position: 'absolute', inset: 0, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #FFFDE7, #FFD740)',
+          boxShadow: '0 0 0 4px rgba(255,220,0,0.16), 0 0 20px rgba(255,200,0,0.38)',
           animation: 'sunGlow 4s ease-in-out infinite',
         }} />
-        <div style={{ position: 'absolute', top: 16, right: 18, width: 44, height: 44 }}>
-          <div style={{ position: 'absolute', top: -18, left: -18, right: -18, bottom: -18, animation: 'rayRotate 20s linear infinite' }}>
-            {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
-              <div key={deg} style={{
-                position: 'absolute', top: '50%', left: '50%',
-                width: 13, height: 2.5, marginTop: -1.25,
-                borderRadius: 2, background: 'rgba(255,205,0,0.6)',
-                transform: `rotate(${deg}deg) translateX(28px)`, transformOrigin: '0 50%',
-              }} />
-            ))}
-          </div>
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #FFFDE7, #FFD740)',
-            boxShadow: '0 0 0 4px rgba(255,220,0,0.16), 0 0 20px rgba(255,200,0,0.38)',
-            animation: 'sunGlow 4s ease-in-out infinite',
-          }} />
-        </div>
       </div>
-    )
-  }
+    </div>
+  )
 
-  if (type === 'rain' || type === 'thunder') {
-    return (
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: type === 'thunder'
-            ? 'linear-gradient(180deg, rgba(50,60,115,0.16) 0%, transparent 65%)'
-            : 'linear-gradient(180deg, rgba(80,115,155,0.10) 0%, transparent 60%)',
-        }} />
-        {RAIN_DROPS.map((d, i) => (
-          <div key={i} style={{
-            position: 'absolute', left: d.left, top: -20,
-            width: type === 'thunder' ? 2.5 : 1.8, height: d.height,
-            borderRadius: 1,
-            background: type === 'thunder' ? 'rgba(150,190,255,0.76)' : 'rgba(100,175,255,0.62)',
-            animationName: 'rainFall', animationDuration: d.duration,
-            animationDelay: d.delay, animationTimingFunction: 'linear',
-            animationIterationCount: 'infinite',
-          }} />
-        ))}
-        {type === 'thunder' && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'rgba(210,225,255,0.92)',
-            animation: 'lightningFlash 3.8s 1.2s linear infinite',
-          }} />
-        )}
-      </div>
-    )
-  }
-
-  return (
+  if (type === 'rain' || type === 'thunder') return (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(200,220,255,0.08) 0%, transparent 55%)',
+        background: type === 'thunder'
+          ? 'linear-gradient(180deg, rgba(50,60,115,0.18) 0%, transparent 70%)'
+          : 'linear-gradient(180deg, rgba(80,115,155,0.12) 0%, transparent 65%)',
       }} />
+      {RAIN_DROPS.map((d, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: d.left, top: -20,
+          width: type === 'thunder' ? 2.5 : 1.8, height: d.height, borderRadius: 1,
+          background: type === 'thunder' ? 'rgba(150,190,255,0.76)' : 'rgba(100,175,255,0.62)',
+          animationName: 'rainFall', animationDuration: d.duration, animationDelay: d.delay,
+          animationTimingFunction: 'linear', animationIterationCount: 'infinite',
+        }} />
+      ))}
+      {type === 'thunder' && (
+        <div style={{
+          position: 'absolute', inset: 0, background: 'rgba(210,225,255,0.92)',
+          animation: 'lightningFlash 3.8s 1.2s linear infinite',
+        }} />
+      )}
+    </div>
+  )
+
+  // snow
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
       {SNOW_FLAKES.map((f, i) => (
         <div key={i} style={{
           position: 'absolute', left: f.left, top: -10,
@@ -170,31 +157,7 @@ function WeatherEffect({ type }: { type: WeatherType }) {
   )
 }
 
-// ── Stat chip (compact info pill) ────────────────────────────────────────────
-function StatChip({
-  label, value, sub, accent, onClick,
-}: {
-  label: string; value: string | number; sub?: string; accent: string; onClick: () => void
-}) {
-  return (
-    <button onClick={onClick} style={{
-      flex: 1, background: 'var(--card)', borderRadius: 20,
-      padding: '14px 16px', border: 'none', cursor: 'pointer', textAlign: 'left',
-      boxShadow: 'var(--shadow-soft)', position: 'relative', overflow: 'hidden',
-    }}>
-      {/* accent glow strip at top */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-        background: accent, borderRadius: '20px 20px 0 0', opacity: 0.7,
-      }} />
-      <div style={{ fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-mute)', fontWeight: 600, letterSpacing: 0.3, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, color: accent, lineHeight: 1, letterSpacing: -1 }}>{value}</div>
-      {sub && <div style={{ fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-soft)', marginTop: 3 }}>{sub}</div>}
-    </button>
-  )
-}
-
-// ── HomePage ─────────────────────────────────────────────────────────────────
+// ── HomePage ──────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const router = useRouter()
   const [actor, setActor] = useState<string | null>(null)
@@ -234,8 +197,7 @@ export default function HomePage() {
     supabase.from('household_members').select('user_id, display_name').then(({ data: members }) => {
       if (!members) return
       members.forEach(async (m: { user_id: string; display_name: string }) => {
-        const { data } = await supabase
-          .from('weigh_ins').select('weight_kg')
+        const { data } = await supabase.from('weigh_ins').select('weight_kg')
           .eq('user_id', m.user_id).order('date', { ascending: false }).limit(1)
         const kg = data?.[0]?.weight_kg ?? null
         if (m.display_name === '창희') setDuckKg(kg)
@@ -260,185 +222,206 @@ export default function HomePage() {
     setMoodEmoji('😊')
   }
 
-  function handleOnboardingSelect(who: '창희' | '하경') {
-    localStorage.setItem('ori_ranger_actor', who)
-    setActor(who)
-  }
-
   if (actor === null) return null
-  if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
+  if (actor === '') return <OnboardingScreen onSelect={(who) => { localStorage.setItem('ori_ranger_actor', who); setActor(who) }} />
 
-  const dDay = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date('2023-07-08').setHours(0, 0, 0, 0)) / 86400000)
+  const dDay = Math.floor((new Date().setHours(0,0,0,0) - new Date('2023-07-08').setHours(0,0,0,0)) / 86400000)
   const now = new Date()
   const dateLabel = `${now.getMonth() + 1}월 ${now.getDate()}일 (${['일','월','화','수','목','금','토'][now.getDay()]})`
   const weatherType = getWeatherType(weather.label)
+  const weatherReady = !weather.loading && weather.label !== '날씨 확인 중'
 
   return (
     <div style={{
       width: '100%', height: '100svh',
-      background: 'var(--bg)',
-      color: 'var(--ink)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      position: 'relative',
+      background: 'var(--bg)', color: 'var(--ink)',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
 
       {/* ── Header ── */}
-      <div style={{ padding: '52px 20px 12px', flexShrink: 0, position: 'relative', zIndex: 3 }}>
-        {/* Top row: date/weather left, D+N right */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)' }}>
+      <div style={{
+        padding: '52px 20px 12px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexShrink: 0, zIndex: 2,
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{
+            fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 20,
+            color: 'var(--ink)', letterSpacing: -0.5,
+          }}>
+            오리 레인저 🦆
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-soft)',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
             <span>{dateLabel}</span>
-            {weather.label && weather.label !== '날씨 확인 중' && (
+            {weatherReady && (
               <>
-                <span style={{ opacity: 0.4 }}>·</span>
-                <span>{weather.emoji}</span>
-                <span>{weather.label}</span>
+                <span style={{ opacity: 0.35 }}>·</span>
+                <span>{weather.emoji} {weather.label}</span>
                 {weather.temp !== null && (
-                  <span style={{ color: 'var(--accent-deep)', fontWeight: 700 }}>{weather.temp}°</span>
+                  <span style={{ color: 'var(--accent-deep)', fontWeight: 600 }}>{weather.temp}°</span>
                 )}
               </>
             )}
           </div>
-          <div style={{
-            background: 'linear-gradient(135deg, var(--peach), var(--pink))',
-            borderRadius: 100, padding: '4px 14px',
-            fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 14,
-            color: '#fff', boxShadow: 'var(--shadow-soft)', letterSpacing: -0.3,
-          }}>
-            💞 D+{dDay}
-          </div>
         </div>
-
-        {/* Greeting */}
-        <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 22, letterSpacing: -0.5, lineHeight: 1.2 }}>
-          오늘도 같이 파이팅! 🦆🐬
-        </div>
-
-        {/* Stat chips */}
-        <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-          <StatChip
-            label="📋 할 일"
-            value={openCount === 0 ? '🎉' : openCount}
-            sub={openCount === 0 ? '모두 완료!' : `${openCount}개 남음`}
-            accent="var(--peach-deep)"
-            onClick={() => router.push('/tasks')}
-          />
-          <StatChip
-            label="⚖️ 체중"
-            value={duckKg !== null ? `${duckKg}` : '-'}
-            sub={
-              duckKg !== null && dolphinKg !== null
-                ? `창희 ${duckKg}kg · 하경 ${dolphinKg}kg`
-                : duckKg !== null ? `창희 ${duckKg}kg`
-                : dolphinKg !== null ? `하경 ${dolphinKg}kg`
-                : '기록 없음'
-            }
-            accent="var(--accent-deep)"
-            onClick={() => router.push('/weight')}
-          />
+        {/* D+N pill */}
+        <div style={{
+          background: 'linear-gradient(135deg, var(--peach), var(--pink))',
+          borderRadius: 100, padding: '6px 16px',
+          fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 15,
+          color: '#fff', boxShadow: '0 4px 12px rgba(255,130,100,0.3)',
+          letterSpacing: -0.3, lineHeight: 1,
+        }}>
+          💞 D+{dDay}
         </div>
       </div>
 
-      {/* ── Character zone ── */}
-      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+      {/* ── Hero Card ── */}
+      <div style={{
+        flex: 1, minHeight: 0,
+        margin: '0 14px', marginBottom: 12,
+        borderRadius: 28,
+        background: 'linear-gradient(170deg, var(--accent-soft) 0%, var(--bg-deep) 55%, var(--dolphin-soft) 100%)',
+        boxShadow: 'var(--shadow)',
+        position: 'relative', overflow: 'hidden',
+      }}>
         {/* Weather overlay */}
         <WeatherEffect type={weatherType} />
 
-        {/* Ambient gradient background */}
+        {/* Water shimmer */}
         <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 55%, var(--accent-soft) 100%)',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Water shimmer at bottom */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: 80,
-          background: 'linear-gradient(180deg, transparent 0%, var(--accent-soft) 100%)',
-          borderRadius: '60% 60% 0 0 / 30% 30% 0 0',
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: 64,
+          background: 'linear-gradient(180deg, transparent 0%, rgba(100,175,220,0.18) 100%)',
           pointerEvents: 'none', zIndex: 1,
         }} />
 
-        {/* Duck — left side */}
+        {/* Characters — absolutely centered */}
         <div style={{
-          position: 'absolute', left: '6%', bottom: '18%',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 2,
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+          padding: '12px 8px 28px',
+          zIndex: 2,
         }}>
-          {/* Mood bubble */}
-          {duckMood ? (
+          {/* Duck */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>
+            {duckMood ? (
+              <div style={{
+                background: 'var(--duck-soft)', border: '1.5px solid var(--duck)',
+                borderRadius: '14px 14px 14px 4px', padding: '6px 11px',
+                fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--duck-deep)',
+                maxWidth: 110, wordBreak: 'keep-all', lineHeight: 1.4,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+              }}>
+                {duckMood.emoji} {duckMood.text}
+              </div>
+            ) : (
+              <div style={{
+                background: 'rgba(255,255,255,0.7)', border: '1.5px solid var(--border)',
+                borderRadius: '14px 14px 14px 4px', padding: '5px 10px',
+                fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-mute)',
+              }}>오늘 기분은?</div>
+            )}
+            <button
+              onClick={() => { setMoodTarget('duck'); setMoodModal(true) }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block', animation: 'bobY 3.5s ease-in-out infinite' }}
+            >
+              <Duck size={118} variant="strong" palette="yellow" />
+            </button>
             <div style={{
-              background: 'var(--duck-soft)', border: '1.5px solid var(--duck)',
-              borderRadius: '16px 16px 16px 4px', padding: '6px 12px',
-              fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--duck-deep)',
-              maxWidth: 110, wordBreak: 'keep-all', lineHeight: 1.4,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            }}>
-              {duckMood.emoji} {duckMood.text}
-            </div>
-          ) : (
-            <div style={{
-              background: 'var(--card)', border: '1.5px solid var(--border)',
-              borderRadius: '16px 16px 16px 4px', padding: '5px 10px',
-              fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-mute)',
-            }}>
-              기분 어때?
-            </div>
-          )}
-          <button
-            onClick={() => { setMoodTarget('duck'); setMoodModal(true) }}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite', display: 'block' }}
-          >
-            <Duck size={120} variant="strong" palette="yellow" />
-          </button>
-          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 12, color: 'var(--duck-deep)' }}>창희</div>
-        </div>
+              fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13,
+              color: 'var(--duck-deep)', letterSpacing: -0.3,
+            }}>창희 🦆</div>
+          </div>
 
-        {/* Dolphin — right side */}
-        <div style={{
-          position: 'absolute', right: '6%', bottom: '18%',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, zIndex: 2,
-        }}>
-          {dolphinMood ? (
-            <div style={{
-              background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)',
-              borderRadius: '16px 16px 4px 16px', padding: '6px 12px',
-              fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--accent-deep)',
-              maxWidth: 110, wordBreak: 'keep-all', lineHeight: 1.4, textAlign: 'right',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            }}>
-              {dolphinMood.emoji} {dolphinMood.text}
-            </div>
-          ) : (
-            <div style={{
-              background: 'var(--card)', border: '1.5px solid var(--border)',
-              borderRadius: '16px 16px 4px 16px', padding: '5px 10px',
-              fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-mute)',
-            }}>
-              기분 어때?
-            </div>
-          )}
-          <button
-            onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }}
-            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite', display: 'block' }}
-          >
-            <Dolphin size={120} variant="happy" palette="blue" />
-          </button>
-          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 12, color: 'var(--accent-deep)' }}>하경</div>
-        </div>
+          {/* Center */}
+          <div style={{
+            fontSize: 26, flexShrink: 0,
+            animation: 'bobY 4s ease-in-out infinite 1.2s',
+            filter: 'drop-shadow(0 2px 6px rgba(239,68,68,0.25))',
+          }}>
+            💕
+          </div>
 
-        {/* Center heart */}
-        <div style={{
-          position: 'absolute', bottom: '34%', left: '50%', transform: 'translateX(-50%)',
-          fontSize: 28, animation: 'bobY 4s ease-in-out infinite 1s', zIndex: 2, pointerEvents: 'none',
-          filter: 'drop-shadow(0 2px 8px rgba(239,68,68,0.3))',
-        }}>
-          💕
+          {/* Dolphin */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1 }}>
+            {dolphinMood ? (
+              <div style={{
+                background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)',
+                borderRadius: '14px 14px 4px 14px', padding: '6px 11px',
+                fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--accent-deep)',
+                maxWidth: 110, wordBreak: 'keep-all', lineHeight: 1.4, textAlign: 'right',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+              }}>
+                {dolphinMood.emoji} {dolphinMood.text}
+              </div>
+            ) : (
+              <div style={{
+                background: 'rgba(255,255,255,0.7)', border: '1.5px solid var(--border)',
+                borderRadius: '14px 14px 4px 14px', padding: '5px 10px',
+                fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-mute)',
+              }}>오늘 기분은?</div>
+            )}
+            <button
+              onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}
+            >
+              <Dolphin size={118} variant="happy" palette="blue" />
+            </button>
+            <div style={{
+              fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13,
+              color: 'var(--accent-deep)', letterSpacing: -0.3,
+            }}>하경 🐬</div>
+          </div>
         </div>
       </div>
 
-      {/* BottomNav spacer */}
-      <div style={{ height: 'calc(60px + env(safe-area-inset-bottom))', flexShrink: 0 }} />
+      {/* ── Stat Row ── */}
+      <div style={{ display: 'flex', gap: 10, padding: '0 14px', flexShrink: 0 }}>
+        {/* Task card */}
+        <button onClick={() => router.push('/tasks')} style={{
+          flex: 1, background: 'var(--card)', borderRadius: 20, padding: '14px 16px',
+          border: 'none', cursor: 'pointer', textAlign: 'left',
+          boxShadow: 'var(--shadow-soft)', position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'var(--peach-deep)', borderRadius: '20px 20px 0 0' }} />
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 11, fontWeight: 600, color: 'var(--ink-mute)', letterSpacing: 0.2, marginBottom: 3 }}>📋 할 일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 30, color: 'var(--peach-deep)', lineHeight: 1, letterSpacing: -1 }}>
+            {openCount === 0 ? '🎉' : openCount}
+          </div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-soft)', marginTop: 3 }}>
+            {openCount === 0 ? '모두 완료!' : `${openCount}개 남음`}
+          </div>
+        </button>
 
-      {/* ── Mood modal ── */}
+        {/* Weight card */}
+        <button onClick={() => router.push('/weight')} style={{
+          flex: 1, background: 'var(--card)', borderRadius: 20, padding: '14px 16px',
+          border: 'none', cursor: 'pointer', textAlign: 'left',
+          boxShadow: 'var(--shadow-soft)', position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'var(--accent-deep)', borderRadius: '20px 20px 0 0' }} />
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 11, fontWeight: 600, color: 'var(--ink-mute)', letterSpacing: 0.2, marginBottom: 3 }}>⚖️ 체중</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 24, color: 'var(--accent-deep)', lineHeight: 1, letterSpacing: -0.5 }}>
+            {duckKg !== null ? `${duckKg}` : dolphinKg !== null ? `${dolphinKg}` : '—'}
+            {(duckKg !== null || dolphinKg !== null) && <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--ink-mute)' }}> kg</span>}
+          </div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-soft)', marginTop: 3 }}>
+            {duckKg !== null && dolphinKg !== null
+              ? `🦆${duckKg} · 🐬${dolphinKg}`
+              : duckKg !== null ? `창희 ${duckKg}kg`
+              : dolphinKg !== null ? `하경 ${dolphinKg}kg`
+              : '기록 없음'}
+          </div>
+        </button>
+      </div>
+
+      {/* BottomNav spacer */}
+      <div style={{ height: 'calc(64px + env(safe-area-inset-bottom))', flexShrink: 0 }} />
+
+      {/* ── Mood Modal ── */}
       {moodModal && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
@@ -456,8 +439,8 @@ export default function HomePage() {
                 const selected = moodEmoji === m.emoji
                 return (
                   <button key={m.emoji} onClick={() => setMoodEmoji(m.emoji)} style={{
-                    display: 'flex', alignItems: 'center', gap: 5,
-                    padding: '8px 14px', minHeight: 44, borderRadius: 100, border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px',
+                    minHeight: 44, borderRadius: 100, border: 'none', cursor: 'pointer',
                     background: selected ? m.bg : 'var(--bg)',
                     outline: selected ? `2px solid ${m.color}` : '2px solid transparent',
                     transition: 'all 0.15s', transform: selected ? 'scale(1.06)' : 'scale(1)',
@@ -474,9 +457,17 @@ export default function HomePage() {
               onKeyDown={e => e.key === 'Enter' && saveMood()}
               placeholder="한 줄 메시지 (선택)"
               maxLength={20}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14, border: '2px solid var(--accent-soft)', fontFamily: 'var(--font-main)', fontSize: 15, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12 }}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14,
+                border: '2px solid var(--accent-soft)', fontFamily: 'var(--font-main)', fontSize: 15,
+                background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12,
+              }}
             />
-            <button onClick={saveMood} style={{ width: '100%', padding: '13px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
+            <button onClick={saveMood} style={{
+              width: '100%', padding: '13px 0', border: 'none', borderRadius: 16,
+              background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
+              color: '#fff', fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 16, cursor: 'pointer',
+            }}>
               저장하기 {moodEmoji}
             </button>
           </div>

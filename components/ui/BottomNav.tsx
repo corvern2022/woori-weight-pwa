@@ -37,9 +37,11 @@ export const BottomNav: React.FC = () => {
         borderTop: '1px solid var(--border)',
         paddingBottom: 'env(safe-area-inset-bottom)',
         zIndex: 50,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
       }}
     >
-      <div style={{ display: 'flex', height: 60 }}>
+      <div style={{ display: 'flex', height: 64 }}>
         {tabs.map((tab) => {
           const isActive = active === tab.id;
           return (
@@ -53,31 +55,41 @@ export const BottomNav: React.FC = () => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 2,
+                gap: 3,
                 color: isActive ? 'var(--accent-deep)' : 'var(--ink-mute)',
                 textDecoration: 'none',
                 position: 'relative',
                 transition: 'color 0.15s',
               }}
             >
-              <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.emoji}</span>
-              <span style={{
-                fontFamily: 'var(--font-main)',
-                fontSize: 11,
-                letterSpacing: -0.3,
-              }}>{tab.label}</span>
+              {/* Pill background for active tab */}
               {isActive && (
                 <div style={{
                   position: 'absolute',
-                  top: 0,
+                  top: '50%',
                   left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 32,
-                  height: 2,
-                  borderRadius: '0 0 2px 2px',
-                  background: 'var(--accent)',
+                  transform: 'translate(-50%, -50%)',
+                  width: 52,
+                  height: 40,
+                  borderRadius: 14,
+                  background: 'var(--accent-soft)',
+                  opacity: 0.85,
+                  zIndex: 0,
                 }} />
               )}
+              <span style={{ fontSize: 22, lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                {tab.emoji}
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-main)',
+                fontSize: 11,
+                fontWeight: isActive ? 700 : 400,
+                letterSpacing: -0.2,
+                position: 'relative',
+                zIndex: 1,
+              }}>
+                {tab.label}
+              </span>
             </Link>
           );
         })}
