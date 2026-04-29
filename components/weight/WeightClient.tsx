@@ -270,8 +270,8 @@ function WeightEntryForm({
   ];
 
   return (
-    /* position:fixed so the save button is always on screen regardless of keyboard */
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+    /* zIndex 60 — above BottomNav (50) so it covers it fully */
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', zIndex: 60 }}>
 
       {/* Header */}
       <div style={{ padding: '54px 22px 12px', flexShrink: 0 }}>
@@ -279,10 +279,10 @@ function WeightEntryForm({
         <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, letterSpacing: -0.5, marginTop: 6 }}>체중 기록 ⚖️</div>
       </div>
 
-      {/* Scrollable body — padded so content never hides behind footer */}
+      {/* Scrollable body */}
       <div
         className="no-scrollbar"
-        style={{ flex: 1, overflowY: 'auto', padding: `0 18px ${FOOTER_H + 16}px`, display: 'flex', flexDirection: 'column', gap: 20 }}
+        style={{ flex: 1, overflowY: 'auto', padding: '0 18px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}
       >
         {/* ─ 누구 ─ */}
         <div>
@@ -401,17 +401,8 @@ function WeightEntryForm({
             >+</button>
           </div>
         </div>
-      </div>
 
-      {/* ─ 저장 버튼 — position:fixed so keyboard can't push it off ─ */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        padding: '12px 18px',
-        paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
-        background: 'var(--bg)',
-        borderTop: '1px solid var(--border-soft)',
-        zIndex: 20,
-      }}>
+        {/* ─ 저장 버튼 — 무게 섹션 바로 아래 ─ */}
         <button
           onClick={handleSave}
           disabled={saveState !== 'idle'}
@@ -436,6 +427,7 @@ function WeightEntryForm({
           )}
           {saveState === 'saving' ? '저장 중...' : saveState === 'saved' ? '✅ 기록 완료!' : '저장하기'}
         </button>
+
       </div>
     </div>
   );

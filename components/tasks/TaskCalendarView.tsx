@@ -150,14 +150,16 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
               style={{
                 minHeight: 58,
                 borderRadius: 14,
-                border: 'none',
+                border: isSelected
+                  ? 'none'
+                  : isToday
+                  ? '2px solid var(--accent)'
+                  : '1.5px solid var(--border)',
                 background: isSelected
                   ? 'var(--accent-deep)'
-                  : isToday
-                  ? 'var(--accent-soft)'
                   : dayTasks.length > 0
-                  ? 'var(--card)'
-                  : 'transparent',
+                  ? 'var(--accent-soft)'
+                  : 'var(--card)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -165,8 +167,8 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
                 justifyContent: 'center',
                 gap: 4,
                 padding: '7px 2px',
-                boxShadow: (isSelected || isToday || dayTasks.length > 0) ? 'var(--shadow-soft)' : 'none',
-                transition: 'background 0.15s, box-shadow 0.15s',
+                boxShadow: isSelected ? 'var(--shadow)' : 'var(--shadow-soft)',
+                transition: 'background 0.15s',
               }}
             >
               {/* Date number */}
@@ -178,6 +180,8 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
                 color: isSelected
                   ? '#fff'
                   : isToday
+                  ? 'var(--accent-deep)'
+                  : dayTasks.length > 0
                   ? 'var(--accent-deep)'
                   : dayOfWeek === 0
                   ? 'var(--peach-deep)'
