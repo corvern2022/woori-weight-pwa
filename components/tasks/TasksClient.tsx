@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TaskCard } from "./TaskCard";
 import { TaskForm } from "./TaskForm";
+import { TaskCalendarView } from "./TaskCalendarView";
 import { useTasks } from "./useTasks";
 import { Task } from "./types";
-import { BackBtn, CloudDeco, Confetti } from "@/components/ui";
-import { Duck } from "@/components/characters/Duck";
+import { CloudDeco, Confetti } from "@/components/ui";
 import { Dolphin } from "@/components/characters/Dolphin";
 
 type Filter = '전체' | '미완료' | '완료';
+type ViewMode = 'calendar' | 'list';
 
 const FILTERS: Filter[] = ['전체', '미완료', '완료'];
 
@@ -29,6 +30,7 @@ export function TasksClient() {
 
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('미완료');
+  const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -60,97 +62,105 @@ export function TasksClient() {
       <div style={{ padding: '54px 22px 12px', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-main)', fontSize: 30, letterSpacing: -0.5 }}>할 일</div>
-            <div style={{ fontFamily: 'var(--font-main)', fontSize: 15, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${doneCount}/${tasks.length} 완료 · 화이팅 🌊`}</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 28, letterSpacing: -0.5 }}>할 일</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${doneCount}/${tasks.length} 완료 · 화이팅 🌊`}</div>
           </div>
-          <div style={{ display: 'flex' }}>
-            <div style={{ transform: 'rotate(-10deg)' }}><Duck size={50} variant="strong" palette="yellow" /></div>
-            <div style={{ transform: 'rotate(12deg) translateX(-6px)' }}><Dolphin size={56} variant="happy" palette="blue" /></div>
-          </div>
+          {/* View toggle */}
+          <button
+            onClick={() => setViewMode(m => m === 'calendar' ? 'list' : 'calendar')}
+            style={{
+              minHeight: 44, minWidth: 44, borderRadius: 14, border: 'none',
+              background: 'var(--card)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: 'var(--shadow-soft)', fontSize: 20,
+            }}
+            aria-label={viewMode === 'calendar' ? '목록 보기' : '달력 보기'}
+          >
+            {viewMode === 'calendar' ? '☰' : '📅'}
+          </button>
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ position: 'relative' }}>
-        <div role="tablist" className="no-scrollbar" style={{ display: 'flex', gap: 6, padding: '4px 18px 12px', overflowX: 'auto' }}>
-          {FILTERS.map(f => (
-            <button
-              key={f}
-              role="tab"
-              aria-selected={filter === f}
-              onClick={() => setFilter(f)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 100,
-                border: 'none',
-                cursor: 'pointer',
-                background: filter === f ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--card)',
-                color: filter === f ? '#fff' : 'var(--ink-soft)',
-                fontFamily: 'var(--font-main)',
-                fontSize: 13,
-                boxShadow: filter === f ? '0 4px 12px rgba(0,0,0,0.18)' : 'var(--shadow-soft)',
-                flexShrink: 0,
-                display: 'flex', alignItems: 'center', gap: 3,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {f === '미완료' && '⬜'}{f === '완료' && '✅'} {f}
-              {filterCounts[f] > 0 && (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  minWidth: 16, height: 16, borderRadius: 8, padding: '0 3px',
-                  background: filter === f ? 'rgba(255,255,255,0.28)' : 'var(--accent-soft)',
-                  color: filter === f ? '#fff' : 'var(--accent-deep)',
-                  fontSize: 10, fontFamily: 'var(--font-main)', lineHeight: 1,
-                }}>{filterCounts[f]}</span>
-              )}
-            </button>
-          ))}
-        </div>
-        {/* 오른쪽 페이드 — 스크롤 가능 힌트 */}
-        <div style={{
-          position: 'absolute', top: 0, right: 0, width: 32, height: '100%',
-          background: 'linear-gradient(to right, transparent, var(--bg))',
-          pointerEvents: 'none',
-        }} />
-      </div>
-
-      {/* Task list */}
+      {/* Content */}
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           {[0, 1, 2].map(i => (
             <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--duck)', display: 'inline-block', animation: 'bounce 0.6s infinite', animationDelay: `${i * 0.15}s` }} />
           ))}
         </div>
-      ) : (
-        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px calc(80px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {visible.map(t => (
-            <TaskCard
-              key={t.id}
-              t={t}
-              events={eventsByTask[t.id] || []}
-              onOpen={() => router.push(`/tasks/${t.id}`)}
-              onToggle={() => handleToggleDone(t.id, t.completed)}
-            />
-          ))}
-          {visible.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'var(--font-main)', fontSize: 18 }}>
-              <Dolphin size={70} variant="happy" palette="blue" />
-              <div>여기엔 아무것도 없어!</div>
-              {filter === '미완료' && (
-                <button
-                  onClick={() => { setEditingTask(null); setFormOpen(true); }}
-                  style={{
-                    marginTop: 12, border: 'none', borderRadius: 100, cursor: 'pointer',
-                    background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
-                    color: '#fff', fontFamily: 'var(--font-main)', fontSize: 14,
-                    padding: '10px 22px', boxShadow: 'var(--shadow-soft)',
-                  }}
-                >+ 첫 할 일 추가하기</button>
-              )}
-            </div>
-          )}
+      ) : viewMode === 'calendar' ? (
+        <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
+          <TaskCalendarView
+            tasks={tasks}
+            onTaskClick={id => router.push(`/tasks/${id}`)}
+            onToggle={(id, completed) => handleToggleDone(id, completed)}
+          />
         </div>
+      ) : (
+        <>
+          {/* Filter tabs */}
+          <div style={{ position: 'relative' }}>
+            <div role="tablist" className="no-scrollbar" style={{ display: 'flex', gap: 6, padding: '4px 18px 12px', overflowX: 'auto' }}>
+              {FILTERS.map(f => (
+                <button
+                  key={f}
+                  role="tab"
+                  aria-selected={filter === f}
+                  onClick={() => setFilter(f)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                    background: filter === f ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--card)',
+                    color: filter === f ? '#fff' : 'var(--ink-soft)',
+                    fontFamily: 'var(--font-main)', fontSize: 13,
+                    boxShadow: filter === f ? '0 4px 12px rgba(0,0,0,0.18)' : 'var(--shadow-soft)',
+                    flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap',
+                  }}
+                >
+                  {f === '미완료' && '⬜'}{f === '완료' && '✅'} {f}
+                  {filterCounts[f] > 0 && (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      minWidth: 16, height: 16, borderRadius: 8, padding: '0 3px',
+                      background: filter === f ? 'rgba(255,255,255,0.28)' : 'var(--accent-soft)',
+                      color: filter === f ? '#fff' : 'var(--accent-deep)',
+                      fontSize: 10, fontFamily: 'var(--font-main)', lineHeight: 1,
+                    }}>{filterCounts[f]}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div style={{ position: 'absolute', top: 0, right: 0, width: 32, height: '100%', background: 'linear-gradient(to right, transparent, var(--bg))', pointerEvents: 'none' }} />
+          </div>
+
+          <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px calc(80px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {visible.map(t => (
+              <TaskCard
+                key={t.id}
+                t={t}
+                events={eventsByTask[t.id] || []}
+                onOpen={() => router.push(`/tasks/${t.id}`)}
+                onToggle={() => handleToggleDone(t.id, t.completed)}
+              />
+            ))}
+            {visible.length === 0 && (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'var(--font-main)', fontSize: 18 }}>
+                <Dolphin size={70} variant="happy" palette="blue" />
+                <div>여기엔 아무것도 없어!</div>
+                {filter === '미완료' && (
+                  <button
+                    onClick={() => { setEditingTask(null); setFormOpen(true); }}
+                    style={{
+                      marginTop: 12, border: 'none', borderRadius: 100, cursor: 'pointer',
+                      background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
+                      color: '#fff', fontFamily: 'var(--font-main)', fontSize: 14,
+                      padding: '10px 22px', boxShadow: 'var(--shadow-soft)',
+                    }}
+                  >+ 첫 할 일 추가하기</button>
+                )}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* FAB */}
