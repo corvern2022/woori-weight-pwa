@@ -5,16 +5,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const tabs = [
-  { id: 'home', label: '홈', emoji: '🏠', href: '/' },
-  { id: 'tasks', label: '할일', emoji: '✅', href: '/tasks' },
-  { id: 'weight', label: '몸무게', emoji: '⚖️', href: '/weight' },
-  { id: 'drink', label: '음주', emoji: '🍺', href: '/drink' },
+  { id: 'home',     label: '홈',   emoji: '🏠', href: '/' },
+  { id: 'tasks',    label: '할일', emoji: '✅', href: '/tasks' },
+  { id: 'weight',   label: '체중', emoji: '⚖️', href: '/weight' },
+  { id: 'drink',    label: '음주', emoji: '🍺', href: '/drink' },
+  { id: 'settings', label: '설정', emoji: '⚙️', href: '/settings' },
 ];
 
 function getActive(pathname: string): string {
   if (pathname.startsWith('/tasks')) return 'tasks';
   if (pathname.startsWith('/weight')) return 'weight';
   if (pathname.startsWith('/drink')) return 'drink';
+  if (pathname.startsWith('/settings')) return 'settings';
   return 'home';
 }
 
