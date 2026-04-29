@@ -20,7 +20,8 @@ type Props = {
 };
 
 function labelDate(iso: string): string {
-  return iso.slice(5);
+  const parts = iso.slice(5).split('-');
+  return `${parseInt(parts[0])}/${parseInt(parts[1])}`;
 }
 
 function renderDot(dataKey: "me" | "partner") {
@@ -140,7 +141,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
           onMouseLeave={handleMouseLeave}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis dataKey="date" tickFormatter={labelDate} tick={{ fontSize: 12 }} />
+          <XAxis dataKey="date" tickFormatter={labelDate} tick={{ fontSize: 11, fontFamily: 'var(--font-main)' }} interval={Math.max(0, Math.floor(data.length / 6))} />
           <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 12 }} />
           <Tooltip
             content={<CustomTooltipContent />}

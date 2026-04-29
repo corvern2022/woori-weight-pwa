@@ -17,8 +17,11 @@ export function useWeights() {
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [duckId, setDuckId] = useState<string | null>(null);
   const [dolphinId, setDolphinId] = useState<string | null>(null);
+  const [householdId, setHouseholdId] = useState<string | null>(null);
   const [duckWeights, setDuckWeights] = useState<number[]>([]);
   const [dolphinWeights, setDolphinWeights] = useState<number[]>([]);
+  const [duckEntries, setDuckEntries] = useState<WeightEntry[]>([]);
+  const [dolphinEntries, setDolphinEntries] = useState<WeightEntry[]>([]);
   const [duckGoal, setDuckGoal] = useState<number | null>(null);
   const [dolphinGoal, setDolphinGoal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,12 +48,14 @@ export function useWeights() {
         .from("household_members")
         .select("user_id, display_name, household_id");
 
-      const members = (memberRows ?? []) as Array<{ user_id: string; display_name: string }>;
+      const members = (memberRows ?? []) as Array<{ user_id: string; display_name: string; household_id: string }>;
       const myMember = myUserId ? members.find(m => m.user_id === myUserId) : members[0];
       const partnerMember = members.find(m => m.user_id !== myMember?.user_id);
 
       if (myMember) setMyUserId(myMember.user_id);
       if (partnerMember) setPartnerId(partnerMember.user_id);
+      const hid = members[0]?.household_id ?? null;
+      setHouseholdId(hid);
 
       const { data: weighRows } = await supabase
         .from("weigh_ins")
@@ -65,11 +70,17 @@ export function useWeights() {
       setDuckId(resolvedDuckId);
       setDolphinId(resolvedDolphinId);
 
-      const duckData = rows.filter(r => r.user_id === resolvedDuckId).map(r => r.weight_kg);
-      const dolphinData = rows.filter(r => r.user_id === resolvedDolphinId).map(r => r.weight_kg);
+      const duckRaw = rows
+        .filter(r => r.user_id === resolvedDuckId)
+        .map(r => ({ date: r.date, kg: r.weight_kg }));
+      const dolphinRaw = rows
+        .filter(r => r.user_id === resolvedDolphinId)
+        .map(r => ({ date: r.date, kg: r.weight_kg }));
 
-      if (duckData.length >= 2) setDuckWeights(duckData.slice(-14));
-      if (dolphinData.length >= 2) setDolphinWeights(dolphinData.slice(-14));
+      setDuckEntries(duckRaw.slice(-30));
+      setDolphinEntries(dolphinRaw.slice(-30));
+      setDuckWeights(duckRaw.slice(-14).map(e => e.kg));
+      setDolphinWeights(dolphinRaw.slice(-14).map(e => e.kg));
 
       // Load goals from app_config
       const { data: cfgRows } = await supabase.from("app_config").select("key, value").in("key", ["goal_duck", "goal_dolphin"]);
@@ -91,9 +102,9 @@ export function useWeights() {
     const today = date ?? new Date().toISOString().slice(0, 10);
     const uid = who === 'duck' ? duckId : dolphinId;
 
-    if (supabase && uid) {
+    if (supabase && uid && householdId) {
       await supabase.from("weigh_ins").upsert(
-        [{ user_id: uid, date: today, weight_kg: kg, drank: false }],
+        [{ household_id: householdId, user_id: uid, date: today, weight_kg: kg, drank: false }],
         { onConflict: "user_id,date" }
       );
     } else if (!uid) {
@@ -116,5 +127,5 @@ export function useWeights() {
     await loadData();
   }
 
-  return { duckWeights, dolphinWeights, duckGoal, dolphinGoal, loading, toast, addWeight };
+  return { duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight };
 }
