@@ -4,12 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Duck } from '@/components/characters/Duck'
 import { Dolphin } from '@/components/characters/Dolphin'
-import { Avatar } from '@/components/ui/Avatar'
 import { CloudDeco } from '@/components/ui/CloudDeco'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useWeather } from '@/lib/useWeather'
 import { usePush } from '@/lib/usePush'
-import type { Task } from '@/components/tasks/types'
 
 const MOODS: { emoji: string; label: string; color: string; bg: string }[] = [
   { emoji: '😊', label: '행복해',    color: '#D97706', bg: '#FEF3C7' },
@@ -59,6 +57,7 @@ function BigCard({
         border: 'none',
         textAlign: 'left',
         color: 'var(--ink)',
+        minHeight: 110,
       }}
     >
       <div
@@ -96,156 +95,9 @@ function BigCard({
           </svg>
         )}
       </div>
-      <div style={{ fontFamily: 'var(--font-main)', fontSize: 17 }}>{title}</div>
-      {count !== "" && <div style={{ fontFamily: 'var(--font-main)', fontSize: 30, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>}
-      {subtitle !== "" && <div style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--ink-soft)', marginTop: 4 }}>{subtitle}</div>}
-    </button>
-  )
-}
-
-// ── TinyTask ─────────────────────────────────────────────────────────────────
-function dueDateChip(dateStr: string | null, todayStr: string): { label: string; color: string; bg: string } | null {
-  if (!dateStr) return null
-  if (dateStr === todayStr) return { label: '오늘', color: 'var(--mint-deep)', bg: 'var(--mint)' }
-  if (dateStr < todayStr) {
-    const diff = Math.round((new Date(todayStr).getTime() - new Date(dateStr).getTime()) / 86400000)
-    return { label: `${diff}일 지남`, color: 'var(--peach-deep)', bg: 'var(--peach-soft)' }
-  }
-  const diff = Math.round((new Date(dateStr).getTime() - new Date(todayStr).getTime()) / 86400000)
-  return { label: `${diff}일 후`, color: 'var(--ink-soft)', bg: 'var(--bg-deep)' }
-}
-
-function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; todayStr: string }) {
-  const chip = dueDateChip(t.due_date, todayStr)
-  const whoEmoji = t.assignee === '창희' ? '🦆' : t.assignee === '하경' ? '🐬' : '💞'
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '8px 0',
-        borderBottom: '1px dashed var(--accent-soft)',
-      }}
-    >
-      <button
-        onClick={onToggle}
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 22,
-          background: 'transparent',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          cursor: 'pointer',
-          marginLeft: -12,
-        }}
-      >
-        <div style={{
-          width: 22,
-          height: 22,
-          borderRadius: 11,
-          background: t.completed ? 'var(--accent)' : 'transparent',
-          border: t.completed ? 'none' : '2px solid var(--ink-mute)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          {t.completed && (
-            <svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round">
-              <path d="M2 5l2 2 4-5" />
-            </svg>
-          )}
-        </div>
-      </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: 'var(--font-main)',
-            fontSize: 14,
-            color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
-            textDecoration: t.completed ? 'line-through' : 'none',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {t.title}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-          <span style={{ fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-soft)' }}>{whoEmoji} {t.assignee}</span>
-          {chip && (
-            <span style={{
-              fontSize: 11, padding: '1px 6px', borderRadius: 6,
-              fontFamily: 'var(--font-main)',
-              background: chip.bg, color: chip.color,
-            }}>{chip.label}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── DockBtn ──────────────────────────────────────────────────────────────────
-function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' | 'drink' | 'gear' | 'mission'; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        background: 'var(--card)',
-        border: 'none',
-        borderRadius: 16,
-        padding: '10px 6px',
-        cursor: 'pointer',
-        boxShadow: 'var(--shadow-soft)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-        color: 'var(--ink)',
-      }}
-    >
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 10,
-          background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {icon === 'chat' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 2h12v9H9l-3 3v-3H2z" />
-          </svg>
-        )}
-        {icon === 'drink' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 2l1 8h4l1-8H5z" />
-            <path d="M6 10v4M10 10v4M5 14h6" />
-          </svg>
-        )}
-        {icon === 'gear' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="8" cy="8" r="2.5" />
-            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42" />
-          </svg>
-        )}
-        {icon === 'mission' && (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="8" cy="8" r="6" />
-            <path d="M8 4v4l2.5 2.5" />
-          </svg>
-        )}
-      </div>
-      <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 15, fontWeight: 700 }}>{title}</div>
+      {count !== '' && <div style={{ fontFamily: 'var(--font-main)', fontSize: 28, fontWeight: 800, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>}
+      {subtitle !== '' && <div style={{ fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-soft)', marginTop: 4 }}>{subtitle}</div>}
     </button>
   )
 }
@@ -259,7 +111,7 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
       alignItems: 'center', justifyContent: 'center', gap: 0, padding: '0 24px',
     }}>
       <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
-      <div style={{ fontFamily: 'var(--font-main)', fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
         오리 레인저
       </div>
       <div style={{ fontFamily: 'var(--font-main)', fontSize: 17, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>
@@ -267,7 +119,6 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
       </div>
 
       <div style={{ display: 'flex', gap: 20, width: '100%', maxWidth: 340 }}>
-        {/* 창희 */}
         <button
           onMouseEnter={() => setHovered('duck')}
           onMouseLeave={() => setHovered(null)}
@@ -283,10 +134,9 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
           }}
         >
           <Duck size={90} variant="strong" palette="yellow" />
-          <div style={{ fontFamily: 'var(--font-main)', fontSize: 20, color: 'var(--duck-deep)' }}>창희 🦆</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: 'var(--duck-deep)' }}>창희 🦆</div>
         </button>
 
-        {/* 하경 */}
         <button
           onMouseEnter={() => setHovered('dolphin')}
           onMouseLeave={() => setHovered(null)}
@@ -302,7 +152,7 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
           }}
         >
           <Dolphin size={90} variant="happy" palette="blue" />
-          <div style={{ fontFamily: 'var(--font-main)', fontSize: 20, color: 'var(--accent-deep)' }}>하경 🐬</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 20, color: 'var(--accent-deep)' }}>하경 🐬</div>
         </button>
       </div>
 
@@ -314,12 +164,9 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
 }
 
 // ── HomePage ─────────────────────────────────────────────────────────────────
-const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-
 export default function HomePage() {
   const router = useRouter()
   const [actor, setActor] = useState<string | null>(null)
-  const [allTasks, setAllTasks] = useState<Task[]>([])
   const [openCount, setOpenCount] = useState(0)
   const [duckKg, setDuckKg] = useState<number | null>(null)
   const [dolphinKg, setDolphinKg] = useState<number | null>(null)
@@ -332,13 +179,10 @@ export default function HomePage() {
   const [pushUserId, setPushUserId] = useState<string | null>(null)
   usePush(pushUserId)
   const weather = useWeather()
-  const today = DAYS[new Date().getDay()]
-  const todayStr = new Date().toISOString().slice(0, 10)
 
-  // 앱 초기화: localStorage에서 actor 읽기 (null=미로드, ''=미설정, '창희'/'하경'=설정됨)
   useEffect(() => {
     const saved = localStorage.getItem('ori_ranger_actor')
-    setActor(saved ?? '')  // 없으면 '' → 온보딩 표시
+    setActor(saved ?? '')
     setPushUserId(localStorage.getItem('woori_weight_user_id'))
   }, [])
 
@@ -355,14 +199,9 @@ export default function HomePage() {
   useEffect(() => {
     const supabase = getSupabaseClient()
 
-    supabase
-      .from('tasks')
-      .select('*')
-      .eq('completed', false)
-      .order('due_date', { ascending: true, nullsFirst: false })
-      .then(({ data }) => {
-        if (data) { setAllTasks(data as Task[]); setOpenCount(data.length) }
-      })
+    // 미완료 할 일 수만 로드
+    supabase.from('tasks').select('id', { count: 'exact' }).eq('completed', false)
+      .then(({ count }) => setOpenCount(count ?? 0))
 
     // 최근 체중
     supabase.from('household_members').select('user_id, display_name').then(({ data: members }) => {
@@ -399,44 +238,27 @@ export default function HomePage() {
     setActor(who)
   }
 
-  // 온보딩: actor 미설정 시 선택 화면 (null = 아직 로드 전, '' = 미설정)
-  if (actor === null) return null  // hydration 대기
+  if (actor === null) return null
   if (actor === '') return <OnboardingScreen onSelect={handleOnboardingSelect} />
 
-  // 오늘 마감 / 기한 지남 / 최근 할 일 구분
-  const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
-  const dueTodayTasks = allTasks.filter(t => t.due_date && t.due_date === todayStr)
-  const todayTasks = [...dueTodayTasks, ...overdueTasks].slice(0, 3)
-  const tasks = todayTasks.length > 0 ? todayTasks : allTasks.slice(0, 3)
-
-  function sectionTitle() {
-    if (dueTodayTasks.length > 0 && overdueTasks.length === 0) return '오늘 마감 할 일'
-    if (overdueTasks.length > 0 && dueTodayTasks.length === 0) return '기한 지난 할 일 ⚠️'
-    if (dueTodayTasks.length > 0 && overdueTasks.length > 0) return '오늘 + 기한 지난 할 일'
-    return '최근 할 일'
-  }
-
-  const handleToggle = async (task: Task) => {
-    const supabase = getSupabaseClient()
-    await supabase.from('tasks').update({ completed: !task.completed, completed_at: !task.completed ? new Date().toISOString() : null }).eq('id', task.id)
-    setAllTasks(prev => {
-      const next = prev.map(t => t.id === task.id ? { ...t, completed: !t.completed } : t)
-      setOpenCount(next.filter(t => !t.completed).length)
-      return next
-    })
-  }
+  const dDay = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date('2023-07-08').setHours(0, 0, 0, 0)) / 86400000)
+  const now = new Date()
+  const dateLabel = `${now.getMonth() + 1}월 ${now.getDate()}일(${['일','월','화','수','목','금','토'][now.getDay()]})`
 
   return (
     <div
       style={{
-        minHeight: '100dvh',
+        width: '100%',
+        height: '100svh',
         background: 'linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 60%, var(--bg) 100%)',
         color: 'var(--ink)',
         position: 'relative',
-        paddingBottom: 40,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      {/* Header clouds - pointer-events none so they don't block taps */}
+      {/* Clouds */}
       <div style={{ position: 'absolute', top: 58, left: -20, animation: 'floatCloud 8s ease-in-out infinite', opacity: 0.5, pointerEvents: 'none', zIndex: 0 }}>
         <CloudDeco size={100} opacity={1} />
       </div>
@@ -444,14 +266,11 @@ export default function HomePage() {
         <CloudDeco size={90} opacity={1} />
       </div>
 
-      {/* Top text */}
+      {/* Header */}
       <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
-        {/* Weather row + D-day badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--ink-soft)', fontFamily: 'var(--font-main)' }}>
-            <span>{new Date().getMonth() + 1}월 {new Date().getDate()}일({['일','월','화','수','목','금','토'][new Date().getDay()]})</span>
-            <span style={{ color: 'var(--border)' }}>·</span>
-            <span>서울</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-soft)', fontFamily: 'var(--font-main)' }}>
+            <span>{dateLabel}</span>
             <span style={{ color: 'var(--border)' }}>·</span>
             <span>{weather.label}</span>
             <span>{weather.emoji}</span>
@@ -462,44 +281,35 @@ export default function HomePage() {
             borderRadius: 100,
             padding: '3px 12px',
             fontFamily: 'var(--font-main)',
+            fontWeight: 700,
             fontSize: 13,
             color: '#fff',
             boxShadow: 'var(--shadow-soft)',
             whiteSpace: 'nowrap',
           }}>
-            💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date('2023-07-08').setHours(0,0,0,0)) / 86400000)}
+            💞 D+{dDay}
           </div>
         </div>
-        <div style={{ fontFamily: 'var(--font-main)', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
-          <span style={{ color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            오리 레인저
-            {/* 파워레인저 헬멧 쓴 오리 SVG */}
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* 몸통 */}
-              <ellipse cx="16" cy="22" rx="8" ry="7" fill="#FCD34D"/>
-              {/* 날개 */}
-              <ellipse cx="9" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(-15 9 23)"/>
-              <ellipse cx="23" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(15 23 23)"/>
-              {/* 헬멧 (파워레인저 스타일) */}
-              <ellipse cx="16" cy="13" rx="8" ry="8.5" fill="#EF4444"/>
-              {/* 헬멧 바이저 (눈 부분 검은 V자) */}
-              <path d="M9 12 L16 17 L23 12" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <path d="M9 12 Q16 10 23 12 L23 14 Q16 12 9 14 Z" fill="#111827"/>
-              {/* 헬멧 꼭대기 핀 */}
-              <rect x="14.5" y="4" width="3" height="5" rx="1.5" fill="#DC2626"/>
-              {/* 부리 */}
-              <ellipse cx="16" cy="19.5" rx="3" ry="1.5" fill="#F97316"/>
-              {/* 발 */}
-              <ellipse cx="13" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
-              <ellipse cx="19" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
-            </svg>
-          </span>
+        <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: 'var(--accent-deep)' }}>오리 레인저</span>
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="16" cy="22" rx="8" ry="7" fill="#FCD34D"/>
+            <ellipse cx="9" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(-15 9 23)"/>
+            <ellipse cx="23" cy="23" rx="3.5" ry="2" fill="#F59E0B" transform="rotate(15 23 23)"/>
+            <ellipse cx="16" cy="13" rx="8" ry="8.5" fill="#EF4444"/>
+            <path d="M9 12 L16 17 L23 12" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <path d="M9 12 Q16 10 23 12 L23 14 Q16 12 9 14 Z" fill="#111827"/>
+            <rect x="14.5" y="4" width="3" height="5" rx="1.5" fill="#DC2626"/>
+            <ellipse cx="16" cy="19.5" rx="3" ry="1.5" fill="#F97316"/>
+            <ellipse cx="13" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
+            <ellipse cx="19" cy="29" rx="2.5" ry="1.2" fill="#F97316"/>
+          </svg>
         </div>
       </div>
 
-      {/* Character area */}
-      <div style={{ position: 'relative', height: 220, margin: '12px 0 8px' }}>
-        {/* Duck (창희) + 말풍선 */}
+      {/* Character area — flex 1 so it fills available space */}
+      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+        {/* Duck */}
         <div style={{ position: 'absolute', left: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           {duckMood && (
             <div style={{
@@ -511,11 +321,11 @@ export default function HomePage() {
             </div>
           )}
           <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
-            <Duck size={110} variant="strong" palette="yellow" />
+            <Duck size={100} variant="strong" palette="yellow" />
           </button>
         </div>
 
-        {/* Dolphin (하경) + 말풍선 */}
+        {/* Dolphin */}
         <div style={{ position: 'absolute', right: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           {dolphinMood && (
             <div style={{
@@ -527,26 +337,48 @@ export default function HomePage() {
             </div>
           )}
           <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
-            <Dolphin size={110} variant="happy" palette="blue" />
+            <Dolphin size={100} variant="happy" palette="blue" />
           </button>
         </div>
 
-        <svg style={{ position: 'absolute', bottom: 24, right: '22%', pointerEvents: 'none' }} width="24" height="40" viewBox="0 0 24 40">
-          <circle cx="12" cy="32" r="3" fill="var(--accent)" opacity="0.5" />
-          <circle cx="8" cy="20" r="2" fill="var(--accent)" opacity="0.35" />
-          <circle cx="15" cy="10" r="2.5" fill="var(--accent)" opacity="0.25" />
-        </svg>
+        {/* Water shimmer */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0', pointerEvents: 'none' }} />
       </div>
+
+      {/* BigCard row */}
+      <div style={{ padding: '0 18px 12px', display: 'flex', gap: 12, position: 'relative', zIndex: 2 }}>
+        <BigCard
+          title="할 일"
+          count={openCount}
+          subtitle={openCount === 0 ? '다 했어! 🎉' : '미완료'}
+          color="var(--peach)"
+          colorDeep="var(--peach-deep)"
+          icon="task"
+          onClick={() => router.push('/tasks')}
+        />
+        <BigCard
+          title="체중"
+          count=""
+          subtitle={duckKg !== null || dolphinKg !== null
+            ? `🦆 ${duckKg ?? '-'}kg  🐬 ${dolphinKg ?? '-'}kg`
+            : '기록 불러오는 중...'}
+          color="var(--accent)"
+          colorDeep="var(--accent-deep)"
+          icon="weight"
+          onClick={() => router.push('/weight')}
+        />
+      </div>
+
+      {/* BottomNav spacer */}
+      <div style={{ height: 'calc(60px + env(safe-area-inset-bottom))' }} />
 
       {/* 기분 설정 모달 */}
       {moodModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setMoodModal(false)}>
           <div style={{ background: 'var(--card)', borderRadius: '24px 24px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontFamily: 'var(--font-main)', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
               {moodTarget === 'duck' ? '🦆 창희' : '🐬 하경'} 오늘 기분은?
             </div>
-            {/* 감정 칩 선택 */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
               {MOODS.map(m => {
                 const selected = moodEmoji === m.emoji
@@ -573,7 +405,6 @@ export default function HomePage() {
                 )
               })}
             </div>
-            {/* 텍스트 입력 */}
             <input
               value={moodDraft}
               onChange={e => setMoodDraft(e.target.value)}
@@ -582,67 +413,12 @@ export default function HomePage() {
               maxLength={20}
               style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14, border: '2px solid var(--accent-soft)', fontFamily: 'var(--font-main)', fontSize: 15, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12 }}
             />
-            <button onClick={saveMood} style={{ width: '100%', padding: '12px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'var(--font-main)', fontSize: 16, cursor: 'pointer' }}>
+            <button onClick={saveMood} style={{ width: '100%', padding: '12px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>
               저장하기 {moodEmoji}
             </button>
           </div>
         </div>
       )}
-
-      {/* BigCard row */}
-      <div style={{ padding: '8px 18px', display: 'flex', gap: 12 }}>
-        <BigCard
-          title="할 일"
-          count={dueTodayTasks.length + overdueTasks.length > 0 ? dueTodayTasks.length + overdueTasks.length : openCount}
-          subtitle={dueTodayTasks.length > 0 && overdueTasks.length === 0 ? '오늘 마감' : overdueTasks.length > 0 && dueTodayTasks.length === 0 ? '기한 지남' : dueTodayTasks.length + overdueTasks.length > 0 ? '오늘+기한지남' : '미완료 전체'}
-          color="var(--peach)"
-          colorDeep="var(--peach-deep)"
-          icon="task"
-          onClick={() => router.push('/tasks')}
-        />
-        <BigCard
-          title="체중"
-          count=""
-          subtitle={duckKg !== null || dolphinKg !== null
-            ? `🦆 ${duckKg ?? '-'}kg  🐬 ${dolphinKg ?? '-'}kg`
-            : "기록 불러오는 중..."}
-          color="var(--accent)"
-          colorDeep="var(--accent-deep)"
-          icon="weight"
-          onClick={() => router.push('/weight')}
-        />
-      </div>
-
-      {/* Today's tasks */}
-      <div style={{ padding: '10px 18px 0' }}>
-        <div style={{ background: 'var(--card)', borderRadius: 24, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontFamily: 'var(--font-main)', fontSize: 16 }}>{sectionTitle()}</div>
-            <button
-              onClick={() => router.push('/tasks')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--accent)' }}
-            >
-              전체 보기 →
-            </button>
-          </div>
-          {tasks.length === 0 && (
-            <div style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--ink-mute)', textAlign: 'center', padding: '12px 0' }}>
-              할 일이 없어요 🎉
-            </div>
-          )}
-          {tasks.map(t => (
-            <TinyTask key={t.id} t={t} onToggle={() => handleToggle(t)} todayStr={todayStr} />
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom dock */}
-      <div style={{ padding: '14px 18px 0', display: 'flex', gap: 10 }}>
-        <DockBtn onClick={() => router.push('/chat')} icon="chat" label="AI 코치" />
-        <DockBtn onClick={() => router.push('/missions')} icon="mission" label="커플 미션" />
-        <DockBtn onClick={() => router.push('/drink')} icon="drink" label="음주 캘린더" />
-        <DockBtn onClick={() => router.push('/settings')} icon="gear" label="설정" />
-      </div>
     </div>
   )
 }
