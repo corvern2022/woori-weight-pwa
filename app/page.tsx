@@ -156,6 +156,155 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
   )
 }
 
+// ── Weather effect ────────────────────────────────────────────────────────────
+type WeatherType = 'sunny' | 'rain' | 'snow' | 'thunder' | 'none'
+
+function getWeatherType(label: string): WeatherType {
+  if (label === '맑음') return 'sunny'
+  if (label.includes('눈')) return 'snow'
+  if (label === '천둥번개') return 'thunder'
+  if (label.includes('비') || label === '소나기') return 'rain'
+  return 'none'
+}
+
+// Deterministic drop/flake configs (no Math.random → no SSR mismatch)
+const RAIN_DROPS = Array.from({ length: 22 }, (_, i) => ({
+  left: `${(i * 4.6 + 2) % 100}%`,
+  delay: `${((i * 137) % 900) / 1000}s`,
+  duration: `${(420 + (i * 71) % 240) / 1000}s`,
+  height: 14 + (i % 5) * 3,
+}))
+
+const SNOW_FLAKES = Array.from({ length: 28 }, (_, i) => ({
+  left: `${(i * 3.6 + 1.5) % 100}%`,
+  size: 4 + (i % 4),
+  delay: `${((i * 211) % 3200) / 1000}s`,
+  duration: `${(2400 + (i * 137) % 2000) / 1000}s`,
+}))
+
+function WeatherEffect({ type }: { type: WeatherType }) {
+  if (type === 'none') return null
+
+  /* ── 맑음: 태양 + 빛 줄기 ── */
+  if (type === 'sunny') {
+    return (
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        {/* Warm ambient corona */}
+        <div style={{
+          position: 'absolute', top: -50, right: -50,
+          width: 210, height: 210, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,220,0,0.28) 0%, rgba(255,190,0,0.07) 55%, transparent 70%)',
+          animation: 'sunGlow 4s ease-in-out infinite',
+        }} />
+        {/* Sun disc + rotating rays */}
+        <div style={{ position: 'absolute', top: 20, right: 20, width: 52, height: 52 }}>
+          {/* Rays ring — expands -22px on all sides (96×96) */}
+          <div style={{
+            position: 'absolute', top: -22, left: -22, right: -22, bottom: -22,
+            animation: 'rayRotate 20s linear infinite',
+          }}>
+            {[0, 45, 90, 135, 180, 225, 270, 315].map(deg => (
+              <div key={deg} style={{
+                position: 'absolute',
+                top: '50%', left: '50%',
+                width: 15, height: 2.5, marginTop: -1.25,
+                borderRadius: 2,
+                background: 'rgba(255,205,0,0.65)',
+                transform: `rotate(${deg}deg) translateX(32px)`,
+                transformOrigin: '0 50%',
+              }} />
+            ))}
+          </div>
+          {/* Sun disc on top */}
+          <div style={{
+            position: 'absolute', inset: 0, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #FFFDE7, #FFD740)',
+            boxShadow: '0 0 0 5px rgba(255,220,0,0.18), 0 0 24px rgba(255,200,0,0.42)',
+            animation: 'sunGlow 4s ease-in-out infinite',
+          }} />
+        </div>
+        {/* Light streaks radiating down-left from sun center */}
+        {[108, 126, 145].map((angle, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: 46, right: 46,
+            width: 1.5, height: 55 + i * 28,
+            background: 'linear-gradient(to bottom, rgba(255,215,0,0.20), transparent)',
+            transformOrigin: 'top center',
+            transform: `rotate(${angle}deg)`,
+          }} />
+        ))}
+      </div>
+    )
+  }
+
+  /* ── 비 / 천둥번개 ── */
+  if (type === 'rain' || type === 'thunder') {
+    return (
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
+        {/* Sky tint */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: type === 'thunder'
+            ? 'linear-gradient(180deg, rgba(50,60,115,0.16) 0%, transparent 65%)'
+            : 'linear-gradient(180deg, rgba(80,115,155,0.10) 0%, transparent 60%)',
+        }} />
+        {/* Rain drops */}
+        {RAIN_DROPS.map((d, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            left: d.left, top: -20,
+            width: type === 'thunder' ? 2.5 : 1.8,
+            height: d.height,
+            borderRadius: 1,
+            background: type === 'thunder'
+              ? 'rgba(150,190,255,0.76)'
+              : 'rgba(100,175,255,0.62)',
+            animationName: 'rainFall',
+            animationDuration: d.duration,
+            animationDelay: d.delay,
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite',
+          }} />
+        ))}
+        {/* Lightning flash overlay */}
+        {type === 'thunder' && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'rgba(210,225,255,0.92)',
+            animation: 'lightningFlash 3.8s 1.2s linear infinite',
+          }} />
+        )}
+      </div>
+    )
+  }
+
+  /* ── 눈 ── */
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 5 }}>
+      {/* Cool sky tint */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(200,220,255,0.08) 0%, transparent 55%)',
+      }} />
+      {SNOW_FLAKES.map((f, i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          left: f.left, top: -10,
+          width: f.size, height: f.size,
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.93)',
+          boxShadow: `0 0 ${f.size + 2}px rgba(200,230,255,0.75)`,
+          animationName: 'snowFall',
+          animationDuration: `${f.duration}s`,
+          animationDelay: `${f.delay}s`,
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+        }} />
+      ))}
+    </div>
+  )
+}
+
 // ── HomePage ─────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const router = useRouter()
@@ -306,6 +455,8 @@ export default function HomePage() {
 
       {/* Character area — flex 1 so it fills available space */}
       <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+        {/* Weather effect overlay */}
+        <WeatherEffect type={getWeatherType(weather.label)} />
         {/* Duck */}
         <div style={{ position: 'absolute', left: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           {duckMood && (
