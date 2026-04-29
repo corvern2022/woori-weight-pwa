@@ -89,17 +89,17 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
 
     return (
       <div style={{
-        background: 'var(--ink)',
-        color: '#fff',
+        background: '#1E3447',
+        color: '#E8F2FB',
         borderRadius: 12,
         padding: '10px 14px 10px 12px',
         fontSize: 13,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
         minWidth: 120,
         position: 'relative',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-          <span style={{ fontFamily: 'var(--font-main)', fontSize: 12, opacity: 0.75 }}>{titleLabel}</span>
+          <span style={{ fontFamily: 'var(--font-main)', fontSize: 12, opacity: 0.8, color: '#B0C8DC' }}>{titleLabel}</span>
           <button
             onTouchEnd={(e) => { e.stopPropagation(); setDismissed(true); }}
             onClick={(e) => { e.stopPropagation(); setDismissed(true); }}

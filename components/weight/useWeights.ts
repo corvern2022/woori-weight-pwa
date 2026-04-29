@@ -104,10 +104,16 @@ export function useWeights() {
     const uid = who === 'duck' ? duckId : dolphinId;
 
     if (supabase && uid && householdId) {
-      await supabase.from("weigh_ins").upsert(
-        [{ household_id: householdId, user_id: uid, date: today, weight_kg: kg, drank: false }],
-        { onConflict: "user_id,date" }
-      );
+      try {
+        await supabase.from("weigh_ins").upsert(
+          [{ household_id: householdId, user_id: uid, date: today, weight_kg: kg, drank: false }],
+          { onConflict: "user_id,date" }
+        );
+      } catch {
+        setToast("저장 실패 😢 다시 시도해주세요");
+        setTimeout(() => setToast(null), 3000);
+        return;
+      }
     } else if (!uid) {
       setToast("유저 정보가 없어요. 잠시 후 다시 시도해주세요 😢");
       setTimeout(() => setToast(null), 3000);

@@ -33,29 +33,37 @@ export function useWeather(): WeatherState {
   });
 
   useEffect(() => {
+    // Seoul coordinates fallback (used when geolocation is unavailable or denied)
+    const SEOUL_LAT = 37.5665;
+    const SEOUL_LON = 126.9780;
+
+    async function fetchWeather(lat: number, lon: number) {
+      try {
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=weather_code,temperature_2m&timezone=Asia%2FSeoul`
+        );
+        const data = await res.json();
+        const code: number = data.current.weather_code;
+        const temp: number = Math.round(data.current.temperature_2m);
+        const { label, emoji } = decodeWeatherCode(code);
+        setState({ label, emoji, temp, loading: false });
+      } catch {
+        setState(s => ({ ...s, loading: false }));
+      }
+    }
+
     if (!navigator.geolocation) {
-      setState(s => ({ ...s, loading: false }));
+      fetchWeather(SEOUL_LAT, SEOUL_LON);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const res = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude.toFixed(4)}&longitude=${coords.longitude.toFixed(4)}&current=weather_code,temperature_2m&timezone=Asia%2FSeoul`
-          );
-          const data = await res.json();
-          const code: number = data.current.weather_code;
-          const temp: number = Math.round(data.current.temperature_2m);
-          const { label, emoji } = decodeWeatherCode(code);
-          setState({ label, emoji, temp, loading: false });
-        } catch {
-          setState(s => ({ ...s, loading: false }));
-        }
+      ({ coords }) => {
+        fetchWeather(coords.latitude, coords.longitude);
       },
       () => {
-        // 위치 권한 거부 → 기본값 유지
-        setState(s => ({ ...s, loading: false }));
+        // 위치 권한 거부 → 서울 기준으로 날씨 표시
+        fetchWeather(SEOUL_LAT, SEOUL_LON);
       },
       { timeout: 6000 }
     );
