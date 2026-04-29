@@ -22,10 +22,24 @@ export const BackBtn: React.FC<BackBtnProps> = ({ onClick, label = '뒤로' }) =
   return (
     <button
       onClick={handleClick}
-      className="flex items-center gap-2 bg-transparent text-ink-soft hover:text-ink transition-colors"
       aria-label={label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        minHeight: 44,
+        padding: '0 4px',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        color: 'var(--ink-soft)',
+        fontFamily: 'var(--font-main)',
+        fontSize: 15,
+        fontWeight: 600,
+        touchAction: 'manipulation',
+      }}
     >
-      <span>←</span>
+      <span style={{ fontSize: 20, lineHeight: 1 }}>←</span>
       <span>{label}</span>
     </button>
   );

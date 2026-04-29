@@ -154,7 +154,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
             stroke="var(--accent-deep)"
             strokeWidth={3}
             dot={renderDot("me")}
-            activeDot={{ r: 5 }}
+            activeDot={{ r: 8 }}
             connectNulls={false}
           />
           {showPartner ? (
@@ -165,7 +165,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
               stroke="var(--duck-deep)"
               strokeWidth={3}
               dot={renderDot("partner")}
-              activeDot={{ r: 5 }}
+              activeDot={{ r: 8 }}
               connectNulls={false}
             />
           ) : null}

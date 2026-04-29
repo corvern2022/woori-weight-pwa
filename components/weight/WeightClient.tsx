@@ -8,6 +8,7 @@ import { BackBtn } from "@/components/ui";
 import { WeightChart } from "@/components/WeightChart";
 import { useWeights, type WeightEntry } from "./useWeights";
 import type { ChartPoint } from "@/lib/types";
+import { toSeoulISODate } from "@/lib/date";
 
 type View = 'list' | 'entry';
 
@@ -17,7 +18,7 @@ export function WeightClient() {
   const [view, setView] = useState<View>('list');
 
   if (view === 'entry') {
-    return <WeightEntry
+    return <WeightEntryForm
       duckEntries={duckEntries}
       dolphinEntries={dolphinEntries}
       onBack={() => setView('list')}
@@ -189,7 +190,7 @@ function TodayCard({ who, entries }: { who: 'duck' | 'dolphin'; entries: WeightE
   );
 }
 
-function WeightEntry({
+function WeightEntryForm({
   duckEntries,
   dolphinEntries,
   onBack,
@@ -200,7 +201,7 @@ function WeightEntry({
   onBack: () => void;
   onSave: (who: 'duck' | 'dolphin', kg: number, date: string) => Promise<void>;
 }) {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toSeoulISODate(new Date());
   const [who, setWho] = useState<'duck' | 'dolphin'>('duck');
   const lastKg = (w: 'duck' | 'dolphin') => {
     const e = w === 'duck' ? duckEntries : dolphinEntries;

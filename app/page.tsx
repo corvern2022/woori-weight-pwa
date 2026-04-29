@@ -413,7 +413,7 @@ export default function HomePage() {
       </div>
 
       {/* Header */}
-      <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
+      <div style={{ padding: '10px 22px 0', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-soft)', fontFamily: 'var(--font-main)' }}>
             <span>{dateLabel}</span>
@@ -453,46 +453,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Character area — flex 1 so it fills available space */}
-      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-        {/* Weather effect overlay */}
-        <WeatherEffect type={getWeatherType(weather.label)} />
-        {/* Duck */}
-        <div style={{ position: 'absolute', left: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          {duckMood && (
-            <div style={{
-              background: 'var(--duck-soft)', border: '1.5px solid var(--duck)', borderRadius: '14px 14px 14px 4px',
-              padding: '5px 10px', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--duck-deep)',
-              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
-            }}>
-              {duckMood.emoji} {duckMood.text || ''}
-            </div>
-          )}
-          <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
-            <Duck size={100} variant="strong" palette="yellow" />
-          </button>
-        </div>
-
-        {/* Dolphin */}
-        <div style={{ position: 'absolute', right: '8%', bottom: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          {dolphinMood && (
-            <div style={{
-              background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)', borderRadius: '14px 14px 4px 14px',
-              padding: '5px 10px', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--accent-deep)',
-              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
-            }}>
-              {dolphinMood.emoji} {dolphinMood.text || ''}
-            </div>
-          )}
-          <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
-            <Dolphin size={100} variant="happy" palette="blue" />
-          </button>
-        </div>
-
-        {/* Water shimmer */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0', pointerEvents: 'none' }} />
-      </div>
-
       {/* BigCard row */}
       <div style={{ padding: '0 18px 12px', display: 'flex', gap: 12, position: 'relative', zIndex: 2 }}>
         <BigCard
@@ -515,6 +475,46 @@ export default function HomePage() {
           icon="weight"
           onClick={() => router.push('/weight')}
         />
+      </div>
+
+      {/* Character area — flex 1 so it fills available space */}
+      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+        {/* Weather effect overlay */}
+        <WeatherEffect type={getWeatherType(weather.label)} />
+        {/* Duck */}
+        <div style={{ position: 'absolute', left: '8%', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {duckMood && (
+            <div style={{
+              background: 'var(--duck-soft)', border: '1.5px solid var(--duck)', borderRadius: '14px 14px 14px 4px',
+              padding: '5px 10px', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--duck-deep)',
+              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
+            }}>
+              {duckMood.emoji} {duckMood.text || ''}
+            </div>
+          )}
+          <button onClick={() => { setMoodTarget('duck'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'bobY 3.5s ease-in-out infinite' }}>
+            <Duck size={100} variant="strong" palette="yellow" />
+          </button>
+        </div>
+
+        {/* Dolphin */}
+        <div style={{ position: 'absolute', right: '8%', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          {dolphinMood && (
+            <div style={{
+              background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)', borderRadius: '14px 14px 4px 14px',
+              padding: '5px 10px', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--accent-deep)',
+              maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
+            }}>
+              {dolphinMood.emoji} {dolphinMood.text || ''}
+            </div>
+          )}
+          <button onClick={() => { setMoodTarget('dolphin'); setMoodModal(true) }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', animation: 'jumpDolphin 2.8s ease-in-out infinite' }}>
+            <Dolphin size={100} variant="happy" palette="blue" />
+          </button>
+        </div>
+
+        {/* Water shimmer */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60, background: 'linear-gradient(180deg, #CDE9F600 0%, var(--accent-soft) 100%)', borderRadius: '50% 50% 0 0 / 20% 20% 0 0', pointerEvents: 'none' }} />
       </div>
 
       {/* BottomNav spacer */}

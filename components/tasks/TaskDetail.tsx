@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Task, TaskItem } from "./types";
 import { BackBtn, WhoBadge } from "@/components/ui";
@@ -144,6 +144,14 @@ export function TaskDetail({ taskId }: Props) {
   const [editTitle, setEditTitle] = useState("");
   const [editingDesc, setEditingDesc] = useState(false);
   const [editDesc, setEditDesc] = useState("");
+
+  const addInputRef = React.useRef<HTMLInputElement>(null);
+
+  function handleAddInputFocus() {
+    setTimeout(() => {
+      addInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300); // wait for keyboard animation
+  }
 
   const loadData = useCallback(async () => {
     const supabase = getSupabaseClient();
@@ -343,9 +351,11 @@ export function TaskDetail({ taskId }: Props) {
           <div style={{ marginTop: 12 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <input
+                ref={addInputRef}
                 value={newItemText}
                 onChange={e => setNewItemText(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void addChecklistItem(); } }}
+                onFocus={handleAddInputFocus}
                 placeholder="하위 아젠다 추가..."
                 style={{
                   flex: 1, minHeight: 48, borderRadius: 14,

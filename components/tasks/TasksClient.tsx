@@ -30,7 +30,7 @@ export function TasksClient() {
 
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('미완료');
-  const [viewMode, setViewMode] = useState<ViewMode>('calendar');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [formOpen, setFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -63,7 +63,7 @@ export function TasksClient() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 28, letterSpacing: -0.5 }}>할 일</div>
-            <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${doneCount}/${tasks.length} 완료 · 화이팅 🌊`}</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${openCount}개 남음`}</div>
           </div>
           {/* View toggle */}
           <button
