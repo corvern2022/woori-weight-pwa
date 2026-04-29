@@ -129,7 +129,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
               type="date"
               value={form.due_date}
               onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
-              style={{ flex: 1, border: '1.5px solid var(--accent-soft)', borderRadius: 12, padding: '8px 12px', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'Jua, sans-serif', fontSize: 14, outline: 'none' }}
+              style={{ flex: 1, border: '1.5px solid var(--accent-soft)', borderRadius: 12, padding: '8px 12px', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'var(--font-main)', fontSize: 14, outline: 'none' }}
             />
             {form.due_date && (
               <button type="button" onClick={() => setForm(f => ({ ...f, due_date: '' }))}
@@ -146,7 +146,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
                 onClick={() => setForm((f) => ({ ...f, assignee: v }))}
                 style={{
                   flex: 1, padding: '8px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
-                  fontFamily: 'Jua, sans-serif', fontSize: 13,
+                  fontFamily: 'var(--font-main)', fontSize: 13,
                   background: form.assignee === v
                     ? (v === '창희' ? 'var(--duck)' : v === '하경' ? 'var(--dolphin)' : 'linear-gradient(135deg, var(--pink), var(--peach))')
                     : 'var(--card-alt)',
@@ -166,7 +166,7 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
                 onClick={() => setForm((f) => ({ ...f, category: c }))}
                 style={{
                   padding: '5px 12px', border: 'none', borderRadius: 100, cursor: 'pointer',
-                  fontFamily: 'Jua, sans-serif', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0,
+                  fontFamily: 'var(--font-main)', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0,
                   background: form.category === c ? 'var(--accent)' : 'var(--card-alt)',
                   color: form.category === c ? '#fff' : 'var(--ink-soft)',
                 }}
@@ -181,14 +181,14 @@ export function TaskForm({ open, editing, onClose, onSubmit, onUpdate }: Props) 
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomCategory(); } if (e.key === 'Escape') setShowNewCat(false); }}
                 onBlur={() => { if (!newCatInput.trim()) setShowNewCat(false); }}
                 placeholder="카테고리명"
-                style={{ width: 90, padding: '5px 10px', border: '1.5px solid var(--accent)', borderRadius: 100, fontFamily: 'Jua, sans-serif', fontSize: 12, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', flexShrink: 0 }}
+                style={{ width: 90, padding: '5px 10px', border: '1.5px solid var(--accent)', borderRadius: 100, fontFamily: 'var(--font-main)', fontSize: 12, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', flexShrink: 0 }}
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setShowNewCat(true)}
                 aria-label="카테고리 추가"
-                style={{ padding: '5px 10px', border: '1.5px dashed var(--ink-mute)', borderRadius: 100, cursor: 'pointer', fontFamily: 'Jua, sans-serif', fontSize: 12, background: 'none', color: 'var(--ink-mute)', whiteSpace: 'nowrap', flexShrink: 0 }}
+                style={{ padding: '5px 10px', border: '1.5px dashed var(--ink-mute)', borderRadius: 100, cursor: 'pointer', fontFamily: 'var(--font-main)', fontSize: 12, background: 'none', color: 'var(--ink-mute)', whiteSpace: 'nowrap', flexShrink: 0 }}
               >+ 추가</button>
             )}
           </div>

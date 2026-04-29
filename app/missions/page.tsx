@@ -135,7 +135,7 @@ export default function MissionsPage() {
   const done = missions.filter(m => m.status !== 'active')
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'Jua, sans-serif' }}>
+    <div style={{ minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'var(--font-main)' }}>
       {/* 헤더 */}
       <div style={{ padding: '56px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button

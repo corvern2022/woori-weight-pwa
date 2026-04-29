@@ -60,8 +60,8 @@ export function TasksClient() {
       <div style={{ padding: '54px 22px 12px', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
           <div>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5 }}>할 일</div>
-            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 15, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${doneCount}/${tasks.length} 완료 · 화이팅 🌊`}</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 30, letterSpacing: -0.5 }}>할 일</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 15, color: 'var(--ink-soft)' }}>{openCount === 0 ? '다 했다! 🎉' : `${doneCount}/${tasks.length} 완료 · 화이팅 🌊`}</div>
           </div>
           <div style={{ display: 'flex' }}>
             <div style={{ transform: 'rotate(-10deg)' }}><Duck size={50} variant="strong" palette="yellow" /></div>
@@ -86,7 +86,7 @@ export function TasksClient() {
                 cursor: 'pointer',
                 background: filter === f ? 'linear-gradient(135deg, var(--accent), var(--accent-deep))' : 'var(--card)',
                 color: filter === f ? '#fff' : 'var(--ink-soft)',
-                fontFamily: 'Jua, sans-serif',
+                fontFamily: 'var(--font-main)',
                 fontSize: 13,
                 boxShadow: filter === f ? '0 4px 12px rgba(0,0,0,0.18)' : 'var(--shadow-soft)',
                 flexShrink: 0,
@@ -101,7 +101,7 @@ export function TasksClient() {
                   minWidth: 16, height: 16, borderRadius: 8, padding: '0 3px',
                   background: filter === f ? 'rgba(255,255,255,0.28)' : 'var(--accent-soft)',
                   color: filter === f ? '#fff' : 'var(--accent-deep)',
-                  fontSize: 10, fontFamily: 'Jua, sans-serif', lineHeight: 1,
+                  fontSize: 10, fontFamily: 'var(--font-main)', lineHeight: 1,
                 }}>{filterCounts[f]}</span>
               )}
             </button>
@@ -134,7 +134,7 @@ export function TasksClient() {
             />
           ))}
           {visible.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'Gaegu, cursive', fontSize: 18 }}>
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ink-mute)', fontFamily: 'var(--font-main)', fontSize: 18 }}>
               <Dolphin size={70} variant="happy" palette="blue" />
               <div>여기엔 아무것도 없어!</div>
               {filter === '미완료' && (
@@ -143,7 +143,7 @@ export function TasksClient() {
                   style={{
                     marginTop: 12, border: 'none', borderRadius: 100, cursor: 'pointer',
                     background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))',
-                    color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 14,
+                    color: '#fff', fontFamily: 'var(--font-main)', fontSize: 14,
                     padding: '10px 22px', boxShadow: 'var(--shadow-soft)',
                   }}
                 >+ 첫 할 일 추가하기</button>
@@ -197,7 +197,7 @@ export function TasksClient() {
           padding: '8px 16px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
           zIndex: 100, whiteSpace: 'nowrap',
-          fontFamily: 'Jua, sans-serif',
+          fontFamily: 'var(--font-main)',
         }}>
           {toast}
         </div>

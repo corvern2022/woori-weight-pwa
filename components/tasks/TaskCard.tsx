@@ -83,7 +83,7 @@ export const TaskCard = memo(function TaskCard({ t, events, onOpen, onToggle }: 
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontFamily: 'Jua, sans-serif',
+            fontFamily: 'var(--font-main)',
             fontSize: 17,
             color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
             textDecoration: t.completed ? 'line-through' : 'none',
@@ -94,7 +94,7 @@ export const TaskCard = memo(function TaskCard({ t, events, onOpen, onToggle }: 
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <WhoBadge who={t.assignee} size="sm" />
             {t.category && (
-              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: 'var(--accent-soft)', color: 'var(--accent-deep)', fontFamily: 'Jua, sans-serif' }}>
+              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: 'var(--accent-soft)', color: 'var(--accent-deep)', fontFamily: 'var(--font-main)' }}>
                 {t.category}
               </span>
             )}
@@ -102,13 +102,13 @@ export const TaskCard = memo(function TaskCard({ t, events, onOpen, onToggle }: 
               <span style={{
                 fontSize: 11,
                 color: label.includes('지남') ? 'var(--peach-deep)' : label === '오늘' ? 'var(--mint-deep)' : 'var(--ink-mute)',
-                fontFamily: 'Gaegu, cursive'
+                fontFamily: 'var(--font-main)'
               }}>
                 · {label}
               </span>
             )}
             {commentCount > 0 && (
-              <span style={{ fontSize: 11, fontFamily: 'Gaegu, cursive', color: 'var(--accent)' }}>
+              <span style={{ fontSize: 11, fontFamily: 'var(--font-main)', color: 'var(--accent)' }}>
                 💬 {commentCount}
               </span>
             )}

@@ -60,7 +60,7 @@ export const BottomNav: React.FC = () => {
             >
               <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.emoji}</span>
               <span style={{
-                fontFamily: 'Jua, sans-serif',
+                fontFamily: 'var(--font-main)',
                 fontSize: 10,
                 letterSpacing: -0.3,
               }}>{tab.label}</span>

@@ -32,7 +32,7 @@ function ChatBubble({ m }: { m: ChatMessage }) {
           color: isMe ? '#fff' : 'var(--ink)',
           borderRadius: 18,
           padding: '10px 14px',
-          fontFamily: 'Gaegu, sans-serif',
+          fontFamily: 'var(--font-main)',
           fontSize: 15,
           lineHeight: 1.4,
           boxShadow: 'var(--shadow-soft)',
@@ -108,8 +108,8 @@ export function ChatPageClient() {
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)', animation: 'shine 3s linear infinite' }} />
           </div>
           <div>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20 }}>오리&amp;돌핀 코치</div>
-            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 12, color: 'var(--mint-deep)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 20 }}>오리&amp;돌핀 코치</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--mint-deep)', display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--mint-deep)', display: 'inline-block' }} /> 온라인 · 친근한 코치 모드
             </div>
           </div>
@@ -119,7 +119,7 @@ export function ChatPageClient() {
       {/* Messages */}
       <div ref={scrollRef} className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {messages.length === 0 && !loading && (
-          <p style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-mute)', textAlign: 'center', marginTop: 24 }}>코치한테 말을 걸어보세요 ✨</p>
+          <p style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-mute)', textAlign: 'center', marginTop: 24 }}>코치한테 말을 걸어보세요 ✨</p>
         )}
         {messages.map((m) => <ChatBubble key={m.id} m={m} />)}
         {loading && <TypingIndicator />}
@@ -129,7 +129,7 @@ export function ChatPageClient() {
       <div style={{ padding: '0 14px 4px' }}>
         <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
           {SUGGESTIONS.map((s) => (
-            <button key={s} onClick={() => sendMessage(s)} style={{ padding: '6px 12px', borderRadius: 100, border: '1px solid var(--accent-soft)', background: 'var(--card)', color: 'var(--accent-deep)', fontFamily: 'Jua, sans-serif', fontSize: 12, cursor: 'pointer', flexShrink: 0 }}>{s}</button>
+            <button key={s} onClick={() => sendMessage(s)} style={{ padding: '6px 12px', borderRadius: 100, border: '1px solid var(--accent-soft)', background: 'var(--card)', color: 'var(--accent-deep)', fontFamily: 'var(--font-main)', fontSize: 12, cursor: 'pointer', flexShrink: 0 }}>{s}</button>
           ))}
         </div>
       </div>
@@ -142,12 +142,12 @@ export function ChatPageClient() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage(input)}
             placeholder="코치한테 말 걸기..."
-            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'Gaegu, sans-serif', fontSize: 15, color: 'var(--ink)', padding: '6px 12px' }}
+            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-main)', fontSize: 15, color: 'var(--ink)', padding: '6px 12px' }}
           />
           <button
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || loading}
-            style={{ border: 'none', background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', borderRadius: 16, padding: '8px 14px', cursor: input.trim() && !loading ? 'pointer' : 'default', color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 14, opacity: input.trim() && !loading ? 1 : 0.5 }}
+            style={{ border: 'none', background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', borderRadius: 16, padding: '8px 14px', cursor: input.trim() && !loading ? 'pointer' : 'default', color: '#fff', fontFamily: 'var(--font-main)', fontSize: 14, opacity: input.trim() && !loading ? 1 : 0.5 }}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"><path d="M14 2L2 7l5 2 2 5z" /></svg>
           </button>

@@ -3,8 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --font-jua: 'Jua';
-  --font-gaegu: 'Gaegu';
+  --font-main: 'Nanum Gothic', sans-serif;
 
   --bg: #EAF4FB;
   --bg-deep: #D4ECF7;
@@ -68,6 +67,7 @@ html {
 html, body {
   margin: 0;
   min-height: 100%;
+  font-family: var(--font-main);
   background-color: var(--bg);
   color: var(--ink);
   transition: background-color 0.3s, color 0.3s;

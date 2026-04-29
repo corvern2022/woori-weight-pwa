@@ -22,7 +22,7 @@ function BackBtn() {
       style={{
         display: 'flex', alignItems: 'center', gap: 6,
         background: 'none', border: 'none', cursor: 'pointer',
-        fontFamily: 'Jua, sans-serif', fontSize: 15,
+        fontFamily: 'var(--font-main)', fontSize: 15,
         color: 'var(--accent-deep)', padding: 0,
       }}
     >
@@ -37,7 +37,7 @@ function BackBtn() {
 function SettingGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: 'var(--ink-soft)', padding: '0 6px 6px', letterSpacing: 0.5 }}>{title}</div>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)', padding: '0 6px 6px', letterSpacing: 0.5 }}>{title}</div>
       <div style={{ background: 'var(--card)', borderRadius: 20, boxShadow: 'var(--shadow-soft)', overflow: 'hidden' }}>{children}</div>
     </div>
   );
@@ -47,8 +47,8 @@ function SettingRow({ label, value, onToggle, hint }: { label: string; value: bo
   return (
     <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border)' }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 15 }}>{label}</div>
-        {hint && <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-soft)' }}>{hint}</div>}
+        <div style={{ fontFamily: 'var(--font-main)', fontSize: 15 }}>{label}</div>
+        {hint && <div style={{ fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-soft)' }}>{hint}</div>}
       </div>
       <button onClick={onToggle} style={{
         width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
@@ -76,7 +76,7 @@ function EditableRow({ label, value, unit, onSave }: { label: string; value: str
 
   return (
     <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
-      <div style={{ flex: 1, fontFamily: 'Jua, sans-serif', fontSize: 15 }}>{label}</div>
+      <div style={{ flex: 1, fontFamily: 'var(--font-main)', fontSize: 15 }}>{label}</div>
       {editing ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <input
@@ -85,18 +85,18 @@ function EditableRow({ label, value, unit, onSave }: { label: string; value: str
             onChange={e => setDraft(e.target.value)}
             style={{
               width: 70, padding: '4px 8px', borderRadius: 10, border: '1.5px solid var(--accent)',
-              fontFamily: 'Jua, sans-serif', fontSize: 15, textAlign: 'center',
+              fontFamily: 'var(--font-main)', fontSize: 15, textAlign: 'center',
               background: 'var(--bg)', color: 'var(--ink)', outline: 'none',
             }}
             autoFocus
           />
-          <span style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>{unit}</span>
-          <button onClick={handleSave} style={{ border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '4px 10px', fontFamily: 'Jua, sans-serif', fontSize: 13, cursor: 'pointer' }}>저장</button>
+          <span style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)' }}>{unit}</span>
+          <button onClick={handleSave} style={{ border: 'none', background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '4px 10px', fontFamily: 'var(--font-main)', fontSize: 13, cursor: 'pointer' }}>저장</button>
         </div>
       ) : (
         <button
           onClick={() => { setDraft(value); setEditing(true); }}
-          style={{ border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'Gaegu, cursive', fontSize: 14, color: 'var(--accent-deep)', display: 'flex', alignItems: 'center', gap: 4 }}
+          style={{ border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--accent-deep)', display: 'flex', alignItems: 'center', gap: 4 }}
         >
           {value}{unit} <span style={{ fontSize: 12 }}>✏️</span>
         </button>
@@ -150,7 +150,7 @@ export function SettingsPageClient() {
     <div style={{ width: '100%', height: '100%', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '54px 22px 10px' }}>
         <BackBtn />
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, letterSpacing: -0.5, marginTop: 4 }}>설정</div>
+        <div style={{ fontFamily: 'var(--font-main)', fontSize: 30, letterSpacing: -0.5, marginTop: 4 }}>설정</div>
       </div>
 
       <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '4px 18px 50px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -159,8 +159,8 @@ export function SettingsPageClient() {
           <Duck size={44} variant="strong" palette="yellow"/>
           <Dolphin size={48} variant="happy" palette="blue"/>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>창희 &amp; 하경</div>
-            <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 💞 시작일 2023.07.08</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 16 }}>창희 &amp; 하경</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)' }}>함께한 지 {days}일 💞 시작일 2023.07.08</div>
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export function SettingsPageClient() {
           <EditableRow label="🍺 주 음주 제한" value={drinkLimit} unit="회" onSave={v => { setDrinkLimit(v); saveGoal('drink_limit', v); }} />
         </SettingGroup>
 
-        <div style={{ textAlign: 'center', fontFamily: 'Gaegu, cursive', fontSize: 12, color: 'var(--ink-mute)', marginTop: 10 }}>
+        <div style={{ textAlign: 'center', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-mute)', marginTop: 10 }}>
           오리 레인저 v1.0 · made with 🩵
         </div>
       </div>

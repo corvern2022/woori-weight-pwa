@@ -96,9 +96,9 @@ function BigCard({
           </svg>
         )}
       </div>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17 }}>{title}</div>
-      {count !== "" && <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 30, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>}
-      {subtitle !== "" && <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 14, color: 'var(--ink-soft)', marginTop: 4 }}>{subtitle}</div>}
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 17 }}>{title}</div>
+      {count !== "" && <div style={{ fontFamily: 'var(--font-main)', fontSize: 30, color: colorDeep, lineHeight: 1.1, marginTop: 2 }}>{count}</div>}
+      {subtitle !== "" && <div style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--ink-soft)', marginTop: 4 }}>{subtitle}</div>}
     </button>
   )
 }
@@ -164,7 +164,7 @@ function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; to
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontFamily: 'Jua, sans-serif',
+            fontFamily: 'var(--font-main)',
             fontSize: 14,
             color: t.completed ? 'var(--ink-mute)' : 'var(--ink)',
             textDecoration: t.completed ? 'line-through' : 'none',
@@ -176,11 +176,11 @@ function TinyTask({ t, onToggle, todayStr }: { t: Task; onToggle: () => void; to
           {t.title}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
-          <span style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 11, color: 'var(--ink-soft)' }}>{whoEmoji} {t.assignee}</span>
+          <span style={{ fontFamily: 'var(--font-main)', fontSize: 11, color: 'var(--ink-soft)' }}>{whoEmoji} {t.assignee}</span>
           {chip && (
             <span style={{
               fontSize: 11, padding: '1px 6px', borderRadius: 6,
-              fontFamily: 'Gaegu, sans-serif',
+              fontFamily: 'var(--font-main)',
               background: chip.bg, color: chip.color,
             }}>{chip.label}</span>
           )}
@@ -245,7 +245,7 @@ function DockBtn({ onClick, icon, label }: { onClick: () => void; icon: 'chat' |
           </svg>
         )}
       </div>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>{label}</div>
     </button>
   )
 }
@@ -259,10 +259,10 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
       alignItems: 'center', justifyContent: 'center', gap: 0, padding: '0 24px',
     }}>
       <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
-      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 26, color: 'var(--ink)', marginBottom: 6, textAlign: 'center' }}>
         오리 레인저
       </div>
-      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 17, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 17, color: 'var(--ink-mute)', marginBottom: 48, textAlign: 'center' }}>
         나는 누구인가요?
       </div>
 
@@ -283,7 +283,7 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
           }}
         >
           <Duck size={90} variant="strong" palette="yellow" />
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20, color: 'var(--duck-deep)' }}>창희 🦆</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 20, color: 'var(--duck-deep)' }}>창희 🦆</div>
         </button>
 
         {/* 하경 */}
@@ -302,11 +302,11 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
           }}
         >
           <Dolphin size={90} variant="happy" palette="blue" />
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 20, color: 'var(--accent-deep)' }}>하경 🐬</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 20, color: 'var(--accent-deep)' }}>하경 🐬</div>
         </button>
       </div>
 
-      <div style={{ fontFamily: 'Gaegu, cursive', fontSize: 13, color: 'var(--ink-mute)', marginTop: 32, textAlign: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-mute)', marginTop: 32, textAlign: 'center' }}>
         한 번만 선택하면 기억할게요 💾
       </div>
     </div>
@@ -448,7 +448,7 @@ export default function HomePage() {
       <div style={{ padding: '14px 22px 0', position: 'relative', zIndex: 2 }}>
         {/* Weather row + D-day badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--ink-soft)', fontFamily: 'Jua, sans-serif' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--ink-soft)', fontFamily: 'var(--font-main)' }}>
             <span>{new Date().getMonth() + 1}월 {new Date().getDate()}일({['일','월','화','수','목','금','토'][new Date().getDay()]})</span>
             <span style={{ color: 'var(--border)' }}>·</span>
             <span>서울</span>
@@ -461,7 +461,7 @@ export default function HomePage() {
             background: 'linear-gradient(135deg, var(--peach), var(--pink))',
             borderRadius: 100,
             padding: '3px 12px',
-            fontFamily: 'Jua, sans-serif',
+            fontFamily: 'var(--font-main)',
             fontSize: 13,
             color: '#fff',
             boxShadow: 'var(--shadow-soft)',
@@ -470,7 +470,7 @@ export default function HomePage() {
             💞 D+{Math.floor((new Date().setHours(0,0,0,0) - new Date('2023-07-08').setHours(0,0,0,0)) / 86400000)}
           </div>
         </div>
-        <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
+        <div style={{ fontFamily: 'var(--font-main)', fontSize: 28, lineHeight: 1.2, letterSpacing: -0.5, marginTop: 4 }}>
           <span style={{ color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             오리 레인저
             {/* 파워레인저 헬멧 쓴 오리 SVG */}
@@ -504,7 +504,7 @@ export default function HomePage() {
           {duckMood && (
             <div style={{
               background: 'var(--duck-soft)', border: '1.5px solid var(--duck)', borderRadius: '14px 14px 14px 4px',
-              padding: '5px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12, color: 'var(--duck-deep)',
+              padding: '5px 10px', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--duck-deep)',
               maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap',
             }}>
               {duckMood.emoji} {duckMood.text || ''}
@@ -520,7 +520,7 @@ export default function HomePage() {
           {dolphinMood && (
             <div style={{
               background: 'var(--dolphin-soft)', border: '1.5px solid var(--dolphin)', borderRadius: '14px 14px 4px 14px',
-              padding: '5px 10px', fontFamily: 'Jua, sans-serif', fontSize: 12, color: 'var(--accent-deep)',
+              padding: '5px 10px', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--accent-deep)',
               maxWidth: 100, wordBreak: 'keep-all', lineHeight: 1.3, whiteSpace: 'pre-wrap', textAlign: 'right',
             }}>
               {dolphinMood.emoji} {dolphinMood.text || ''}
@@ -543,7 +543,7 @@ export default function HomePage() {
       {moodModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setMoodModal(false)}>
           <div style={{ background: 'var(--card)', borderRadius: '24px 24px 0 0', padding: '20px 20px 40px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 17, marginBottom: 14, textAlign: 'center' }}>
               {moodTarget === 'duck' ? '🦆 창희' : '🐬 하경'} 오늘 기분은?
             </div>
             {/* 감정 칩 선택 */}
@@ -565,7 +565,7 @@ export default function HomePage() {
                   >
                     <span style={{ fontSize: 22, lineHeight: 1 }}>{m.emoji}</span>
                     <span style={{
-                      fontFamily: 'Jua, sans-serif', fontSize: 15,
+                      fontFamily: 'var(--font-main)', fontSize: 15,
                       color: selected ? m.color : 'var(--ink-mute)',
                       fontWeight: selected ? 700 : 400,
                     }}>{m.label}</span>
@@ -580,9 +580,9 @@ export default function HomePage() {
               onKeyDown={e => e.key === 'Enter' && saveMood()}
               placeholder="한 줄 메시지 (선택)"
               maxLength={20}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14, border: '2px solid var(--accent-soft)', fontFamily: 'Jua, sans-serif', fontSize: 15, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12 }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderRadius: 14, border: '2px solid var(--accent-soft)', fontFamily: 'var(--font-main)', fontSize: 15, background: 'var(--bg)', color: 'var(--ink)', outline: 'none', marginBottom: 12 }}
             />
-            <button onClick={saveMood} style={{ width: '100%', padding: '12px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'Jua, sans-serif', fontSize: 16, cursor: 'pointer' }}>
+            <button onClick={saveMood} style={{ width: '100%', padding: '12px 0', border: 'none', borderRadius: 16, background: 'linear-gradient(135deg, var(--accent), var(--accent-deep))', color: '#fff', fontFamily: 'var(--font-main)', fontSize: 16, cursor: 'pointer' }}>
               저장하기 {moodEmoji}
             </button>
           </div>
@@ -617,16 +617,16 @@ export default function HomePage() {
       <div style={{ padding: '10px 18px 0' }}>
         <div style={{ background: 'var(--card)', borderRadius: 24, padding: 16, boxShadow: 'var(--shadow-soft)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 16 }}>{sectionTitle()}</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 16 }}>{sectionTitle()}</div>
             <button
               onClick={() => router.push('/tasks')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--accent)' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--accent)' }}
             >
               전체 보기 →
             </button>
           </div>
           {tasks.length === 0 && (
-            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 14, color: 'var(--ink-mute)', textAlign: 'center', padding: '12px 0' }}>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--ink-mute)', textAlign: 'center', padding: '12px 0' }}>
               할 일이 없어요 🎉
             </div>
           )}

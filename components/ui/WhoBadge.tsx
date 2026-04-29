@@ -30,7 +30,7 @@ export const WhoBadge: React.FC<WhoBadgeProps> = ({ who, size = 'md' }) => {
         fontSize,
         padding,
         borderRadius: 8,
-        fontFamily: 'Jua, sans-serif',
+        fontFamily: 'var(--font-main)',
         background: m.bg,
         color: m.fg,
       }}

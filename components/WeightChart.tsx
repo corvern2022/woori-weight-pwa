@@ -98,7 +98,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
         position: 'relative',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-          <span style={{ fontFamily: 'Jua, sans-serif', fontSize: 12, opacity: 0.75 }}>{titleLabel}</span>
+          <span style={{ fontFamily: 'var(--font-main)', fontSize: 12, opacity: 0.75 }}>{titleLabel}</span>
           <button
             onTouchEnd={(e) => { e.stopPropagation(); setDismissed(true); }}
             onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
@@ -122,7 +122,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
         {payload.map((entry, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: entry.color, display: 'inline-block', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'Gaegu, cursive', fontSize: 14 }}>
+            <span style={{ fontFamily: 'var(--font-main)', fontSize: 14 }}>
               {entry.name}: {entry.value == null ? '기록 없음' : `${Number(entry.value).toFixed(1)}kg`}
             </span>
           </div>

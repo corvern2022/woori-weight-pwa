@@ -155,11 +155,11 @@ export function DrinkPageClient() {
       {/* Header */}
       <div style={{ padding: '54px 22px 10px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 28, letterSpacing: -0.5 }}>음주 캘린더 🍺</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 28, letterSpacing: -0.5 }}>음주 캘린더 🍺</div>
           {/* Month navigation */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <button onClick={goPrev} aria-label="이전 달" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--ink-soft)', padding: '10px 12px', lineHeight: 1, minWidth: 44, minHeight: 44 }}>‹</button>
-            <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 13, color: 'var(--ink-soft)', minWidth: 72, textAlign: 'center' }}>{monthLabel}</div>
+            <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: 'var(--ink-soft)', minWidth: 72, textAlign: 'center' }}>{monthLabel}</div>
             <button onClick={goNext} aria-label="다음 달" disabled={isCurrentMonth} style={{ border: 'none', background: 'none', cursor: isCurrentMonth ? 'default' : 'pointer', fontSize: 22, color: isCurrentMonth ? 'var(--ink-mute)' : 'var(--ink-soft)', padding: '10px 12px', lineHeight: 1, minWidth: 44, minHeight: 44 }}>›</button>
           </div>
         </div>
@@ -168,16 +168,16 @@ export function DrinkPageClient() {
       {/* Stats cards */}
       <div style={{ padding: '6px 18px 10px', display: 'flex', gap: 8 }}>
         <div style={{ flex: 1, background: 'var(--duck-soft)', borderRadius: 18, padding: 10 }}>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>🦆 창희</div>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, color: 'var(--duck-deep)', lineHeight: 1 }}>{duckCount}일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>🦆 창희</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, color: 'var(--duck-deep)', lineHeight: 1 }}>{duckCount}일</div>
         </div>
         <div style={{ flex: 1, background: 'var(--dolphin-soft)', borderRadius: 18, padding: 10 }}>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>🐬 하경</div>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, color: 'var(--accent-deep)', lineHeight: 1 }}>{dolphinCount}일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>🐬 하경</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, color: 'var(--accent-deep)', lineHeight: 1 }}>{dolphinCount}일</div>
         </div>
         <div style={{ flex: 1, background: 'linear-gradient(135deg, var(--pink), var(--peach))', borderRadius: 18, padding: 10, color: 'var(--ink)' }}>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 11 }}>💞 같이</div>
-          <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 22, lineHeight: 1 }}>{bothCount}일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>💞 같이</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, lineHeight: 1 }}>{bothCount}일</div>
         </div>
       </div>
 
@@ -194,7 +194,7 @@ export function DrinkPageClient() {
             <div style={{ background: 'var(--card)', borderRadius: 22, padding: 14, boxShadow: 'var(--shadow-soft)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 6 }}>
                 {['월', '화', '수', '목', '금', '토', '일'].map((d, i) => (
-                  <div key={d} style={{ textAlign: 'center', fontFamily: 'Jua, sans-serif', fontSize: 11, color: i >= 5 ? 'var(--peach-deep)' : 'var(--ink-mute)', padding: '2px 0' }}>{d}</div>
+                  <div key={d} style={{ textAlign: 'center', fontFamily: 'var(--font-main)', fontSize: 11, color: i >= 5 ? 'var(--peach-deep)' : 'var(--ink-mute)', padding: '2px 0' }}>{d}</div>
                 ))}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
@@ -226,7 +226,7 @@ export function DrinkPageClient() {
                         }
                       }}
                     >
-                      <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
+                      <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
                       <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
                         {duckDrank && <div style={{ width: 7, height: 7, borderRadius: 4, background: 'var(--duck-deep)' }} />}
                         {dolphinDrank && <div style={{ width: 7, height: 7, borderRadius: 4, background: 'var(--accent-deep)' }} />}
@@ -235,7 +235,7 @@ export function DrinkPageClient() {
                   );
                 })}
               </div>
-              <div style={{ display: 'flex', gap: 12, padding: '10px 4px 0', fontFamily: 'Gaegu, sans-serif', fontSize: 12, color: 'var(--ink-soft)' }}>
+              <div style={{ display: 'flex', gap: 12, padding: '10px 4px 0', fontFamily: 'var(--font-main)', fontSize: 12, color: 'var(--ink-soft)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--duck-deep)' }} /> 창희
                 </div>
@@ -247,8 +247,8 @@ export function DrinkPageClient() {
 
             {/* Coach comment */}
             <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, marginTop: 12, boxShadow: 'var(--shadow-soft)' }}>
-              <div style={{ fontFamily: 'Jua, sans-serif', fontSize: 15, marginBottom: 6 }}>💡 코치 한 마디</div>
-              <div style={{ fontFamily: 'Gaegu, sans-serif', fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              <div style={{ fontFamily: 'var(--font-main)', fontSize: 15, marginBottom: 6 }}>💡 코치 한 마디</div>
+              <div style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
                 이번 달 둘이 같이 마신 날이 {bothCount}일! 같이 마시는 게 훨씬 즐겁지만, 주 2회 이내로 유지해보자 🌊
               </div>
             </div>

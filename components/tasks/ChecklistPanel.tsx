@@ -78,9 +78,9 @@ export function ChecklistPanel({ taskId, items, onAdd, onToggle, onUpdate, onDel
               >
                 {item.done && <span style={{ color: '#fff', fontSize: 10, lineHeight: 1 }}>✓</span>}
               </button>
-              <span style={{ flex: 1, textDecoration: item.done ? 'line-through' : 'none', color: item.done ? 'var(--ink-mute)' : 'var(--ink)', fontFamily: 'Gaegu, sans-serif', fontSize: 14 }}>{item.content}</span>
+              <span style={{ flex: 1, textDecoration: item.done ? 'line-through' : 'none', color: item.done ? 'var(--ink-mute)' : 'var(--ink)', fontFamily: 'var(--font-main)', fontSize: 14 }}>{item.content}</span>
               {item.due_date && item.due_date !== CHECKLIST_NO_DUE_SENTINEL && (
-                <span style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'Gaegu, sans-serif' }}>{item.due_date}</span>
+                <span style={{ fontSize: 11, color: 'var(--ink-mute)', fontFamily: 'var(--font-main)' }}>{item.due_date}</span>
               )}
               <button style={{ fontSize: 11, color: 'var(--ink-mute)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => startEdit(item)}>수정</button>
               <button style={{ fontSize: 11, color: 'var(--peach-deep)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => onDelete(item.id)}>✕</button>
@@ -102,7 +102,7 @@ export function ChecklistPanel({ taskId, items, onAdd, onToggle, onUpdate, onDel
           value={newDue}
           onChange={(e) => setNewDue(e.target.value)}
         />
-        <button type="submit" style={{ background: 'var(--accent-soft)', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 13, color: 'var(--accent-deep)', cursor: 'pointer', fontFamily: 'Jua, sans-serif' }}>+</button>
+        <button type="submit" style={{ background: 'var(--accent-soft)', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 13, color: 'var(--accent-deep)', cursor: 'pointer', fontFamily: 'var(--font-main)' }}>+</button>
       </form>
     </div>
   );
