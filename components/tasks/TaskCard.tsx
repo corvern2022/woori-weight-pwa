@@ -94,13 +94,13 @@ export const TaskCard = memo(function TaskCard({ t, events, onOpen, onToggle }: 
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <WhoBadge who={t.assignee} size="sm" />
             {t.category && (
-              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: 'var(--accent-soft)', color: 'var(--accent-deep)', fontFamily: 'var(--font-main)' }}>
+              <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 8, background: 'var(--accent-soft)', color: 'var(--accent-deep)', fontFamily: 'var(--font-main)' }}>
                 {t.category}
               </span>
             )}
             {label && (
               <span style={{
-                fontSize: 11,
+                fontSize: 12,
                 color: label.includes('지남') ? 'var(--peach-deep)' : label === '오늘' ? 'var(--mint-deep)' : 'var(--ink-mute)',
                 fontFamily: 'var(--font-main)'
               }}>
@@ -108,7 +108,7 @@ export const TaskCard = memo(function TaskCard({ t, events, onOpen, onToggle }: 
               </span>
             )}
             {commentCount > 0 && (
-              <span style={{ fontSize: 11, fontFamily: 'var(--font-main)', color: 'var(--accent)' }}>
+              <span style={{ fontSize: 12, fontFamily: 'var(--font-main)', color: 'var(--accent)' }}>
                 💬 {commentCount}
               </span>
             )}

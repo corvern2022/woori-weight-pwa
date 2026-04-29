@@ -79,6 +79,11 @@ button {
   touch-action: manipulation;
   cursor: pointer;
 }
+button:active {
+  opacity: 0.75;
+  transform: scale(0.97);
+  transition: opacity 0.05s, transform 0.05s;
+}
 a { -webkit-tap-highlight-color: transparent; }
 
 .safe-top    { padding-top: env(safe-area-inset-top); }
