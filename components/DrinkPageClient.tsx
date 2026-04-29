@@ -23,6 +23,7 @@ export function DrinkPageClient() {
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [rows, setRows] = useState<WeighInRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [householdId, setHouseholdId] = useState<string | null>(null);
 
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
@@ -50,6 +51,7 @@ export function DrinkPageClient() {
         setMembers(safeMembers.map((m) => ({ user_id: m.user_id, display_name: m.display_name })));
 
         const hid = safeMembers[0]?.household_id ?? null;
+        setHouseholdId(hid);
         if (!hid) { setRows([]); return; }
 
         const monthStart = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-01`;
@@ -118,7 +120,7 @@ export function DrinkPageClient() {
   }
 
   async function toggleDrink(userId: string | undefined, date: Date) {
-    if (!userId) return;
+    if (!userId || !householdId) return;
     const ds = toSeoulISODate(date);
     const existing = rows.find((r) => r.user_id === userId && r.date === ds);
     const newVal = !(existing?.drank ?? false);
@@ -136,7 +138,7 @@ export function DrinkPageClient() {
       const res = await supabase.from('weigh_ins').update({ drank: newVal }).eq('user_id', userId).eq('date', ds);
       error = res.error;
     } else {
-      const res = await supabase.from('weigh_ins').upsert([{ user_id: userId, date: ds, weight_kg: 0, drank: true }], { onConflict: 'user_id,date' });
+      const res = await supabase.from('weigh_ins').upsert([{ household_id: householdId, user_id: userId, date: ds, weight_kg: 0, drank: true }], { onConflict: 'user_id,date' });
       error = res.error;
     }
 
