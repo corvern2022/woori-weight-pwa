@@ -270,20 +270,15 @@ function WeightEntryForm({
   ];
 
   return (
-    /* zIndex 60 — above BottomNav (50) so it covers it fully */
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', zIndex: 60 }}>
-
+    <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)' }}>
       {/* Header */}
-      <div style={{ padding: '54px 22px 12px', flexShrink: 0 }}>
+      <div style={{ padding: '54px 22px 12px' }}>
         <BackBtn label="체중" onClick={onBack} />
         <div style={{ fontFamily: 'var(--font-main)', fontWeight: 800, fontSize: 26, letterSpacing: -0.5, marginTop: 6 }}>체중 기록 ⚖️</div>
       </div>
 
-      {/* Scrollable body */}
-      <div
-        className="no-scrollbar"
-        style={{ flex: 1, overflowY: 'auto', padding: '0 18px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}
-      >
+      <div style={{ padding: '0 18px', paddingBottom: 'calc(90px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
         {/* ─ 누구 ─ */}
         <div>
           <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13, color: 'var(--ink-soft)', marginBottom: 8 }}>누구?</div>
@@ -311,25 +306,20 @@ function WeightEntryForm({
         <div>
           <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13, color: 'var(--ink-soft)', marginBottom: 8 }}>날짜</div>
 
-          {/* Current date display — tap to open native picker */}
-          <label style={{ display: 'block', position: 'relative', marginBottom: 10 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--card)', borderRadius: 16, padding: '14px 16px',
-              boxShadow: 'var(--shadow-soft)',
-            }}>
-              <span style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 17, color: 'var(--ink)', letterSpacing: -0.3 }}>
-                📅 {dateLabelFull}
-              </span>
-            </div>
-            <input
-              type="date"
-              value={date}
-              max={todayStr}
-              onChange={e => { if (e.target.value) setDate(e.target.value); }}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
-            />
-          </label>
+          {/* 네이티브 date input — 직접 수정 가능 */}
+          <input
+            type="date"
+            value={date}
+            max={todayStr}
+            onChange={e => { if (e.target.value) setDate(e.target.value); }}
+            className="date-input"
+            style={{
+              width: '100%', borderRadius: 16, border: '1.5px solid var(--border)',
+              fontFamily: 'var(--font-main)', fontWeight: 600, fontSize: 16,
+              padding: '0 16px', boxSizing: 'border-box', outline: 'none',
+              marginBottom: 10,
+            }}
+          />
 
           {/* 3 preset buttons */}
           <div style={{ display: 'flex', gap: 8 }}>
@@ -365,13 +355,10 @@ function WeightEntryForm({
         <div>
           <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 13, color: 'var(--ink-soft)', marginBottom: 8 }}>몸무게</div>
           <div style={{ background: 'var(--card)', borderRadius: 22, padding: '14px 16px', boxShadow: 'var(--shadow-soft)', display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* − */}
             <button
               onClick={() => { const next = +(Math.max(20, val - 0.1).toFixed(1)); setVal(next); setRawInput(String(next)); }}
               style={{ width: 54, height: 54, borderRadius: 27, border: 'none', background: 'var(--bg-deep)', color: 'var(--ink)', fontSize: 28, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 300 }}
             >−</button>
-
-            {/* 숫자 — 탭하면 직접 입력 */}
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
               <input
                 type="number"
@@ -380,9 +367,7 @@ function WeightEntryForm({
                 onChange={e => handleWeightInput(e.target.value)}
                 onBlur={handleWeightBlur}
                 onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                min={20}
-                max={200}
-                step={0.1}
+                min={20} max={200} step={0.1}
                 style={{
                   width: 120, height: 64, textAlign: 'center',
                   border: 'none', outline: 'none', background: 'transparent',
@@ -393,8 +378,6 @@ function WeightEntryForm({
               />
               <span style={{ fontFamily: 'var(--font-main)', fontWeight: 600, fontSize: 18, color: 'var(--ink-mute)', paddingTop: 16 }}>kg</span>
             </div>
-
-            {/* + */}
             <button
               onClick={() => { const next = +(Math.min(200, val + 0.1).toFixed(1)); setVal(next); setRawInput(String(next)); }}
               style={{ width: 54, height: 54, borderRadius: 27, border: 'none', background: 'var(--bg-deep)', color: 'var(--ink)', fontSize: 28, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 300 }}
@@ -402,7 +385,7 @@ function WeightEntryForm({
           </div>
         </div>
 
-        {/* ─ 저장 버튼 — 무게 섹션 바로 아래 ─ */}
+        {/* ─ 저장 버튼 ─ */}
         <button
           onClick={handleSave}
           disabled={saveState !== 'idle'}
