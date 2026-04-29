@@ -70,11 +70,12 @@ export function useWeights() {
       setDuckId(resolvedDuckId);
       setDolphinId(resolvedDolphinId);
 
+      // Filter out drink-only rows (weight_kg = 0) so they don't appear on the weight chart
       const duckRaw = rows
-        .filter(r => r.user_id === resolvedDuckId)
+        .filter(r => r.user_id === resolvedDuckId && r.weight_kg > 0)
         .map(r => ({ date: r.date, kg: r.weight_kg }));
       const dolphinRaw = rows
-        .filter(r => r.user_id === resolvedDolphinId)
+        .filter(r => r.user_id === resolvedDolphinId && r.weight_kg > 0)
         .map(r => ({ date: r.date, kg: r.weight_kg }));
 
       setDuckEntries(duckRaw.slice(-30));
@@ -109,6 +110,10 @@ export function useWeights() {
       );
     } else if (!uid) {
       setToast("유저 정보가 없어요. 잠시 후 다시 시도해주세요 😢");
+      setTimeout(() => setToast(null), 3000);
+      return;
+    } else if (!householdId) {
+      setToast("가구 정보를 불러오지 못했어요. 새로고침 후 다시 시도해주세요 😢");
       setTimeout(() => setToast(null), 3000);
       return;
     }

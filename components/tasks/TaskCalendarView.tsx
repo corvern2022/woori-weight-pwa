@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Task } from "./types";
+import { toSeoulISODate } from "@/lib/date";
 
 type Props = {
   tasks: Task[];
@@ -26,11 +27,12 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(
-    today.toISOString().slice(0, 10)
+    toSeoulISODate(today)
   );
+  const [showCompleted, setShowCompleted] = useState(true);
 
   const grid = buildMonthGrid(viewYear, viewMonth);
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = toSeoulISODate(today);
 
   const tasksByDate = useMemo(() => {
     const map: Record<string, Task[]> = {};
@@ -44,7 +46,8 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
   }, [tasks]);
 
   const noDateTasks = tasks.filter(t => !t.due_date && !t.completed);
-  const selectedTasks = selectedDate ? (tasksByDate[selectedDate] ?? []) : [];
+  const selectedTasksAll = selectedDate ? (tasksByDate[selectedDate] ?? []) : [];
+  const selectedTasks = showCompleted ? selectedTasksAll : selectedTasksAll.filter(t => !t.completed);
 
   function goPrev() {
     if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
@@ -56,7 +59,7 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
   }
 
   function dateStr(d: Date): string {
-    return d.toISOString().slice(0, 10);
+    return toSeoulISODate(d);
   }
 
   return (
@@ -67,8 +70,19 @@ export function TaskCalendarView({ tasks, onTaskClick, onToggle }: Props) {
           onClick={goPrev}
           style={{ minWidth: 44, minHeight: 44, border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >‹</button>
-        <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 16 }}>
-          {viewYear}년 {viewMonth + 1}월
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: 'var(--font-main)', fontWeight: 700, fontSize: 16 }}>
+            {viewYear}년 {viewMonth + 1}월
+          </div>
+          <button
+            onClick={() => setShowCompleted(v => !v)}
+            style={{
+              fontSize: 11, fontFamily: 'var(--font-main)', border: 'none', cursor: 'pointer', borderRadius: 100,
+              background: showCompleted ? 'var(--accent-soft)' : 'var(--bg-deep)',
+              color: showCompleted ? 'var(--accent-deep)' : 'var(--ink-mute)',
+              padding: '3px 9px', lineHeight: 1.4,
+            }}
+          >{showCompleted ? '완료 포함' : '미완료만'}</button>
         </div>
         <button
           onClick={goNext}

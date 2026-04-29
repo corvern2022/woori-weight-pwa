@@ -55,7 +55,9 @@ export function DrinkPageClient() {
         if (!hid) { setRows([]); return; }
 
         const monthStart = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-01`;
-        const monthEnd = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-31`;
+        // Last day of month by rolling to day 0 of next month
+        const lastDay = new Date(viewYear, viewMonth + 1, 0).getDate();
+        const monthEnd = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
         const { data: weighRows, error: weighError } = await supabase
           .from('weigh_ins')
@@ -143,10 +145,10 @@ export function DrinkPageClient() {
     }
 
     if (error) {
-      // Rollback
+      // Rollback — always restore original row state regardless of drank value
       setRows((prev) => {
         const next = prev.filter((r) => !(r.user_id === userId && r.date === ds));
-        if (existing?.drank) next.push({ date: ds, user_id: userId, weight_kg: existing.weight_kg ?? 0, drank: true });
+        if (existing) next.push({ date: ds, user_id: userId, weight_kg: existing.weight_kg ?? 0, drank: existing.drank });
         return next;
       });
     }
@@ -171,15 +173,15 @@ export function DrinkPageClient() {
       <div style={{ padding: '6px 18px 10px', display: 'flex', gap: 8 }}>
         <div style={{ flex: 1, background: 'var(--duck-soft)', borderRadius: 18, padding: 10 }}>
           <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>🦆 창희</div>
-          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, color: 'var(--duck-deep)', lineHeight: 1 }}>{duckCount}일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, color: 'var(--duck-deep)', lineHeight: 1 }}>{loading ? '—' : `${duckCount}일`}</div>
         </div>
         <div style={{ flex: 1, background: 'var(--dolphin-soft)', borderRadius: 18, padding: 10 }}>
           <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>🐬 하경</div>
-          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, color: 'var(--accent-deep)', lineHeight: 1 }}>{dolphinCount}일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, color: 'var(--accent-deep)', lineHeight: 1 }}>{loading ? '—' : `${dolphinCount}일`}</div>
         </div>
         <div style={{ flex: 1, background: 'linear-gradient(135deg, var(--pink), var(--peach))', borderRadius: 18, padding: 10, color: 'var(--ink)' }}>
           <div style={{ fontFamily: 'var(--font-main)', fontSize: 11 }}>💞 같이</div>
-          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, lineHeight: 1 }}>{bothCount}일</div>
+          <div style={{ fontFamily: 'var(--font-main)', fontSize: 22, lineHeight: 1 }}>{loading ? '—' : `${bothCount}일`}</div>
         </div>
       </div>
 
@@ -208,24 +210,15 @@ export function DrinkPageClient() {
                   const isToday = ds === todayStr;
                   const isFuture = ds > todayStr;
                   return (
-                    <div
+                    <button
                       key={i}
-                      role={isFuture ? undefined : 'button'}
-                      aria-label={isFuture ? undefined : `${d.getDate()}일 ${duckDrank ? '창희 음주 ' : ''}${dolphinDrank ? '하경 음주' : ''}`}
-                      tabIndex={isFuture ? undefined : 0}
+                      aria-label={`${d.getDate()}일 ${duckDrank ? '창희 음주 ' : ''}${dolphinDrank ? '하경 음주' : ''}`}
+                      disabled={isFuture}
                       style={{ aspectRatio: '1', borderRadius: 10, border: isToday ? '2px solid var(--accent)' : '1.5px solid transparent', background: duckDrank || dolphinDrank ? 'var(--duck-soft)' : 'var(--card-alt)', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isFuture ? 'default' : 'pointer', opacity: isFuture ? 0.4 : 1 }}
                       onClick={() => {
                         if (isFuture) return;
                         const myMember = actor === '창희' ? duckMember : dolphinMember;
                         void toggleDrink(myMember?.user_id, d);
-                      }}
-                      onKeyDown={(e) => {
-                        if (isFuture) return;
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          const myMember = actor === '창희' ? duckMember : dolphinMember;
-                          void toggleDrink(myMember?.user_id, d);
-                        }
                       }}
                     >
                       <div style={{ fontFamily: 'var(--font-main)', fontSize: 13, color: isToday ? 'var(--accent-deep)' : 'var(--ink)' }}>{d.getDate()}</div>
@@ -233,7 +226,7 @@ export function DrinkPageClient() {
                         {duckDrank && <div style={{ width: 7, height: 7, borderRadius: 4, background: 'var(--duck-deep)' }} />}
                         {dolphinDrank && <div style={{ width: 7, height: 7, borderRadius: 4, background: 'var(--accent-deep)' }} />}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -251,7 +244,9 @@ export function DrinkPageClient() {
             <div style={{ background: 'var(--card)', borderRadius: 22, padding: 16, marginTop: 12, boxShadow: 'var(--shadow-soft)' }}>
               <div style={{ fontFamily: 'var(--font-main)', fontSize: 15, marginBottom: 6 }}>💡 코치 한 마디</div>
               <div style={{ fontFamily: 'var(--font-main)', fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
-                이번 달 둘이 같이 마신 날이 {bothCount}일! 같이 마시는 게 훨씬 즐겁지만, 주 2회 이내로 유지해보자 🌊
+                {bothCount === 0
+                  ? '이번 달 아직 같이 마신 날이 없어요! 건강하게 보내고 있네요 🌿'
+                  : `이번 달 둘이 같이 마신 날이 ${bothCount}일! 같이 마시는 게 훨씬 즐겁지만, 주 2회 이내로 유지해보자 🌊`}
               </div>
             </div>
           </>

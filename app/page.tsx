@@ -104,7 +104,6 @@ function BigCard({
 
 // ── OnboardingScreen ─────────────────────────────────────────────────────────
 function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') => void }) {
-  const [hovered, setHovered] = useState<'duck' | 'dolphin' | null>(null)
   return (
     <div style={{
       minHeight: '100svh', background: 'var(--bg)', display: 'flex', flexDirection: 'column',
@@ -120,17 +119,14 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
 
       <div style={{ display: 'flex', gap: 20, width: '100%', maxWidth: 340 }}>
         <button
-          onMouseEnter={() => setHovered('duck')}
-          onMouseLeave={() => setHovered(null)}
           onClick={() => onSelect('창희')}
           style={{
-            flex: 1, background: hovered === 'duck' ? 'var(--duck-soft)' : 'var(--card)',
-            border: `2.5px solid ${hovered === 'duck' ? 'var(--duck)' : 'transparent'}`,
+            flex: 1, background: 'var(--card)',
+            border: '2.5px solid transparent',
             borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-            boxShadow: hovered === 'duck' ? '0 8px 28px rgba(255,200,50,0.25)' : 'var(--shadow)',
-            transition: 'all 0.2s',
-            transform: hovered === 'duck' ? 'translateY(-4px)' : 'none',
+            boxShadow: 'var(--shadow)',
+            transition: 'all 0.15s',
           }}
         >
           <Duck size={90} variant="strong" palette="yellow" />
@@ -138,17 +134,14 @@ function OnboardingScreen({ onSelect }: { onSelect: (who: '창희' | '하경') =
         </button>
 
         <button
-          onMouseEnter={() => setHovered('dolphin')}
-          onMouseLeave={() => setHovered(null)}
           onClick={() => onSelect('하경')}
           style={{
-            flex: 1, background: hovered === 'dolphin' ? 'var(--dolphin-soft)' : 'var(--card)',
-            border: `2.5px solid ${hovered === 'dolphin' ? 'var(--dolphin)' : 'transparent'}`,
+            flex: 1, background: 'var(--card)',
+            border: '2.5px solid transparent',
             borderRadius: 28, padding: '28px 16px', cursor: 'pointer',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-            boxShadow: hovered === 'dolphin' ? '0 8px 28px rgba(99,163,253,0.25)' : 'var(--shadow)',
-            transition: 'all 0.2s',
-            transform: hovered === 'dolphin' ? 'translateY(-4px)' : 'none',
+            boxShadow: 'var(--shadow)',
+            transition: 'all 0.15s',
           }}
         >
           <Dolphin size={90} variant="happy" palette="blue" />
@@ -226,11 +219,15 @@ export default function HomePage() {
     const key = moodTarget === 'duck' ? 'mood_duck' : 'mood_dolphin'
     const moodLabel = MOODS.find(m => m.emoji === moodEmoji)?.label ?? ''
     const value: MoodState = { emoji: moodEmoji, text: moodDraft.trim() || moodLabel, updated_at: new Date().toISOString() }
-    await getSupabaseClient().from('app_config').upsert({ key, value, updated_at: new Date().toISOString() })
+    await getSupabaseClient().from('app_config').upsert(
+      { key, value, updated_at: new Date().toISOString() },
+      { onConflict: 'key' }
+    )
     if (moodTarget === 'duck') setDuckMood(value)
     else setDolphinMood(value)
     setMoodModal(false)
     setMoodDraft('')
+    setMoodEmoji('😊')
   }
 
   function handleOnboardingSelect(who: '창희' | '하경') {
@@ -388,7 +385,7 @@ export default function HomePage() {
                     onClick={() => setMoodEmoji(m.emoji)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
-                      padding: '8px 14px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                      padding: '8px 14px', minHeight: 44, borderRadius: 100, border: 'none', cursor: 'pointer',
                       background: selected ? m.bg : 'var(--bg)',
                       outline: selected ? `2px solid ${m.color}` : '2px solid transparent',
                       transition: 'all 0.15s',

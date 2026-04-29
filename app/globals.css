@@ -84,7 +84,15 @@ button:active {
   transform: scale(0.97);
   transition: opacity 0.05s, transform 0.05s;
 }
-a { -webkit-tap-highlight-color: transparent; }
+/* BottomNav uses <a> tags — needs same tap feedback as buttons */
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+a:active {
+  opacity: 0.75;
+  transform: scale(0.97);
+  transition: opacity 0.05s, transform 0.05s;
+}
 
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
@@ -123,6 +131,11 @@ a { -webkit-tap-highlight-color: transparent; }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
 }
 
 @keyframes confettiFly {

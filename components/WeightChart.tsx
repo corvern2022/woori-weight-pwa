@@ -142,7 +142,7 @@ export function WeightChart({ data, showPartner, meLabel, partnerLabel }: Props)
         >
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis dataKey="date" tickFormatter={labelDate} tick={{ fontSize: 11, fontFamily: 'var(--font-main)' }} interval={Math.max(0, Math.floor(data.length / 6))} />
-          <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 12 }} />
+          <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={{ fontSize: 12, fontFamily: 'var(--font-main)' }} />
           <Tooltip
             content={<CustomTooltipContent />}
             wrapperStyle={{ pointerEvents: 'auto', zIndex: 10 }}

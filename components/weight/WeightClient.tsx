@@ -62,8 +62,8 @@ export function WeightClient() {
         <div className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 18px 100px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Today cards */}
           <div style={{ display: 'flex', gap: 10 }}>
-            <TodayCard who="duck" entries={duckEntries} weights={duckWeights} />
-            <TodayCard who="dolphin" entries={dolphinEntries} weights={dolphinWeights} />
+            <TodayCard who="duck" entries={duckEntries} />
+            <TodayCard who="dolphin" entries={dolphinEntries} />
           </div>
 
           {/* Unified chart */}
@@ -142,9 +142,9 @@ export function WeightClient() {
   );
 }
 
-function TodayCard({ who, entries, weights }: { who: 'duck' | 'dolphin'; entries: WeightEntry[]; weights: number[] }) {
+function TodayCard({ who, entries }: { who: 'duck' | 'dolphin'; entries: WeightEntry[] }) {
   const latest = entries[entries.length - 1];
-  const prev = weights[weights.length - 2];
+  const prev = entries[entries.length - 2]?.kg ?? null;
   const delta = latest && prev != null ? (latest.kg - prev) : null;
   const bg = who === 'duck' ? 'var(--duck-soft)' : 'var(--dolphin-soft)';
   const col = who === 'duck' ? 'var(--duck-deep)' : 'var(--accent-deep)';
@@ -204,7 +204,7 @@ function WeightEntry({
   const [who, setWho] = useState<'duck' | 'dolphin'>('duck');
   const lastKg = (w: 'duck' | 'dolphin') => {
     const e = w === 'duck' ? duckEntries : dolphinEntries;
-    return e[e.length - 1]?.kg ?? 60;
+    return e[e.length - 1]?.kg ?? 70;
   };
   const [val, setVal] = useState(lastKg('duck'));
   const [date, setDate] = useState(todayStr);

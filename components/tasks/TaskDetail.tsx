@@ -190,6 +190,7 @@ export function TaskDetail({ taskId }: Props) {
   }
 
   async function deleteItem(itemId: string) {
+    if (!window.confirm('이 하위 아젠다를 삭제할까요?')) return;
     await getSupabaseClient().from("task_items").delete().eq("id", itemId);
     setItems(prev => prev.filter(i => i.id !== itemId));
   }
