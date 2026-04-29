@@ -21,8 +21,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <head>
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        {/* Pretendard — non-blocking: media print trick, swap to all after load */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"
+          media="print"
+          // @ts-expect-error onload is valid on link elements
+          onLoad="this.media='all'"
+        />
+        {/* Fallback if JS disabled */}
+        <noscript>
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" />
+        </noscript>
         <script dangerouslySetInnerHTML={{ __html:
           `(function(){try{if(localStorage.getItem('oriDark')==='1')document.documentElement.classList.add('dark')}catch(e){}})()`
         }} />
