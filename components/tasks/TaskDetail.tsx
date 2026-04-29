@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Task, TaskItem } from "./types";
 import { BackBtn, WhoBadge } from "@/components/ui";
 import { getSupabaseClient } from "@/lib/supabase";
+import { toSeoulISODate } from "@/lib/date";
 
 function dueLabel(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -35,7 +36,7 @@ function SubItem({
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(item.content);
   const [editDue, setEditDue] = useState(item.due_date ?? "");
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toSeoulISODate(new Date());
 
   function save() {
     if (!editContent.trim()) return;
