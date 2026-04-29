@@ -17,16 +17,7 @@ export function WeightClient() {
   const { duckWeights, dolphinWeights, duckEntries, dolphinEntries, duckGoal, dolphinGoal, loading, toast, addWeight } = useWeights();
   const [view, setView] = useState<View>('list');
 
-  if (view === 'entry') {
-    return <WeightEntryForm
-      duckEntries={duckEntries}
-      dolphinEntries={dolphinEntries}
-      onBack={() => setView('list')}
-      onSave={async (who, kg, date) => { await addWeight(who, kg, date); setView('list'); }}
-    />;
-  }
-
-  // Build unified ChartPoint[] from both entries (date union)
+  // ⚠️ useMemo MUST be before any conditional return (Rules of Hooks)
   const chartData = useMemo((): ChartPoint[] => {
     const dates = Array.from(new Set([
       ...duckEntries.map(e => e.date),
@@ -44,6 +35,15 @@ export function WeightClient() {
   }, [duckEntries, dolphinEntries]);
 
   void duckGoal; void dolphinGoal; // reserved for future goal line
+
+  if (view === 'entry') {
+    return <WeightEntryForm
+      duckEntries={duckEntries}
+      dolphinEntries={dolphinEntries}
+      onBack={() => setView('list')}
+      onSave={async (who, kg, date) => { await addWeight(who, kg, date); setView('list'); }}
+    />;
+  }
 
   return (
     <div style={{ width: '100%', minHeight: '100svh', background: 'var(--bg)', color: 'var(--ink)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
